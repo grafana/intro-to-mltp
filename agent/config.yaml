@@ -1,0 +1,56 @@
+server:
+  log_level: debug
+
+# Configures a log ingestion endpoint, used for the autologging feature.
+logs:
+    configs:
+    - name: loki
+      clients:
+        - url: http://loki:3100/loki/api/v1/push
+          external_labels:
+            job: agent
+    positions_directory: /tmp/positions
+
+# Configures a Tempo instance to receive traces from the microservices.
+traces:
+  configs:
+  - name: latencyEndpoint
+    # Receive Jaeger format traces on port 6832.
+    receivers:
+      jaeger:
+        protocols:
+          thrift_binary:
+            endpoint: "0.0.0.0:6832"
+    # Send batched traces to the Tempo instance.
+    remote_write:
+      - endpoint: tempo:55680
+        insecure: true
+    # Generate Prometheus metrics from the incoming trace spans.
+    spanmetrics:
+      # Add the http.target and http.method span tags as labels for the metrics data.
+      dimensions:
+        - name: http.method
+        - name: http.target
+      # Expose these metrics on port 12346.
+      handler_endpoint: 0.0.0.0:12346
+    # Generate logs automatically from incoming trace data.
+    automatic_logging:
+      # Use the logs instance defined at the start of the configuration file.
+      backend: logs_instance
+      logs_instance_name: loki
+      # Log one line per root span (ie. one per trace).
+      roots: true
+      processes: false
+      spans: false
+      # Add the http.method, http.target and http.status_code span tags to the log line,
+      # if present.
+      span_attributes:
+        - http.method
+        - http.target
+        - http.status_code
+      # Force the trace ID to be set as `traceId`.
+      overrides:
+        trace_id_key: "traceId"
+    # Enable service graphs.
+    service_graphs:
+      enabled: true
