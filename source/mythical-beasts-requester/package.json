@@ -19,6 +19,8 @@
     "@opentelemetry/sdk-trace-base": "^1.0.1",
     "@opentelemetry/sdk-trace-node": "^1.0.1",
     "@opentelemetry/semantic-conventions": "^1.0.1",
+    "express": "^4.17.3",
+    "prom-client": "github:voltbit/prom-client#add-openmetrics-support",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "unique-names-generator": "^4.6.0"

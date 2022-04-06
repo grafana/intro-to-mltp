@@ -3,13 +3,33 @@ const { api, tracer, propagator } = tracingUtils;
 const request = require('request-promise-native');
 const { uniqueNamesGenerator, adjectives, colors } = require('unique-names-generator');
 const logEntry = require('./logging')('mythical-requester', 'requester');
-const { nameSet, servicePrefix, spanTag }  = require('./endpoints')();
+const express = require('express');
+const promClient = require('prom-client');
+const { nameSet, servicePrefix, spanTag, accumulators }  = require('./endpoints')();
+
+// Prometheus client registration
+const app = express();
+const register = promClient.register;
+register.setContentType(promClient.Registry.OPENMETRICS_CONTENT_TYPE);
+
+// Status response bucket (histogram)
+const dangerGauge = new promClient.Gauge({
+    name: 'mythical_danger_level_30s',
+    help: 'Recent accumulated danger level over the past 30 seconds',
+});
+
+// Metrics endpoint handler (for Prometheus scraping)
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.send(await register.metrics());
+});
 
 // We just keep going, requesting names and adding them
 const makeRequest = async () => {
     const type = (Math.floor(Math.random() * 100) < 50) ? 'GET' : 'POST';
     const index = Math.floor(Math.random() * nameSet.length);
     const endpoint = nameSet[index];
+    const dangerLevel = accumulators[index];
     let headers = {};
     let error = false;
 
@@ -17,6 +37,9 @@ const makeRequest = async () => {
     const requestSpan = tracer.startSpan("requester", { kind: api.SpanKind.CLIENT });
     requestSpan.setAttribute(spanTag, endpoint);
     const { traceId } = requestSpan.spanContext();
+
+    // Increment the danger level on the gauge
+    dangerGauge.inc(dangerLevel);
 
     // Create a new context for this request
     api.context.with(api.trace.setSpan(api.context.active(), requestSpan), async () => {
@@ -129,7 +152,16 @@ const makeRequest = async () => {
     setTimeout(() => makeRequest(), nextReqIn);
 };
 
+// Kick off four requests that cycle at regular intervals
 setTimeout(() => makeRequest(), 5000);
 setTimeout(() => makeRequest(), 6000);
 setTimeout(() => makeRequest(), 7000);
 setTimeout(() => makeRequest(), 8000);
+
+// Ensure the danger gauge gets reset every minute
+setInterval(() => {
+    dangerGauge.set(0);
+}, 30000);
+
+// Listen to API connections for metrics scraping.
+app.listen(4001);

@@ -18,6 +18,14 @@ scrape_configs:
         labels:
           group: 'mythical'
 
+  # Scrape from the Mythical Requester service.
+  - job_name: 'mythical-requester'
+    scrape_interval: 2s
+    static_configs:
+      - targets: ['mythical-requester:4001']
+        labels:
+          group: 'mythical'
+
   # Scrape from the Node exporter, giving us resource usage.
   - job_name: 'node'
     scrape_interval: 5s

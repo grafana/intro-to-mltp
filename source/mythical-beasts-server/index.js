@@ -6,11 +6,7 @@ const { Client } = require('pg');
 const logEntry = require('./logging')('mythical-server', 'server');
 const { nameSet, servicePrefix, spanTag }  = require('./endpoints')();
 
-console.log(nameSet);
-console.log(servicePrefix);
-console.log(spanTag);
-
-// Prometheus
+// Prometheus client registration
 const app = express();
 const register = promClient.register;
 register.setContentType(promClient.Registry.OPENMETRICS_CONTENT_TYPE);
@@ -23,6 +19,7 @@ let teardownInProgress = false;
 app.use(bodyParser.json());
 let pgClient;
 
+// Database actions
 const Database = {
     GET: 0,
     POST: 1,
@@ -31,17 +28,18 @@ const Database = {
     CREATE: 4,
 };
 
-// Status response bucket
+// Status response bucket (histogram)
 const responseBucket = new promClient.Histogram({
     name: 'mythical_request_times',
-    help: 'mythical_request_times',
+    help: 'Response times for the endpoints',
     labelNames: ['method', 'status', spanTag],
     buckets: [1, 4, 8, 10, 20, 50, 100, 200, 500, 1000],
     enableExemplars: true,
 });
 
+// Database action function
 const databaseAction = async (action) => {
-    // What action?
+    // Which action?
     const span = api.trace.getSpan(api.context.active());
     span.setAttribute('span.kind', api.SpanKind.CLIENT);
     if (action.method === Database.GET) {
@@ -86,6 +84,7 @@ const databaseAction = async (action) => {
     throw new Error(`Not a valid ${spanTag} method!`);
 }
 
+// Response time bucket function (adds a Prometheus value)
 const responseMetric = (details) => {
     const timeMs = Date.now() - details.start;
     const spanContext = api.trace.getSpan(api.context.active()).spanContext();
@@ -99,6 +98,7 @@ const responseMetric = (details) => {
     });
 };
 
+// Metrics endpoint handler (for Prometheus scraping)
 app.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
     res.send(await register.metrics());
@@ -337,9 +337,6 @@ app.delete('/:endpoint', async (req, res) => {
 });
 
 // Destroy the DB table and recreate it
-// TODO - In future, we should really partial the express endpoints so the check
-//        for the table availability isn't in every single function. And then do
-//        the same thing for testing endpoint/method.
 const tableWipe = async () => {
     const requestSpan = tracer.startSpan("server");
     const { traceId } = requestSpan.spanContext();
@@ -390,6 +387,7 @@ const tableWipe = async () => {
     });
 };
 
+// Checks to see if there's a teardown in progress
 const teardownCheck = (details) => {
     const { spanContext, endpoint, method, res } = details;
     // If we're in the middle of a teardown, don't do anything.

@@ -58,6 +58,8 @@ services:
         SERVICE: mythical-beasts-requester
     depends_on:
       - mythical-server
+    ports:
+      - "4001:4001"
     environment:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
