@@ -3,7 +3,7 @@
 This is the companion repository to a series of presentations over the three pillars of
 observability within Grafana.
 
-Is is presented as a self-enclosed Docker sandbox that includes all of the components required to run on a local machine and experiement with the services provided.
+It is presented as a self-enclosed Docker sandbox that includes all of the components required to run on a local machine and experiment with the services provided.
 
 ## Prerequisites
 
