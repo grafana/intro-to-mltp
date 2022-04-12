@@ -31,8 +31,8 @@ traces:
       dimensions:
         - name: http.method
         - name: http.target
-      # Expose these metrics on port 12346.
-      handler_endpoint: 0.0.0.0:12346
+      # Expose these metrics on port 12348.
+      handler_endpoint: 0.0.0.0:12348
     # Generate logs automatically from incoming trace data.
     automatic_logging:
       # Use the logs instance defined at the start of the configuration file.
