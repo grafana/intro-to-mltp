@@ -6,18 +6,17 @@ services:
   # Grafana agent batches and processes traces sent to it, generating metrics
   # and auto-logs from those traces.
   agent:
-    image: grafana/agent:latest
+    image: grafana/agent:v0.24.0
     ports:
       - "12347:12345"
-      - "12346:12346"
+      - "12348:12348"
       - "6832:6832"
       - "55679:55679"
     volumes:
       - "${PWD}/agent/config.yaml:/etc/agent/agent.yaml"
     command: [
       "-config.file=/etc/agent/agent.yaml",
-      "-server.http-listen-address=0.0.0.0",
-      "-server.http-listen-port=12345"
+      "-server.http.address=0.0.0.0:12345",
     ]
 
   # The Grafana dashboarding server.

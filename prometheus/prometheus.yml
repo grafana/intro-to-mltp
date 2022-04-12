@@ -38,7 +38,7 @@ scrape_configs:
   - job_name: 'span-metrics'
     scrape_interval: 2s
     static_configs:
-      - targets: ['agent:12346']
+      - targets: ['agent:12348']
         labels:
           group: 'mythical'
 
