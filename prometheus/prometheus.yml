@@ -35,14 +35,6 @@ scrape_configs:
           group: 'resources'
 
   # Scrape from Grafana Agent, giving us metrics from traces it collects.
-  - job_name: 'span-metrics'
-    scrape_interval: 2s
-    static_configs:
-      - targets: ['agent:12348']
-        labels:
-          group: 'mythical'
-
-  # Scrape from Grafana Agent, giving us metrics from traces it collects.
   - job_name: 'agent-metrics'
     scrape_interval: 2s
     static_configs:
