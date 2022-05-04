@@ -34,7 +34,7 @@ const makeRequest = async () => {
     let error = false;
 
     // Create a new span
-    const requestSpan = tracer.startSpan("requester", { kind: api.SpanKind.CLIENT });
+    const requestSpan = tracer.startSpan('requester', { kind: api.SpanKind.CLIENT });
     requestSpan.setAttribute(spanTag, endpoint);
     const { traceId } = requestSpan.spanContext();
 
@@ -61,7 +61,7 @@ const makeRequest = async () => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=GET endpoint=${endpoint}" status=SUCCESS`,
+                    message: `traceID=${traceId} http.method=GET endpoint=${endpoint} status=SUCCESS`,
                 });
                 names = JSON.parse(result);
 
@@ -82,7 +82,7 @@ const makeRequest = async () => {
                             job: `${servicePrefix}-requester`,
                             endpointLabel: spanTag,
                             endpoint,
-                            message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint}" status=SUCCESS`,
+                            message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} status=SUCCESS`,
                         });
                     }
                 }
@@ -93,7 +93,7 @@ const makeRequest = async () => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} name=${(names) ? names[0].name : "unknown"} status=FAILURE error=${err}`,
+                    message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} name=${(names) ? names[0].name : 'unknown'} status=FAILURE error="${err}"`,
                 });
                 console.log('Requester error');
                 error = true;
@@ -101,7 +101,7 @@ const makeRequest = async () => {
         } else {
             // Generate new name
             const randomName = uniqueNamesGenerator({ dictionaries: [adjectives, colors, adjectives] });
-            const body = (Math.random() < 0.1) ? { whoops: "yes" } : { name : randomName };
+            const body = (Math.random() < 0.1) ? { whoops: 'yes' } : { name : randomName };
 
             try {
                 await request({
@@ -126,7 +126,7 @@ const makeRequest = async () => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=POST endpoint=${endpoint} name=${randomName} status=FAILURE error=${err}`,
+                    message: `traceID=${traceId} http.method=POST endpoint=${endpoint} name=${randomName} status=FAILURE error="${err}"`,
                 });
                 console.log('Requester error');
                 error = true;

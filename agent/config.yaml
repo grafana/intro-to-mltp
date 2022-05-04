@@ -23,16 +23,17 @@ traces:
             endpoint: "0.0.0.0:6832"
     # Send batched traces to the Tempo instance.
     remote_write:
-      - endpoint: tempo:55680
+      - endpoint: tempo:4317
         insecure: true
     # Generate Prometheus metrics from the incoming trace spans.
-    spanmetrics:
-      # Add the http.target and http.method span tags as labels for the metrics data.
-      dimensions:
-        - name: http.method
-        - name: http.target
-      # Expose these metrics on port 12348.
-      handler_endpoint: 0.0.0.0:12348
+    # This now occurs as part of Tempo's server-side metrics generation.
+    #spanmetrics:
+    #  # Add the http.target and http.method span tags as labels for the metrics data.
+    #  dimensions:
+    #    - name: http.method
+    #    - name: http.target
+    #  # Expose these metrics on port 12348.
+    #  handler_endpoint: 0.0.0.0:12348
     # Generate logs automatically from incoming trace data.
     automatic_logging:
       # Use the logs instance defined at the start of the configuration file.

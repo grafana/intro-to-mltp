@@ -98,11 +98,19 @@ services:
     build: ./prometheus
     ports:
       - "9090:9090"
+    command: [
+      "--config.file=/etc/prometheus/prometheus.yml",
+      "--storage.tsdb.path=/prometheus",
+      "--web.console.libraries=/usr/share/prometheus/console_libraries",
+      "--web.console.templates=/usr/share/prometheus/consoles",
+      "--enable-feature=exemplar-storage",
+      "--web.enable-remote-write-receiver"
+    ]
 
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:1.2.1
+    image: grafana/tempo:1.4.0
     ports:
       - "3200:3200"
       - "4317:4317"

@@ -123,7 +123,7 @@ app.get('/:endpoint', async (req, res) => {
 
     if (!nameSet.includes(endpoint)) {
         res.status(404).send(`${endpoint} is not a valid endpoint`);
-        metricBody.labels.status = "404";
+        metricBody.labels.status = '404';
         responseMetric(metricBody);
         return;
     }
@@ -146,7 +146,7 @@ app.get('/:endpoint', async (req, res) => {
         });
 
         // Metrics
-        metricBody.labels.status = "200";
+        metricBody.labels.status = '200';
         responseMetric(metricBody);
 
         logEntry({
@@ -160,7 +160,7 @@ app.get('/:endpoint', async (req, res) => {
 
         res.send(results);
     } catch (err) {
-        metricBody.labels.status = "500";
+        metricBody.labels.status = '500';
         responseMetric(metricBody);
 
         logEntry({
@@ -169,7 +169,7 @@ app.get('/:endpoint', async (req, res) => {
             job: `${servicePrefix}-server`,
             endpointLabel: spanTag,
             endpoint,
-            message: `traceID=${traceId} endpoint=${endpoint} http.method=GET status=FAILURE err=${err}`,
+            message: `traceID=${traceId} endpoint=${endpoint} http.method=GET status=FAILURE err="${err}"`,
         });
 
         res.status(500).send(err);
@@ -193,7 +193,7 @@ app.post('/:endpoint', async (req, res) => {
 
     if (!nameSet.includes(endpoint)) {
         res.status(404).send(`${endpoint} is not a valid endpoint`);
-        metricBody.labels.status = "404";
+        metricBody.labels.status = '404';
         responseMetric(metricBody);
         return;
     }
@@ -201,7 +201,7 @@ app.post('/:endpoint', async (req, res) => {
     if (!req.body || !req.body.name) {
         // Here we'd use 'respondToCall()' which would POST a metric for the response
         // code
-        metricBody.labels.status = "400";
+        metricBody.labels.status = '400';
         responseMetric(metricBody);
     }
 
@@ -224,7 +224,7 @@ app.post('/:endpoint', async (req, res) => {
         });
 
         // Metrics
-        metricBody.labels.status = "201";
+        metricBody.labels.status = '201';
         responseMetric(metricBody);
 
         logEntry({
@@ -239,8 +239,7 @@ app.post('/:endpoint', async (req, res) => {
         res.sendStatus(201);
     } catch (err) {
         // Metrics
-        console.log(`error: ${err}`);
-        metricBody.labels.status = "500";
+        metricBody.labels.status = '500';
         responseMetric(metricBody);
 
         logEntry({
@@ -249,7 +248,7 @@ app.post('/:endpoint', async (req, res) => {
             job: `${servicePrefix}-server`,
             endpointLabel: spanTag,
             endpoint,
-            message: `traceID=${traceId} endpoint=${endpoint} http.method=GET status=FAILURE err=${err}`,
+            message: `traceID=${traceId} endpoint=${endpoint} http.method=GET status=FAILURE err="${err}"`,
         });
 
         res.status(500).send(err);
@@ -273,7 +272,7 @@ app.delete('/:endpoint', async (req, res) => {
 
     if (!nameSet.includes(endpoint)) {
         res.status(404).send(`${endpoint} is not a valid endpoint`);
-        metricBody.labels.status = "404";
+        metricBody.labels.status = '404';
         responseMetric(metricBody);
         return;
     }
@@ -281,11 +280,11 @@ app.delete('/:endpoint', async (req, res) => {
     if (!req.body || !req.body.name) {
         // Here we'd use 'respondToCall()' which would POST a metric for the response
         // code
-        metricBody.labels.status = "400";
+        metricBody.labels.status = '400';
         responseMetric(metricBody);
     }
 
-    // If we're in the middle of a teardown, don't do anything
+    // If we're in the middle of a tearxdown, don't do anything
     if (teardownCheck({
             spanContext,
             endpoint,
@@ -304,7 +303,7 @@ app.delete('/:endpoint', async (req, res) => {
         });
 
         // Metrics
-        metricBody.labels.status = "204";
+        metricBody.labels.status = '204';
         responseMetric(metricBody);
 
         logEntry({
@@ -319,8 +318,7 @@ app.delete('/:endpoint', async (req, res) => {
         res.sendStatus(204);
     } catch (err) {
         // Metrics
-        console.log(`error: ${err}`);
-        metricBody.labels.status = "500";
+        metricBody.labels.status = '500';
         responseMetric(metricBody);
 
         logEntry({
@@ -329,7 +327,7 @@ app.delete('/:endpoint', async (req, res) => {
             job: `${servicePrefix}-server`,
             endpointLabel: spanTag,
             endpoint,
-            message: `traceID=${traceId} endpoint=${endpoint} http.method=DELETE status=FAILURE err=${err}`,
+            message: `traceID=${traceId} endpoint=${endpoint} http.method=DELETE status=FAILURE err="${err}"`,
         });
 
         res.status(500).send(err);
@@ -338,9 +336,8 @@ app.delete('/:endpoint', async (req, res) => {
 
 // Destroy the DB table and recreate it
 const tableWipe = async () => {
-    const requestSpan = tracer.startSpan("server");
+    const requestSpan = tracer.startSpan('server');
     const { traceId } = requestSpan.spanContext();
-    console.log(traceId);
 
     // Create a new context for this request
     await api.context.with(api.trace.setSpan(api.context.active(), requestSpan), async () => {
@@ -407,7 +404,7 @@ const teardownCheck = (details) => {
 
 // Create the DB and connect to it
 const startServer = async () => {
-    const requestSpan = tracer.startSpan("server");
+    const requestSpan = tracer.startSpan('server');
     // Create a new context for this request
     await api.context.with(api.trace.setSpan(api.context.active(), requestSpan), async () => {
         try {
@@ -453,7 +450,7 @@ const startServer = async () => {
             app.listen(4000);
 
             // Schedule a table wipe in the future.
-            setTimeout(() => tableWipe(), teardownTimeout);
+            setInterval(() => tableWipe(), teardownTimeout);
 
             logEntry({
                 level: 'info',

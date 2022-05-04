@@ -74,7 +74,8 @@ The configuration file (`prometheus/prometheus.yml`) defines several scrape jobs
 * Retrieving metrics from the Prometheus instance itself.
 * Metrics from the microservices application.
 * Metrics from the installed Node Exporter instance.
-* Metrics from the Grafana Agent, derived from incoming trace data.
+
+Additionally to the scraped metrics, it also receives remotely written metrics from the Tempo service, which derives metrics from incoming trace spans.
 
 ## Loki
 
@@ -94,6 +95,8 @@ The Tempo instance is described in the `tempo` section of the `docker-compose.ym
 
 The Tempo service imports a configuration file (`tempo/tempo.yaml`) that initialises the service with some sensible defaults as well as allowing the receiving of traces in a variety of different formats.
 
+As of Tempo 1.4, the ability to also automatically generate metrics from incoming trace spans is included. As such, this no longer occurs via Grafana Agent.
+
 ## Grafana Agent
 
 Grafana Agent is a locally installed agent that acts as:
@@ -103,6 +106,8 @@ Grafana Agent is a locally installed agent that acts as:
 
 Grafana Agent has remote write capabilities that allows it to send metrics, logs and trace data to backend stores (such as Mimir, Loki and Tempo). More information on Grafana Agent can be found [here](https://grafana.com/docs/agent/latest/).
 
-Its main role in this environment is to receive trace spans from the microservice application and process them to extract metrics and log information before storing them in the final backend stores.
+Its main role in this environment is to receive trace spans from the microservice application and process them to extract log information before storing them in the final backend stores.
+
+Note that the config now includes a commented section where metrics used to be generated from incoming trace spans; this is now handled directly in Tempo via server-side metrics generation, although the original configuration block has been left commented out in the Agent config.
 
 The configuration file for it can be found in `agent/config.yaml`.
