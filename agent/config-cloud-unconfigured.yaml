@@ -1,0 +1,107 @@
+server:
+  log_level: debug
+
+# Grafana Cloud Metrics
+metrics:
+  global:
+    scrape_interval:     15s # By default, scrape targets every 15 seconds.
+    remote_write:
+      - url: ${GRAFANA_METRICS_WRITE_URL}
+        basic_auth:
+          username: ${GRAFANA_METRICS_USERNAME}
+          password: ${GRAFANA_METRICS_API_KEY}
+  configs:
+  - name: agent
+    scrape_configs:
+      # Scrape from the Mythical Server service.
+      - job_name: 'mythical-server'
+        scrape_interval: 2s
+        static_configs:
+          - targets: ['mythical-server:4000']
+            labels:
+              group: 'mythical'
+
+      # Scrape from the Mythical Requester service.
+      - job_name: 'mythical-requester'
+        scrape_interval: 2s
+        static_configs:
+          - targets: ['mythical-requester:4001']
+            labels:
+              group: 'mythical'
+
+      # Scrape from Grafana Agent, giving us metrics from traces it collects.
+      # Not required if Grafana Cloud Trace Metrics are enabled 
+      - job_name: 'span-metrics'
+        scrape_interval: 2s
+        static_configs:
+          - targets: ['agent:12348']
+            labels:
+              group: 'mythical'
+
+integrations:
+  agent:
+    enabled: true
+  node_exporter:
+    enabled: true
+
+# Configures a log ingestion endpoint, used for the autologging feature.
+logs:
+    configs:
+    - name: loki
+      clients:
+        - url: ${GRAFANA_LOGS_WRITE_URL}
+          basic_auth:
+            username: ${GRAFANA_LOGS_USERNAME}
+            password: ${GRAFANA_LOGS_API_KEY}
+          external_labels:
+            job: agent
+    positions_directory: /tmp/positions
+
+# Configures a Tempo instance to receive traces from the microservices.
+traces:
+  configs:
+  - name: latencyEndpoint
+    # Receive Jaeger format traces on port 6832.
+    receivers:
+      jaeger:
+        protocols:
+          thrift_binary:
+            endpoint: "0.0.0.0:6832"
+    # Send batched traces to the Tempo instance.
+    remote_write:
+    #name: grafana-cloud-traces
+      - basic_auth:
+          username: ${GRAFANA_TRACES_USERNAME}
+          password: ${GRAFANA_TRACES_API_KEY}
+        endpoint: ${GRAFANA_TRACES_HOST}
+    # Generate Prometheus metrics from the incoming trace spans.
+    # This now occurs as part of Tempo's server-side metrics generation.
+    # Comment the below spanmetrics section out if Grafana Cloud Trace Metrics are enabled
+    spanmetrics:
+    #  # Add the http.target and http.method span tags as labels for the metrics data.
+      dimensions:
+        - name: http.method
+        - name: http.target
+    #  # Expose these metrics on port 12348.
+      handler_endpoint: 0.0.0.0:12348
+    # Generate logs automatically from incoming trace data.
+    automatic_logging:
+      # Use the logs instance defined at the start of the configuration file.
+      backend: logs_instance
+      logs_instance_name: loki
+      # Log one line per root span (ie. one per trace).
+      roots: true
+      processes: false
+      spans: false
+      # Add the http.method, http.target and http.status_code span tags to the log line,
+      # if present.
+      span_attributes:
+        - http.method
+        - http.target
+        - http.status_code
+      # Force the trace ID to be set as `traceId`.
+      overrides:
+        trace_id_key: "traceId"
+    # Enable service graphs.
+    service_graphs:
+      enabled: true
