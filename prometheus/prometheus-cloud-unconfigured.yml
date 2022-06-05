@@ -1,0 +1,58 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+
+remote_write:
+  - url: ${GRAFANA_METRICS_WRITE_URL}
+    basic_auth:
+      username: ${GRAFANA_METRICS_USERNAME}
+      password: ${GRAFANA_METRICS_API_KEY}
+#send_exemplars: true
+
+remote_read:
+scrape_configs:
+  # Scrape Prometheus' own metrics.
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          group: 'prometheus'
+
+  # Scrape from the Mythical Server service.
+  - job_name: 'mythical-server'
+    scrape_interval: 2s
+    static_configs:
+      - targets: ['mythical-server:4000']
+        labels:
+          group: 'mythical'
+
+  # Scrape from the Mythical Requester service.
+  - job_name: 'mythical-requester'
+    scrape_interval: 2s
+    static_configs:
+      - targets: ['mythical-requester:4001']
+        labels:
+          group: 'mythical'
+
+  # Scrape from the Node exporter, giving us resource usage.
+  - job_name: 'node'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['nodeexporter:9100']
+        labels:
+          group: 'resources'
+
+  # Scrape from Grafana Agent, giving us metrics from traces it collects.
+  - job_name: 'agent-metrics'
+    scrape_interval: 2s
+    static_configs:
+      - targets: ['agent:12345']
+        labels:
+          group: 'mythical'
+
+  # Scrape from Grafana Agent, giving us metrics from traces it collects.
+  - job_name: 'span-metrics'
+    scrape_interval: 2s
+    static_configs:
+      - targets: ['agent:12348']
+        labels:
+          group: 'mythical'
