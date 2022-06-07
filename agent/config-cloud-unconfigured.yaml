@@ -10,6 +10,7 @@ metrics:
         basic_auth:
           username: ${GRAFANA_METRICS_USERNAME}
           password: ${GRAFANA_METRICS_API_KEY}
+        send_exemplars: true
   configs:
   - name: agent
     scrape_configs:
