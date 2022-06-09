@@ -1,8 +1,7 @@
 const tracingUtils = require('./tracing')('requester', 'mythical-requester');
-const { api, tracer, propagator } = tracingUtils;
 const request = require('request-promise-native');
 const { uniqueNamesGenerator, adjectives, colors } = require('unique-names-generator');
-const logEntry = require('./logging')('mythical-requester', 'requester');
+const logUtils = require('./logging')('mythical-requester', 'requester');
 const express = require('express');
 const promClient = require('prom-client');
 const { nameSet, servicePrefix, spanTag, accumulators }  = require('./endpoints')();
@@ -25,7 +24,8 @@ app.get('/metrics', async (req, res) => {
 });
 
 // We just keep going, requesting names and adding them
-const makeRequest = async () => {
+const makeRequest = async (tracingObj, logEntry) => {
+    const { api, tracer, propagator } = tracingObj;
     const type = (Math.floor(Math.random() * 100) < 50) ? 'GET' : 'POST';
     const index = Math.floor(Math.random() * nameSet.length);
     const endpoint = nameSet[index];
@@ -149,19 +149,24 @@ const makeRequest = async () => {
 
     // Sometime in the next two seconds, but larger than 100ms
     const nextReqIn = (Math.random() * 1000) + 100;
-    setTimeout(() => makeRequest(), nextReqIn);
+    setTimeout(() => makeRequest(tracingObj, logEntry), nextReqIn);
 };
 
-// Kick off four requests that cycle at regular intervals
-setTimeout(() => makeRequest(), 5000);
-setTimeout(() => makeRequest(), 6000);
-setTimeout(() => makeRequest(), 7000);
-setTimeout(() => makeRequest(), 8000);
+(async () => {
+    const tracingObj = await tracingUtils();
+    const logEntry = await logUtils(tracingObj);
 
-// Ensure the danger gauge gets reset every minute
-setInterval(() => {
-    dangerGauge.set(0);
-}, 30000);
+    // Kick off four requests that cycle at regular intervals
+    setTimeout(() => makeRequest(tracingObj, logEntry), 5000);
+    setTimeout(() => makeRequest(tracingObj, logEntry), 6000);
+    setTimeout(() => makeRequest(tracingObj, logEntry), 7000);
+    setTimeout(() => makeRequest(tracingObj, logEntry), 8000);
 
-// Listen to API connections for metrics scraping.
-app.listen(4001);
+    // Ensure the danger gauge gets reset every minute
+    setInterval(() => {
+        dangerGauge.set(0);
+    }, 30000);
+
+    // Listen to API connections for metrics scraping.
+    app.listen(4001);
+})();
