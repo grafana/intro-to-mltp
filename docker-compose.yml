@@ -65,6 +65,7 @@ services:
       - TRACING_COLLECTOR_HOST=agent
       - TRACING_COLLECTOR_PORT=6832
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
+      - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
 
   # The API server microservice.
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
@@ -86,6 +87,7 @@ services:
       - TRACING_COLLECTOR_HOST=agent
       - TRACING_COLLECTOR_PORT=6832
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
+      - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
 
   # The Node Exporter collects resource usage from the host.
   nodeexporter:
@@ -112,7 +114,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:1.4.0
+    image: grafana/tempo:1.4.1
     ports:
       - "3200:3200"
       - "4317:4317"
