@@ -8,6 +8,7 @@ module.exports = (context, serviceName) => {
   const { NodeTracerProvider } = require("@opentelemetry/sdk-trace-node");
   const { SimpleSpanProcessor } = require("@opentelemetry/sdk-trace-base");
   const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
+  const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-grpc');
   const { Resource } = require('@opentelemetry/resources');
   const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
   let getNodeAutoInstrumentations;
@@ -30,15 +31,20 @@ module.exports = (context, serviceName) => {
     maxPacketSize: 65000
   }
 
+  const resources = new Resource({
+    [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
+  });
+
   // Create a tracer provider
   const provider = new NodeTracerProvider({
-    resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
-    }),
+    resource: resources,
   });
 
   // Export to Jaeger
-  const exporter = new JaegerExporter(options);
+  //const exporter = new JaegerExporter(options);
+  const exporter = new OTLPTraceExporter({
+    url: 'http://agent:4317'
+  });
 
   // Use simple span (should probably use Batch)
   const processor = new SimpleSpanProcessor(exporter);

@@ -21,6 +21,9 @@ traces:
         protocols:
           thrift_binary:
             endpoint: "0.0.0.0:6832"
+      otlp:
+        protocols:
+          grpc:
     # Send batched traces to the Tempo instance.
     remote_write:
       - endpoint: tempo:4317

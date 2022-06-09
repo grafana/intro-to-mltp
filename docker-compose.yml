@@ -6,7 +6,7 @@ services:
   # Grafana agent batches and processes traces sent to it, generating metrics
   # and auto-logs from those traces.
   agent:
-    image: grafana/agent:v0.24.0
+    image: grafana/agent:main
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -64,6 +64,7 @@ services:
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=agent
       - TRACING_COLLECTOR_PORT=6832
+      - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
 
   # The API server microservice.
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
@@ -84,6 +85,7 @@ services:
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=agent
       - TRACING_COLLECTOR_PORT=6832
+      - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
 
   # The Node Exporter collects resource usage from the host.
   nodeexporter:
