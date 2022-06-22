@@ -63,7 +63,7 @@ services:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=agent
-      - TRACING_COLLECTOR_PORT=6832
+      - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
 
@@ -85,7 +85,7 @@ services:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=agent
-      - TRACING_COLLECTOR_PORT=6832
+      - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
 
