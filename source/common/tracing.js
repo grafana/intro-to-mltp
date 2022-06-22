@@ -7,7 +7,6 @@ module.exports = (context, serviceName) => {
   const api = require("@opentelemetry/api");
   const { NodeTracerProvider } = require("@opentelemetry/sdk-trace-node");
   const { SimpleSpanProcessor } = require("@opentelemetry/sdk-trace-base");
-  const { JaegerExporter } = require('@opentelemetry/exporter-jaeger');
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-grpc');
   const { envDetector, Resource } = require('@opentelemetry/resources');
   const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
@@ -26,15 +25,7 @@ module.exports = (context, serviceName) => {
       W3CTraceContextPropagator = require("@opentelemetry/core").W3CTraceContextPropagator;
     }
 
-    const options = {
-      tags: [],
-      host: process.env.TRACING_COLLECTOR_HOST,
-      port: process.env.TRACING_COLLECTOR_PORT,
-      maxPacketSize: 65000
-    }
-
     const detected = await envDetector.detect();
-    console.log(detected);
 
     const resources = new Resource({
       [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
@@ -46,16 +37,14 @@ module.exports = (context, serviceName) => {
     });
 
     // Export to Jaeger
-    //const exporter = new JaegerExporter(options);
     const exporter = new OTLPTraceExporter({
-      url: 'http://agent:4317'
+      url: `http://${process.env.TRACING_COLLECTOR_HOST}:${process.env.TRACING_COLLECTOR_PORT}`
     });
 
     // Use simple span (should probably use Batch)
     const processor = new SimpleSpanProcessor(exporter);
     provider.addSpanProcessor(processor);
     provider.register();
-
 
     // Create a new header for propagation from a given span
     let createPropagationHeader;
