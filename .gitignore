@@ -1,0 +1,3 @@
+agent/config-cloud-configured.yaml
+docker-compose-cloud-configured.yml
+unconfigure.sh
