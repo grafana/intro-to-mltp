@@ -5,6 +5,7 @@ const logUtils = require('./logging')('mythical-requester', 'requester');
 const express = require('express');
 const promClient = require('prom-client');
 const { nameSet, servicePrefix, spanTag, accumulators }  = require('./endpoints')();
+const queueUtils = require('./queue')();
 
 // Prometheus client registration
 const app = express();
@@ -24,7 +25,7 @@ app.get('/metrics', async (req, res) => {
 });
 
 // We just keep going, requesting names and adding them
-const makeRequest = async (tracingObj, logEntry) => {
+const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     const { api, tracer, propagator } = tracingObj;
     const type = (Math.floor(Math.random() * 100) < 50) ? 'GET' : 'POST';
     const index = Math.floor(Math.random() * nameSet.length);
@@ -55,6 +56,7 @@ const makeRequest = async (tracingObj, logEntry) => {
                     uri: `http://mythical-server:4000/${endpoint}`,
                     headers
                 });
+                sendMessage(`GET /${endpoint}`);
                 logEntry({
                     level: 'info',
                     namespace: process.env.NAMESPACE,
@@ -76,6 +78,7 @@ const makeRequest = async (tracingObj, logEntry) => {
                             headers,
                             body: { name: names[0].name },
                         });
+                        sendMessage(`DELETE /${endpoint} ${names[0].name}`);
                         logEntry({
                             level: 'info',
                             namespace: process.env.NAMESPACE,
@@ -95,7 +98,7 @@ const makeRequest = async (tracingObj, logEntry) => {
                     endpoint,
                     message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} name=${(names) ? names[0].name : 'unknown'} status=FAILURE error="${err}"`,
                 });
-                console.log('Requester error');
+                console.log(`Requester error: ${err}`);
                 error = true;
             }
         } else {
@@ -111,6 +114,7 @@ const makeRequest = async (tracingObj, logEntry) => {
                     headers,
                     body,
                 });
+                sendMessage(`POST /${endpoint} ${JSON.stringify(body)}`);
                 logEntry({
                     level: 'info',
                     namespace: process.env.NAMESPACE,
@@ -128,7 +132,7 @@ const makeRequest = async (tracingObj, logEntry) => {
                     endpoint,
                     message: `traceID=${traceId} http.method=POST endpoint=${endpoint} name=${randomName} status=FAILURE error="${err}"`,
                 });
-                console.log('Requester error');
+                console.log(`Requester error: ${err}`);
                 error = true;
             }
 
@@ -149,18 +153,19 @@ const makeRequest = async (tracingObj, logEntry) => {
 
     // Sometime in the next two seconds, but larger than 100ms
     const nextReqIn = (Math.random() * 1000) + 100;
-    setTimeout(() => makeRequest(tracingObj, logEntry), nextReqIn);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), nextReqIn);
 };
 
 (async () => {
     const tracingObj = await tracingUtils();
+    const { sendMessage } = await queueUtils(tracingObj);
     const logEntry = await logUtils(tracingObj);
 
     // Kick off four requests that cycle at regular intervals
-    setTimeout(() => makeRequest(tracingObj, logEntry), 5000);
-    setTimeout(() => makeRequest(tracingObj, logEntry), 6000);
-    setTimeout(() => makeRequest(tracingObj, logEntry), 7000);
-    setTimeout(() => makeRequest(tracingObj, logEntry), 8000);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 5000);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 6000);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 7000);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 8000);
 
     // Ensure the danger gauge gets reset every minute
     setInterval(() => {

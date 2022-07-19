@@ -1,4 +1,4 @@
-// This is shared between the requester and the server
+// This is shared between the requester, the recorder and the server
 // As such, to only do what's needed, we init using a
 // function and then pass the service context to
 // determine what to initialise.
@@ -10,18 +10,12 @@ module.exports = (context, serviceName) => {
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-grpc');
   const { envDetector, Resource } = require('@opentelemetry/resources');
   const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
+  const { registerInstrumentations } = require('@opentelemetry/instrumentation');
+  const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
 
   return async () => {
-    let getNodeAutoInstrumentations;
-    let registerInstrumentations;
     let W3CTraceContextPropagator;
-
-    // If this is the server, it's all autoinstrumented.
-    // Else include the propagator.
-    if (context === 'server') {
-      getNodeAutoInstrumentations = require('@opentelemetry/auto-instrumentations-node').getNodeAutoInstrumentations;
-      registerInstrumentations = require('@opentelemetry/instrumentation').registerInstrumentations;
-    } else {
+    if (context === 'requester') {
       W3CTraceContextPropagator = require("@opentelemetry/core").W3CTraceContextPropagator;
     }
 
@@ -62,19 +56,15 @@ module.exports = (context, serviceName) => {
       };
     }
 
-    // Enable everything that's available for auto-instrumentation
-    // if this is the server.
-    if (context === 'server') {
-      registerInstrumentations({
-        instrumentations: [getNodeAutoInstrumentations()],
-      });
-    }
+    registerInstrumentations({
+      instrumentations: [getNodeAutoInstrumentations()],
+    });
 
     // Return instances of the API and the tracer to the calling app
     return {
       tracer: api.trace.getTracer(serviceName),
       api: api,
-      propagator: (context === 'requester') ? createPropagationHeader : undefined,
+      propagator: createPropagationHeader,
     }
   };
 };

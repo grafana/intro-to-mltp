@@ -37,6 +37,19 @@ services:
     ports:
       - "3100:3100"
 
+  # A RabbitMQ queue used to send message between the requester and the server microservices.
+  mythical-queue:
+    image: rabbitmq:management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_running
+      interval: 2s
+      timeout: 1s
+      retries: 10
+
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
     image: postgres
@@ -48,7 +61,7 @@ services:
     ports:
       - "5432:5432"
 
-  # A microservice that makes requests to the API server microservice.
+  # A microservice that makes requests to the API server microservice. Requests are also pushed onto the mythical-queue.
   mythical-requester:
     build:
       context: ./source
@@ -56,7 +69,10 @@ services:
       args:
         SERVICE: mythical-beasts-requester
     depends_on:
-      - mythical-server
+      mythical-queue:
+        condition: service_healthy
+      mythical-server:
+        condition: service_started
     ports:
       - "4001:4001"
     environment:
@@ -81,6 +97,26 @@ services:
       - "80:80"
     depends_on:
       - mythical-database
+    environment:
+      - NAMESPACE=production
+      - LOGS_TARGET=http://loki:3100/loki/api/v1/push
+      - TRACING_COLLECTOR_HOST=agent
+      - TRACING_COLLECTOR_PORT=4317
+      - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
+      - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
+
+  # A microservice that consumes requests from the mythical-queue
+  mythical-recorder:
+    build:
+      context: ./source
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE: mythical-beasts-recorder
+    depends_on:
+      mythical-queue:
+        condition: service_healthy
+    ports:
+      - "4002:4002"
     environment:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
