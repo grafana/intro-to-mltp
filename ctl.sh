@@ -41,7 +41,7 @@ case "$CMD" in
     cat $SRC_CONFIG_FILE | envsubst > $DST_CONFIG_FILE
     echo "Created: $DST_CONFIG_FILE"
     echo "rm $DST_CONFIG_FILE" > $UNCONFIGURE_FILE
-   
+
     # Configure Grafana Agent
     # GRAFANA_METRICS_*, GRAFANA_LOGS_*, GRAFANA_TRACES_*
     DST_CONFIG_FILE="agent/config-cloud-configured.yaml"
@@ -49,7 +49,7 @@ case "$CMD" in
     cat $SRC_CONFIG_FILE | envsubst > $DST_CONFIG_FILE
     echo "Created: $DST_CONFIG_FILE"
     echo "rm $DST_CONFIG_FILE" >> $UNCONFIGURE_FILE
-  
+
     # Configure Prometheus
     # Not used for cloud
     #DST_CONFIG_FILE="prometheus/prometheus-cloud-configured.yml"

@@ -30,9 +30,9 @@ module.exports = (context, serviceName) => {
       resource: resources,
     });
 
-    // Export to Jaeger
+    // Export via OTLP gRPC
     const exporter = new OTLPTraceExporter({
-      url: `http://${process.env.TRACING_COLLECTOR_HOST}:${process.env.TRACING_COLLECTOR_PORT}`
+      url: `${process.env.TRACING_COLLECTOR_HOST}:${process.env.TRACING_COLLECTOR_PORT}`
     });
 
     // Use simple span (should probably use Batch)

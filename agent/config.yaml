@@ -15,12 +15,8 @@ logs:
 traces:
   configs:
   - name: latencyEndpoint
-    # Receive Jaeger format traces on port 6832.
+    # Receive OTLP gRPC on port 4317.
     receivers:
-      jaeger:
-        protocols:
-          thrift_binary:
-            endpoint: "0.0.0.0:6832"
       otlp:
         protocols:
           grpc:
@@ -35,6 +31,7 @@ traces:
     #  dimensions:
     #    - name: http.method
     #    - name: http.target
+    #    - name: http.status_code
     #  # Expose these metrics on port 12348.
     #  handler_endpoint: 0.0.0.0:12348
     # Generate logs automatically from incoming trace data.

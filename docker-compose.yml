@@ -46,8 +46,8 @@ services:
       - "15672:15672"
     healthcheck:
       test: rabbitmq-diagnostics check_running
-      interval: 2s
-      timeout: 1s
+      interval: 5s
+      timeout: 30s
       retries: 10
 
   # A postgres DB used to store data by the API server microservice.

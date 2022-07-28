@@ -31,7 +31,7 @@ metrics:
               group: 'mythical'
 
       # Scrape from Grafana Agent, giving us metrics from traces it collects.
-      # Not required if Grafana Cloud Trace Metrics are enabled 
+      # Not required if Grafana Cloud Trace Metrics are enabled
       - job_name: 'span-metrics'
         scrape_interval: 2s
         static_configs:
@@ -62,19 +62,22 @@ logs:
 traces:
   configs:
   - name: latencyEndpoint
-    # Receive Jaeger format traces on port 6832.
+    # Receive  OTLP gRPC on port 4317.
     receivers:
-      jaeger:
+      otlp:
         protocols:
-          thrift_binary:
-            endpoint: "0.0.0.0:6832"
-    # Send batched traces to the Tempo instance.
+          grpc:    # Send batched traces to the Tempo instance.
     remote_write:
     #name: grafana-cloud-traces
       - basic_auth:
           username: ${GRAFANA_TRACES_USERNAME}
           password: ${GRAFANA_TRACES_API_KEY}
         endpoint: ${GRAFANA_TRACES_HOST}
+        sending_queue:
+          enabled: true
+          num_consumers: 20
+          queue_size: 50000
+
     # Generate Prometheus metrics from the incoming trace spans.
     # This now occurs as part of Tempo's server-side metrics generation.
     # Comment the below spanmetrics section out if Grafana Cloud Trace Metrics are enabled
