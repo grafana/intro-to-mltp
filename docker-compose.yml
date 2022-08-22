@@ -21,14 +21,14 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana
+    image: grafana/grafana:9.1.0
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=tempoSearch,tempoServiceGraph
+      - GF_FEATURE_TOGGLES_ENABLE=tempoSearch,tempoServiceGraph,tempoApmTable
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
@@ -150,7 +150,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:1.4.1
+    image: grafana/tempo:1.5.0
     ports:
       - "3200:3200"
       - "4317:4317"
