@@ -70,7 +70,7 @@
             {
               "targetBlank": true,
               "title": "Latency charts",
-              "url": "http://localhost:3000/explore?orgId=1&left=[\"now-1h\",\"now\",\"Prometheus\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"expr\":\"topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_duration_seconds_sum{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m]) / increase(traces_spanmetrics_duration_seconds_count{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m])))\"}]&right=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} http.method=${__field.labels.http_method}\"}]"
+              "url": "http://localhost:3000/explore?orgId=1&left=[\"now-1h\",\"now\",\"Prometheus\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"expr\":\"topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m]) / increase(traces_spanmetrics_latency_count{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m])))\"}]&right=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} http.method=${__field.labels.http_method}\"}]"
             }
           ],
           "mappings": [],
@@ -115,7 +115,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "sum by (http_target)(rate(traces_spanmetrics_duration_seconds_sum{http_target=~\".+\"}[1m]) / rate(traces_spanmetrics_duration_seconds_count{http_target=~\".+\"}[1m])) * 55",
+          "expr": "sum by (http_target)(rate(traces_spanmetrics_latency_sum{http_target=~\".+\"}[1m]) / rate(traces_spanmetrics_latency_count{http_target=~\".+\"}[1m])) * 55",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -178,7 +178,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "(sum(increase(traces_spanmetrics_calls_total{span_status=\"STATUS_CODE_ERROR\"}[1m]))/sum(increase(traces_spanmetrics_calls_total[1m]))) * 100",
+          "expr": "(sum(increase(traces_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\"}[1m]))/sum(increase(traces_spanmetrics_calls_total[1m]))) * 100",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -250,7 +250,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "(sum by (http_target)(increase(traces_spanmetrics_calls_total{span_status=\"STATUS_CODE_ERROR\",http_target=~\"\\\\/\\\\w+\"}[1m])))/(sum by (http_target)(increase(traces_spanmetrics_calls_total{span_status!=\"\",http_target!=\"\\\\/\\\\w+\"}[1m]))) * 100",
+          "expr": "(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\",http_target=~\"\\\\/\\\\w+\"}[1m])))/(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code!=\"\",http_target!=\"\\\\/\\\\w+\"}[1m]))) * 100",
           "interval": "",
           "legendFormat": "{{http_target}}",
           "refId": "A"
@@ -346,7 +346,7 @@
             "uid": "prometheus"
           },
           "exemplar": false,
-          "expr": "topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_duration_seconds_sum{http_method=~\".+\", http_target=~\".+\"}[1m]) / increase(traces_spanmetrics_duration_seconds_count{http_method=~\".+\", http_target=~\".+\"}[1m])))",
+          "expr": "topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\".+\"}[1m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\".+\"}[1m])))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -432,7 +432,7 @@
             {
               "targetBlank": true,
               "title": "Latency charts",
-              "url": "http://localhost:3000/explore?orgId=1&left=[\"now-1h\",\"now\",\"Prometheus\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"expr\":\"topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_duration_seconds_sum{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m]) / increase(traces_spanmetrics_duration_seconds_count{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m])))\"}]&right=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} http.method=${__field.labels.http_method}\"}]"
+              "url": "http://localhost:3000/explore?orgId=1&left=[\"now-1h\",\"now\",\"Prometheus\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"expr\":\"topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m]) / increase(traces_spanmetrics_latency_count{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m])))\"}]&right=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} http.method=${__field.labels.http_method}\"}]"
             }
           ],
           "mappings": [],
@@ -477,7 +477,7 @@
             "uid": "prometheus"
           },
           "exemplar": true,
-          "expr": "sum by (http_method,http_target)(increase(traces_spanmetrics_duration_seconds_sum{http_method=~\".+\", http_target=~\".+\"}[10m]) / increase(traces_spanmetrics_duration_seconds_count{http_method=~\".+\", http_target=~\".+\"}[10m]))",
+          "expr": "sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\".+\"}[10m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\".+\"}[10m]))",
           "interval": "",
           "legendFormat": "",
           "refId": "A"

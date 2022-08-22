@@ -52,6 +52,9 @@ metrics_generator:
           - http.method
           - http.target
     service_graphs:
+        dimensions:
+          - http.method
+          - http.target
   registry:
     collection_interval: 5s
     external_labels:

@@ -21,14 +21,14 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:9.1.0
+    image: grafana/grafana:9.1.3
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=tempoSearch,tempoServiceGraph,tempoApmTable
+      - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
