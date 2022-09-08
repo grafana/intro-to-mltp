@@ -10,7 +10,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
     const express = require('express');
     const bodyParser = require('body-parser');
     const { Client } = require('pg');
-    const { nameSet, servicePrefix, spanTag }  = require('./endpoints')();    
+    const { nameSet, servicePrefix, spanTag }  = require('./endpoints')();
 
     // Prometheus client registration
     const app = express();
@@ -98,7 +98,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
             labels: details.labels,
             value: timeMs,
             exemplarLabels: {
-                traceId: spanContext.traceId,
+                traceID: spanContext.traceId,
                 spanID: spanContext.spanId,
             },
         });

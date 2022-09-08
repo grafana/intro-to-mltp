@@ -1,4 +1,4 @@
-FROM prom/prometheus:main
+FROM prom/prometheus:v2.37.0
 
 WORKDIR /usr/src/app
 COPY prometheus.yml /etc/prometheus/

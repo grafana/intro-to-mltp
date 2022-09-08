@@ -37,6 +37,8 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     // Create a new span
     const requestSpan = tracer.startSpan('requester', { kind: api.SpanKind.CLIENT });
     requestSpan.setAttribute(spanTag, endpoint);
+    requestSpan.setAttribute(`http.target`, endpoint);
+    requestSpan.setAttribute(`http.method`, type);
     const { traceId } = requestSpan.spanContext();
 
     // Increment the danger level on the gauge
@@ -147,6 +149,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
         });
 
         // Set the status code as OK and end the span
+        requestSpan.set
         requestSpan.setStatus({ code: (!error) ? api.SpanStatusCode.OK : api.SpanStatusCode.ERROR });
         requestSpan.end();
     });
