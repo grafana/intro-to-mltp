@@ -12,6 +12,10 @@ const app = express();
 const register = promClient.register;
 register.setContentType(promClient.Registry.OPENMETRICS_CONTENT_TYPE);
 
+// What a horrible thing to do, global span context for linking.
+// You would not do this in production code, you'd use propagation and baggage.
+let previousReqSpanContext;
+
 // Status response bucket (histogram)
 const dangerGauge = new promClient.Gauge({
     name: 'mythical_danger_level_30s',
@@ -34,11 +38,15 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     let headers = {};
     let error = false;
 
-    // Create a new span
-    const requestSpan = tracer.startSpan('requester', { kind: api.SpanKind.CLIENT });
+    // Create a new span, link to previous request to show how linking between traces works.
+    const requestSpan = tracer.startSpan('requester', {
+        kind: api.SpanKind.CLIENT,
+        links: (previousReqSpanContext) ? [{ context: previousReqSpanContext }] : undefined,
+    });
     requestSpan.setAttribute(spanTag, endpoint);
     requestSpan.setAttribute(`http.target`, endpoint);
     requestSpan.setAttribute(`http.method`, type);
+    previousReqSpanContext = requestSpan.spanContext();
     const { traceId } = requestSpan.spanContext();
 
     // Increment the danger level on the gauge
