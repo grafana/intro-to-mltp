@@ -150,7 +150,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:1.5.0
+    image: grafana/tempo:latest
     ports:
       - "3200:3200"
       - "4317:4317"
