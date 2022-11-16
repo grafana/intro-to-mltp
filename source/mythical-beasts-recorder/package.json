@@ -22,6 +22,7 @@
     "@opentelemetry/semantic-conventions": "^1.8.0",
     "amqplib": "^0.10.0",
     "express": "^4.17.3",
+    "pprof": "^3.2.0",
     "prom-client": "github:voltbit/prom-client#add-openmetrics-support",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",

@@ -1,4 +1,5 @@
 const tracingUtils = require('./tracing')('requester', 'mythical-requester');
+const pprof = require('pprof');
 const request = require('request-promise-native');
 const { uniqueNamesGenerator, adjectives, colors } = require('unique-names-generator');
 const logUtils = require('./logging')('mythical-requester', 'requester');
@@ -11,6 +12,8 @@ const queueUtils = require('./queue')();
 const app = express();
 const register = promClient.register;
 register.setContentType(promClient.Registry.OPENMETRICS_CONTENT_TYPE);
+
+let logEntry;
 
 // What a horrible thing to do, global span context for linking.
 // You would not do this in production code, you'd use propagation and baggage.
@@ -26,6 +29,36 @@ const dangerGauge = new promClient.Gauge({
 app.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
     res.send(await register.metrics());
+});
+
+// Endpoint for pprof handler (for Phlare)
+app.get('/debug/pprof/profile', async (req, res) => {
+    console.log('Got profile request');
+    if (!req.query.seconds) {
+        res.status(400).send('seconds parameter is required');
+        return;
+    }
+    try {
+        const profile = await pprof.time.profile({
+            durationMillis: req.query.seconds * 1000
+        });
+        console.log('encode profile');
+        const encoded = await pprof.encode(profile);
+        res.set('Content-Type', 'application/octet-stream');
+        console.log('sending profile');
+        res.send(encoded);
+    } catch (err) {
+        console.log(err);
+        const endpoint = '/debug/pprof/profile';
+        logEntry({
+            level: 'error',
+            namespace: process.env.NAMESPACE,
+            job: `${servicePrefix}-requester`,
+            endpointLabel: spanTag,
+            endpoint,
+            message: `http.method=GET endpoint=${endpoint} status=error`,
+        });
+    }
 });
 
 // We just keep going, requesting names and adding them
@@ -170,7 +203,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
 (async () => {
     const tracingObj = await tracingUtils();
     const { sendMessage } = await queueUtils(tracingObj);
-    const logEntry = await logUtils(tracingObj);
+    logEntry = await logUtils(tracingObj);
 
     // Kick off four requests that cycle at regular intervals
     setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 5000);

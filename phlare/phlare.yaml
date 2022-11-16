@@ -1,0 +1,16 @@
+server:
+  http_listen_port: 4100
+
+scrape_configs:
+  - job_name: "mythical-requester"
+    scrape_interval: "15s"
+    static_configs:
+      - targets: ["mythical-requester:4001"]
+  - job_name: "mythical-server"
+    scrape_interval: "15s"
+    static_configs:
+      - targets: ["mythical-server:4000"]
+  - job_name: "mythical-recorder"
+    scrape_interval: "15s"
+    static_configs:
+      - targets: ["mythical-recorder:4002"]

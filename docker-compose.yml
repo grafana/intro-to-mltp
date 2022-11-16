@@ -21,14 +21,14 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:9.1.3
+    image: grafana/grafana:9.3.0
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable
+      - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable flameGraph
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
@@ -159,4 +159,12 @@ services:
       - "14250:14250"
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
-      - ./tempo/tempo.yaml:/etc/tempo.yaml
+      - "${PWD}/tempo/tempo.yaml:/etc/tempo.yaml"
+
+  phlare:
+    image: grafana/phlare:latest
+    ports:
+      - "4100:4100"
+    command: [ "-config.file=/etc/phlare.yaml" ]
+    volumes:
+      - "${PWD}/phlare/phlare.yaml:/etc/phlare.yaml"
