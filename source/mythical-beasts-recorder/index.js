@@ -20,6 +20,24 @@ app.get('/metrics', async (req, res) => {
     res.send(await register.metrics());
 });
 
+// Endpoint for pprof handler (for Phlare)
+app.get('/debug/pprof/profile', async (req, res) => {
+    if (!req.query.seconds) {
+        res.status(400).send('seconds parameter is required');
+        return;
+    }
+    try {
+        const profile = await pprof.time.profile({
+            durationMillis: req.query.seconds * 1000
+        });
+        const encoded = await pprof.encode(profile);
+        res.set('Content-Type', 'application/octet-stream');
+        res.send(encoded);
+    } catch (err) {
+        console.log(`Error getting profile - ${err}`);
+    }
+});
+
 const startQueueConsumer = async () => {
     const tracingObj = await tracingUtils();
     const { consumeMessages } = await queueUtils( tracingObj );

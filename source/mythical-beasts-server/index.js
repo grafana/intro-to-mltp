@@ -1,4 +1,5 @@
 const traceUtils = require('./tracing')('server', 'mythical-server');
+const pprof = require('pprof');
 const logUtils = require('./logging')('mythical-server', 'server');
 
 (async () => {
@@ -108,6 +109,32 @@ const logUtils = require('./logging')('mythical-server', 'server');
     app.get('/metrics', async (req, res) => {
         res.set('Content-Type', register.contentType);
         res.send(await register.metrics());
+    });
+
+    // Endpoint for pprof handler (for Phlare)
+    app.get('/debug/pprof/profile', async (req, res) => {
+        if (!req.query.seconds) {
+            res.status(400).send('seconds parameter is required');
+            return;
+        }
+        try {
+            const profile = await pprof.time.profile({
+                durationMillis: req.query.seconds * 1000
+            });
+            const encoded = await pprof.encode(profile);
+            res.set('Content-Type', 'application/octet-stream');
+            res.send(encoded);
+        } catch (err) {
+            const endpoint = '/debug/pprof/profile';
+            logEntry({
+                level: 'error',
+                namespace: process.env.NAMESPACE,
+                job: `${servicePrefix}-requester`,
+                endpointLabel: spanTag,
+                endpoint,
+                message: `http.method=GET endpoint=${endpoint} status=error`,
+            });
+        }
     });
 
     // Generic GET endpoint
