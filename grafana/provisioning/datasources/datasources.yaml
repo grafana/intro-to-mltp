@@ -22,7 +22,7 @@ datasources:
       nodeGraph:
         enabled: true
       serviceMap:
-        datasourceUid: 'Prometheus'
+        datasourceUid: 'Mimir'
       tracesToLogs:
         datasourceUid: loki
         filterByTraceID: false
@@ -30,11 +30,11 @@ datasources:
         spanStartTimeShift: "-500ms"
         tags: ['beast']
 
-  - name: Prometheus
+  - name: Mimir
     type: prometheus
     access: proxy
-    uid: prometheus
-    url: http://prometheus:9090
+    uid: mimir
+    url: http://mimir:9009/prometheus
     jsonData:
       exemplarTraceIdDestinations:
         - datasourceUid: tempo

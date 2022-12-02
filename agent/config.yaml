@@ -1,6 +1,56 @@
 server:
   log_level: debug
 
+# Configures a metrics scraping service, used to scrape metrics and send
+# to Mimir.
+metrics:
+  global:
+    scrape_interval:     15s # By default, scrape targets every 15 seconds.
+    remote_write:
+      - url: http://mimir:9009/api/v1/push
+
+  configs:
+    - name: default
+      scrape_configs:
+      # Scrape Prometheus' own metrics.
+      - job_name: 'mimir'
+        static_configs:
+          - targets: ['localhost:9090']
+            labels:
+              group: 'mimir'
+
+      # Scrape from the Mythical Server service.
+      - job_name: 'mythical-server'
+        scrape_interval: 2s
+        static_configs:
+          - targets: ['mythical-server:4000']
+            labels:
+              group: 'mythical'
+
+      # Scrape from the Mythical Requester service.
+      - job_name: 'mythical-requester'
+        scrape_interval: 2s
+        static_configs:
+          - targets: ['mythical-requester:4001']
+            labels:
+              group: 'mythical'
+
+      # Scrape from the Node exporter, giving us resource usage.
+      - job_name: 'node'
+        scrape_interval: 5s
+        static_configs:
+          - targets: ['nodeexporter:9100']
+            labels:
+              group: 'resources'
+
+      # Scrape from Grafana Agent, giving us metrics from traces it collects.
+      - job_name: 'agent-metrics'
+        scrape_interval: 2s
+        static_configs:
+          - targets: ['agent:12345']
+            labels:
+              group: 'mythical'
+
 # Configures a log ingestion endpoint, used for the autologging feature.
 logs:
     configs:
@@ -15,6 +65,11 @@ logs:
 traces:
   configs:
   - name: latencyEndpoint
+    attributes:
+      actions:
+        - key: custom.attribute
+          action: upsert
+          value: some-value
     # Receive OTLP gRPC on port 4317.
     receivers:
       otlp:

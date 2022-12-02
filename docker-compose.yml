@@ -28,7 +28,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable flameGraph
+      - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable flameGraph topnav
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
@@ -132,21 +132,6 @@ services:
     ports:
       - "9100:9100"
 
-  # The Prometheus service scrapes and stores metrics, and takes queries
-  # from Grafana to visualise those metrics.
-  prometheus:
-    build: ./prometheus
-    ports:
-      - "9090:9090"
-    command: [
-      "--config.file=/etc/prometheus/prometheus.yml",
-      "--storage.tsdb.path=/prometheus",
-      "--web.console.libraries=/usr/share/prometheus/console_libraries",
-      "--web.console.templates=/usr/share/prometheus/consoles",
-      "--enable-feature=exemplar-storage",
-      "--web.enable-remote-write-receiver"
-    ]
-
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
@@ -161,6 +146,13 @@ services:
     volumes:
       - "${PWD}/tempo/tempo.yaml:/etc/tempo.yaml"
 
+  mimir:
+    image: grafana/mimir:latest
+    command: ["-config.file=/etc/mimir.yaml"]
+    ports:
+      - "9009:9009"
+    volumes:
+      - "${PWD}/mimir/mimir.yaml:/etc/mimir.yaml"
   phlare:
     image: grafana/phlare:latest
     ports:
