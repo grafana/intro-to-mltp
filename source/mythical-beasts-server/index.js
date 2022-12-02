@@ -86,7 +86,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
             level: 'error',
             namespace: process.env.NAMESPACE,
             job: `${servicePrefix}-server`,
-            message: 'Method was not valid, throwing error',
+            message: 'message="Method was not valid, throwing error"',
         });
         throw new Error(`Not a valid ${spanTag} method!`);
     }
@@ -463,7 +463,6 @@ const logUtils = require('./logging')('mythical-server', 'server');
                         job: `${servicePrefix}-server`,
                         message: 'Database entry did not exist, creating...',
                     });
-                    console.log('Creating database...');
                     await pgClient.query(`CREATE DATABASE ${spanTag}`);
                 }
 
