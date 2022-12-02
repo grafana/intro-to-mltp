@@ -1,7 +1,8 @@
 const tracingUtils = require('./tracing')('requester', 'mythical-requester');
 const pprof = require('pprof');
 const request = require('request-promise-native');
-const { uniqueNamesGenerator, adjectives, colors } = require('unique-names-generator');
+//const { uniqueNamesGenerator, adjectives, colors } = require('unique-names-generator');
+const { uniqueNamesGenerator, names, colors, animals } = require('unique-names-generator');
 const logUtils = require('./logging')('mythical-requester', 'requester');
 const express = require('express');
 const promClient = require('prom-client');
@@ -33,7 +34,6 @@ app.get('/metrics', async (req, res) => {
 
 // Endpoint for pprof handler (for Phlare)
 app.get('/debug/pprof/profile', async (req, res) => {
-    console.log('Got profile request');
     if (!req.query.seconds) {
         res.status(400).send('seconds parameter is required');
         return;
@@ -42,13 +42,10 @@ app.get('/debug/pprof/profile', async (req, res) => {
         const profile = await pprof.time.profile({
             durationMillis: req.query.seconds * 1000
         });
-        console.log('encode profile');
         const encoded = await pprof.encode(profile);
         res.set('Content-Type', 'application/octet-stream');
-        console.log('sending profile');
         res.send(encoded);
     } catch (err) {
-        console.log(err);
         const endpoint = '/debug/pprof/profile';
         logEntry({
             level: 'error',
@@ -141,12 +138,11 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     endpoint,
                     message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} name=${(names) ? names[0].name : 'unknown'} status=FAILURE error="${err}"`,
                 });
-                console.log(`Requester error: ${err}`);
                 error = true;
             }
         } else {
             // Generate new name
-            const randomName = uniqueNamesGenerator({ dictionaries: [adjectives, colors, adjectives] });
+            const randomName = uniqueNamesGenerator({ dictionaries: [colors, names, animals] });
             const body = (Math.random() < 0.1) ? { whoops: 'yes' } : { name : randomName };
 
             try {
@@ -175,7 +171,6 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     endpoint,
                     message: `traceID=${traceId} http.method=POST endpoint=${endpoint} name=${randomName} status=FAILURE error="${err}"`,
                 });
-                console.log(`Requester error: ${err}`);
                 error = true;
             }
 
