@@ -21,14 +21,14 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:9.3.0
+    image: grafana/grafana:main
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable flameGraph topnav
+      - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable traceqlEditor flameGraph topnav
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -138,7 +138,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:1.5.0
+    image: grafana/tempo:latest
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -156,6 +156,7 @@ services:
       - "9009:9009"
     volumes:
       - "${PWD}/mimir/mimir.yaml:/etc/mimir.yaml"
+
   phlare:
     image: grafana/phlare:latest
     ports:
