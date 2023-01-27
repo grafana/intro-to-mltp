@@ -29,6 +29,9 @@ services:
       - "3000:3000"
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable flameGraph topnav
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
