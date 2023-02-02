@@ -11,16 +11,19 @@ module.exports = () => {
         const channel = await connection.createChannel();
         await channel.assertQueue(queueName);
 
-        const sendMessage = msg => {
+        const sendMessage = async msg => {
             tracer.startActiveSpan('publish_to_queue', async span => {
                 try {
                     channel.sendToQueue(queueName, Buffer.from(msg));
+                    if (msg.match(/(?:\/beholder|\/unicorn)/i)) {
+                        await new Promise(r => setTimeout(r, (Math.random() * 2000) + 500));
+                    }
                     span.setStatus({code: api.SpanStatusCode.OK});
                 } catch (err) {
                     console.log(`Error publishing message on the queue: ${err}`);
                     span.setStatus({code: api.SpanStatusCode.ERROR});
                 }
-               span.end();
+                span.end();
             });
         };
 

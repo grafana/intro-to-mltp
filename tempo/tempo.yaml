@@ -31,10 +31,8 @@ storage:
     backend: local                     # backend configuration to use
     block:
       bloom_filter_false_positive: .05 # bloom filter false positive rate.  lower values create larger filters but fewer false positives
-      version: vParquet
     wal:
       path: /tmp/tempo/wal             # where to store the the wal locally
-      version: 'vParquet'              # need vParquet WAL to run TraceQL on recent data
     local:
       path: /tmp/tempo/blocks
     pool:
@@ -47,10 +45,14 @@ metrics_generator:
         dimensions:
           - http.method
           - http.target
+          - http.status_code
+          - service.version
     service_graphs:
         dimensions:
           - http.method
           - http.target
+          - http.status_code
+          - service.version
   registry:
     collection_interval: 5s
     external_labels:

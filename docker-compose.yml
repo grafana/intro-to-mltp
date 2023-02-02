@@ -6,7 +6,7 @@ services:
   # Grafana agent batches and processes traces sent to it, generating metrics
   # and auto-logs from those traces.
   agent:
-    image: grafana/agent:main
+    image: grafana/agent:latest
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -138,7 +138,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:latest
+    image: grafana/tempo:2.0.0
     ports:
       - "3200:3200"
       - "4317:4317"
