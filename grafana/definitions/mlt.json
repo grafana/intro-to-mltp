@@ -3,7 +3,10 @@
     "list": [
       {
         "builtIn": 1,
-        "datasource": "-- Grafana --",
+        "datasource": {
+          "type": "datasource",
+          "uid": "grafana"
+        },
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
@@ -36,6 +39,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -66,13 +71,7 @@
               "mode": "off"
             }
           },
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Latency charts",
-              "url": "http://localhost:3000/explore?orgId=1&left=[\"now-1h\",\"now\",\"Prometheus\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"expr\":\"topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method!=\\\"\\\", http_target=~\\\"\\\\\\\\w%2B\\\"}[1m]) / increase(traces_spanmetrics_latency_count{http_method!=\\\"\\\", http_target=~\\\"\\\\\\\\w%2B\\\"}[1m])))\"}]&right=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target}\"}]"
-            }
-          ],
+          "links": [],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -101,7 +100,8 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -114,10 +114,12 @@
             "type": "prometheus",
             "uid": "mimir"
           },
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "sum by (http_target)(rate(traces_spanmetrics_latency_sum{http_target=~\"\\\\w+\"}[1m]) / rate(traces_spanmetrics_latency_count{http_target=~\"\\\\w+\"}[1m])) * 55",
+          "expr": "sum by (http_target)(rate(traces_spanmetrics_latency_sum{http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m]) / rate(traces_spanmetrics_latency_count{http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m])) * 55",
           "interval": "",
           "legendFormat": "",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -170,7 +172,7 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "9.4.0-99069pre",
       "targets": [
         {
           "datasource": {
@@ -200,8 +202,8 @@
           "links": [
             {
               "targetBlank": true,
-              "title": "Error traces for ${__field.labels.http_target}",
-              "url": "http://localhost:3000/explore?orgId=1&left=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} status.code=2\"}]"
+              "title": "Traces for Erroring Endpoint",
+              "url": "http://localhost:3000/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"type\":\"tempo\",\"uid\":\"tempo\"},\"queryType\":\"traceql\",\"limit\":20,\"query\":\"{ %2Ehttp%2Etarget = \\\"${__field.labels.http_target}﻿\\\" %26%26 status = error }\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}"
             }
           ],
           "mappings": [],
@@ -214,7 +216,7 @@
               },
               {
                 "color": "red",
-                "value": 4
+                "value": 5
               }
             ]
           }
@@ -222,7 +224,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 15,
         "w": 8,
         "x": 16,
         "y": 4
@@ -242,22 +244,129 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "9.4.0-99069pre",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "mimir"
           },
-          "exemplar": true,
-          "expr": "(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\",http_target=~\"\\\\w+\"}[1m])))/(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code!=\"\",http_target!=\"\\\\w+\"}[1m]))) * 100",
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\",http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[5m])))/(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code!=\"\",http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[5m]))) * 100",
+          "instant": false,
           "interval": "",
           "legendFormat": "{{http_target}}",
+          "range": true,
           "refId": "A"
         }
       ],
       "title": "Error Percentages by Target",
       "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "mimir"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "inspect": false
+          },
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Traces for Status Code/Endpoint",
+              "url": "http://localhost:3000/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"type\":\"tempo\",\"uid\":\"tempo\"},\"queryType\":\"traceql\",\"limit\":20,\"query\":\"{ %2Ehttp%2Etarget = \\\"${__data.fields.http_target}﻿\\\" %26%26 %2Ehttp%2Estatus_code = ${__data.fields.http_status_code} }\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 11
+      },
+      "id": 15,
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "9.4.0-99069pre",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "mimir"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "sum by (http_status_code,http_target,service_version)(increase(traces_spanmetrics_calls_total{http_status_code=~\"${httpStatus}\",http_target=~\"\\\\/${httpEndpoint}\"}[10m]))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP Status codes by Endpoint",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "http_status_code",
+                "http_target",
+                "Value"
+              ]
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "http_status_code"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": {
@@ -272,17 +381,18 @@
           },
           "custom": {
             "align": "auto",
-            "displayMode": "auto",
-            "filterable": false
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
           },
           "links": [
             {
-              "targetBlank": true,
-              "title": "${__data.fields[\"HTTP Method\"]} ${__data.fields.Endpoint} traces",
-              "url": "http://localhost:3000/explore?orgId=1&left=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__data.fields.Endpoint} http.method=${__data.fields[\"HTTP Method\"]}\"}]"
+              "title": "Traces for Latencies for Method/Endpoint",
+              "url": "http://localhost:3000/explore?orgId=1&left={\"datasource\":\"tempo\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"type\":\"tempo\",\"uid\":\"tempo\"},\"queryType\":\"traceql\",\"limit\":20,\"query\":\"{ %2Ehttp%2Etarget = \\\"${__data.fields.http_target}﻿﻿﻿\\\" %26%26 %2Ehttp%2Emethod = \\\"${__data.fields[\"HTTP Method\"]}\\\"  %26%26 %2Eservice%2Eversion = \\\"${__data.fields.service_version}\\\" }\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}"
             }
           ],
-          "unit": "s",
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -296,7 +406,8 @@
                 "value": 65
               }
             ]
-          }
+          },
+          "unit": "s"
         },
         "overrides": [
           {
@@ -306,8 +417,11 @@
             },
             "properties": [
               {
-                "id": "custom.displayMode",
-                "value": "lcd-gauge"
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge"
+                }
               }
             ]
           }
@@ -317,12 +431,13 @@
         "h": 12,
         "w": 11,
         "x": 0,
-        "y": 11
+        "y": 19
       },
       "id": 2,
       "links": [],
       "options": {
         "footer": {
+          "countRows": false,
           "fields": "",
           "reducer": [
             "sum"
@@ -338,15 +453,16 @@
           }
         ]
       },
-      "pluginVersion": "8.4.4",
+      "pluginVersion": "9.4.0-99069pre",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "mimir"
           },
+          "editorMode": "code",
           "exemplar": false,
-          "expr": "topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\"\\\\w+\"}[1m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\"\\\\w+\"}[1m])))",
+          "expr": "topk(10, sum by (http_method,http_target,service_version)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m])))",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -363,7 +479,8 @@
               "names": [
                 "http_method",
                 "http_target",
-                "Value"
+                "Value",
+                "service_version"
               ]
             }
           }
@@ -398,6 +515,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -428,13 +547,7 @@
               "mode": "off"
             }
           },
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Latency charts",
-              "url": "http://localhost:3000/explore?orgId=1&left=[\"now-1h\",\"now\",\"Prometheus\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"expr\":\"topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method!=\\\"\\\", http_target=~\\\"\\\\\\\\w%2B\\\"}[1m]) / increase(traces_spanmetrics_latency_count{http_method!=\\\"\\\", http_target=~\\\"\\\\\\\\w%2B\\\"}[1m])))\"}]&right=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} http.method=${__field.labels.http_method}\"}]"
-            }
-          ],
+          "links": [],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -456,14 +569,15 @@
         "h": 12,
         "w": 13,
         "x": 11,
-        "y": 11
+        "y": 19
       },
       "id": 4,
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -476,10 +590,12 @@
             "type": "prometheus",
             "uid": "mimir"
           },
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\"\\\\w+\"}[10m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\"\\\\w+\"}[10m]))",
+          "expr": "sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[10m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[10m]))",
           "interval": "",
           "legendFormat": "",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -497,6 +613,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -548,14 +666,15 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 31
       },
       "id": 8,
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -568,10 +687,12 @@
             "type": "prometheus",
             "uid": "mimir"
           },
+          "editorMode": "code",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum(rate(mythical_request_times_bucket[15s])) by (le, beast))",
           "interval": "",
           "legendFormat": "{{le}}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -587,7 +708,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 41
       },
       "id": 6,
       "options": {
@@ -615,11 +736,109 @@
     }
   ],
   "refresh": "5s",
-  "schemaVersion": 35,
+  "revision": 1,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "{http_status_code!=\"\"}",
+        "description": "HTTP Status",
+        "hide": 0,
+        "includeAll": true,
+        "label": "HTTP Status",
+        "multi": true,
+        "name": "httpStatus",
+        "options": [],
+        "query": {
+          "query": "{http_status_code!=\"\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/.*http_status_code=\"([^\"]*).*/",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "{http_target=~\"(beholder|unicorn|manticore|illithid|owlbear)\"}",
+        "description": "HTTP Endpont",
+        "hide": 0,
+        "includeAll": true,
+        "label": "HTTP Endpoint",
+        "multi": true,
+        "name": "httpEndpoint",
+        "options": [],
+        "query": {
+          "query": "{http_target=~\"(beholder|unicorn|manticore|illithid|owlbear)\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/.*http_target=\"([^\"]*).*/",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "mimir"
+        },
+        "definition": "{service_version!=\"\"}",
+        "description": "Service version",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service Version",
+        "multi": true,
+        "name": "serviceVersion",
+        "options": [],
+        "query": {
+          "query": "{service_version!=\"\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/.*service_version=\"([^\"]*).*/",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
   },
   "time": {
     "from": "now-5m",

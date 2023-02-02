@@ -76,6 +76,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     requestSpan.setAttribute(spanTag, endpoint);
     requestSpan.setAttribute(`http.target`, endpoint);
     requestSpan.setAttribute(`http.method`, type);
+    requestSpan.setAttribute('service.version', (Math.floor(Math.random() * 100)) < 50 ? '1.9.2' : '2.0.0');
     previousReqSpanContext = requestSpan.spanContext();
     const { traceId } = requestSpan.spanContext();
 
@@ -185,7 +186,12 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
         });
 
         // Set the status code as OK and end the span
-        requestSpan.set
+        if (error) {
+            const version = (Math.floor(Math.random() * 100));
+            if (version < 70) {
+                requestSpan.setAttribute('service.version', '2.0.0');
+            }
+        }
         requestSpan.setStatus({ code: (!error) ? api.SpanStatusCode.OK : api.SpanStatusCode.ERROR });
         requestSpan.end();
     });

@@ -61,6 +61,8 @@ The Grafana instance is described in the `grafana` section of the `docker-compos
 It:
 * Mounts two repository directories to provide pre-provisioned data sources for data.
 * A pre-provisioned dashboard for correlating metrics, logs and traces.
+  * This dashboard uses metrics from span traces to provide RED (Rate/Error/Duration) signals.
+  * Data links are built into Grafana panels to pre-populate TraceQL queries based on the data. These act as an initial guide for digging into more detailed trace queries by extending the TraceQL.
 * Exposes port `3000` for local login.
 * Enables two Tempo features, namely span search and service graph support.
 

@@ -2,6 +2,7 @@ const tracingUtils = require('./tracing')('recorder', 'mythical-recorder');
 const express = require('express');
 const promClient = require('prom-client');
 const queueUtils = require('./queue')();
+const pprof = require('pprof');
 
 // Prometheus client registration
 const app = express();
@@ -47,6 +48,11 @@ const startQueueConsumer = async () => {
     await consumeMessages(async msg => {
         tracer.startActiveSpan('process_message', async span => {
             messagesCounter.inc();
+
+            if (msg.content.toString().match(/(?:\/beholder|\/unicorn)/i)) {
+                await new Promise(r => setTimeout(r, (Math.random() * 1000) + 500));
+            }
+
             if (msg !== null) {
                 console.log(`Received a message: ${msg.content.toString()}`);
             } else {
