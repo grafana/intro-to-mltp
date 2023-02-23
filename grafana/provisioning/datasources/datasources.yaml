@@ -38,7 +38,7 @@ datasources:
     jsonData:
       exemplarTraceIdDestinations:
         - datasourceUid: tempo
-          name: traceID
+          name: traceId
       httpMethod: POST
       timeInterval: "2s"
 
