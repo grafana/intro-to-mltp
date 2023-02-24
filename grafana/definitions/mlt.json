@@ -77,8 +77,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -141,8 +140,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -211,8 +209,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -293,8 +290,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -399,8 +395,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -555,8 +550,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -652,8 +646,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -792,7 +785,7 @@
           "type": "prometheus",
           "uid": "mimir"
         },
-        "definition": "{http_target=~\"(beholder|unicorn|manticore|illithid|owlbear)\"}",
+        "definition": "traces_spanmetrics_calls_total{http_target=~\".*\"}",
         "description": "HTTP Endpont",
         "hide": 0,
         "includeAll": true,
@@ -801,7 +794,7 @@
         "name": "httpEndpoint",
         "options": [],
         "query": {
-          "query": "{http_target=~\"(beholder|unicorn|manticore|illithid|owlbear)\"}",
+          "query": "traces_spanmetrics_calls_total{http_target=~\".*\"}",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
