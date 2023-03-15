@@ -8,15 +8,18 @@ services:
   agent:
     image: grafana/agent:latest
     ports:
-      - "12347:12345"
+      - "12345:12345"
       - "12348:12348"
       - "6832:6832"
       - "55679:55679"
     volumes:
-      - "${PWD}/agent/config.yaml:/etc/agent/agent.yaml"
+      - "${PWD}/agent/config.river:/etc/agent/config.river"
+    environment:
+      - AGENT_MODE=flow
     command: [
-      "-config.file=/etc/agent/agent.yaml",
-      "-server.http.address=0.0.0.0:12345",
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "/etc/agent/config.river",
     ]
 
   # The Grafana dashboarding server.

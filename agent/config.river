@@ -1,0 +1,84 @@
+///////////////////////////////////////////////////////////////////////////////
+// Metrics scraping
+
+// Scrape the local Agent itself.
+prometheus.scrape "agent" {
+    targets = [{"__address__" = "localhost:12345", group = "infrastructure"}]
+    forward_to = [prometheus.remote_write.prom.receiver]
+    job_name = "agent"
+}
+
+// Scrape Tempo, Mimir, Phlare and Loki
+prometheus.scrape "mltp_infra" {
+    targets = [
+        {"__address__" = "mimir:9009", group = "infrastructure"},
+        {"__address__" = "tempo:3200", group = "infrastructure"},
+        {"__address__" = "loki:3100", group = "infrastructure"},
+        {"__address__" = "phlare:4100", group = "infrastructure"},
+    ]
+    scrape_interval = "15s"
+    forward_to = [prometheus.remote_write.prom.receiver]
+    job_name = "mltp_infra"
+}
+
+// Scrape local resources.
+prometheus.scrape "node" {
+    targets = [{"__address__" = "nodeexporter:9100", group = "resources"}]
+    forward_to = [prometheus.remote_write.prom.receiver]
+    job_name = "node"
+}
+
+// Scrape the Mythical application.
+prometheus.scrape "mythical" {
+    targets = [
+        {"__address__" = "mythical-server:4000", group = "mythical"},
+        {"__address__" = "mythical-requester:4001", group = "mythical"},
+    ]
+    scrape_interval = "2s"
+    scrape_timeout = "2s"
+    forward_to = [prometheus.remote_write.prom.receiver]
+    job_name = "mythical"
+}
+
+// Remote write endpoint is Mimir, our metrics store.
+prometheus.remote_write "prom" {
+    endpoint {
+        url = "http://mimir:9009/api/v1/push"
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Tracing
+
+// OTLP gRPC receiver
+otelcol.receiver.otlp "otlp_receiver" {
+    // Don't technically need this, but it shows how to change listen addr/port
+    grpc {
+        endpoint = "0.0.0.0:4317"
+    }
+
+    // Output to the batch processor.
+    output {
+        traces = [otelcol.processor.batch.default.input]
+    }
+}
+
+otelcol.processor.batch "default" {
+    // 16K until we send, 2 second per flush
+    send_batch_size = 16384
+    timeout = "2s"
+    output {
+        traces = [otelcol.exporter.otlp.tempo.input]
+    }
+}
+
+otelcol.exporter.otlp "tempo" {
+    // Send to Tempo, without any TLS setup.
+    client {
+        endpoint = "tempo:4317"
+        tls {
+            insecure = true
+            insecure_skip_verify = true
+        }
+    }
+}
