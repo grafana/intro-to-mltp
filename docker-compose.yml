@@ -28,7 +28,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=tempoApmTable traceqlEditor flameGraph topnav
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph topnav
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -138,7 +138,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.0.0
+    image: grafana/tempo:2.0.1
     ports:
       - "3200:3200"
       - "4317:4317"
