@@ -1,0 +1,60 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+  prometheus:
+    config:
+      scrape_configs:
+        # Scrape from the Mythical Server service.
+        - job_name: 'mythical-server'
+          scrape_interval: 2s
+          static_configs:
+            - targets: ['mythical-server:4000']
+              labels:
+                group: 'mythical'
+
+        # Scrape from the Mythical Requester service.
+        - job_name: 'mythical-requester'
+          scrape_interval: 2s
+          static_configs:
+            - targets: ['mythical-requester:4001']
+              labels:
+                group: 'mythical'
+
+        # Scrape from Grafana Agent, giving us metrics from traces it collects.
+        # Not required if Grafana Cloud Trace Metrics are enabled
+        - job_name: 'span-metrics'
+          scrape_interval: 2s
+          static_configs:
+            - targets: ['agent:12348']
+              labels:
+                group: 'mythical'
+
+processors:
+  batch:
+
+exporters:
+  # Grafana OLTP endpoint configuration
+  otlp/grafana:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  prometheusremotewrite:
+    endpoint: http://mimir:9009/api/v1/push
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/grafana]
+
+    metrics:
+      receivers: [prometheus]
+      processors: [batch]
+      exporters: [prometheusremotewrite]

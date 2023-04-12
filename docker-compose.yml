@@ -3,10 +3,9 @@ volumes:
   grafana:
   postgres:
 services:
-  # Grafana agent batches and processes traces sent to it, generating metrics
-  # and auto-logs from those traces.
+  # Opentelemetry Collector receiver example. Takes both metrics and traces and send to Prometheus/Tempo.
   agent:
-    image: grafana/agent:latest
+    image: otel/opentelemetry-collector
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -14,10 +13,8 @@ services:
       - "55679:55679"
     volumes:
       - "${PWD}/agent/config.yaml:/etc/agent/agent.yaml"
-    command: [
-      "-config.file=/etc/agent/agent.yaml",
-      "-server.http.address=0.0.0.0:12345",
-    ]
+      - ./otel/otel.yml:/etc/otel-collector-config.yml
+    command: ["--config=/etc/otel-collector-config.yml"]
 
   # The Grafana dashboarding server.
   grafana:
