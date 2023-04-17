@@ -101,7 +101,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
   "links": [],
   "liveNow": false,
   "panels": [
@@ -117,6 +116,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -147,13 +148,7 @@
               "mode": "off"
             }
           },
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Latency charts",
-              "url": "http://localhost:3000/explore?orgId=1&left=[\"now-1h\",\"now\",\"Prometheus\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"expr\":\"topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_duration_seconds_sum{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m]) / increase(traces_spanmetrics_duration_seconds_count{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m])))\"}]&right=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} http.method=${__field.labels.http_method}\"}]"
-            }
-          ],
+          "links": [],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -182,7 +177,8 @@
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -195,10 +191,12 @@
             "type": "prometheus",
             "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
           },
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "sum by (http_target)(rate(traces_spanmetrics_calls_total{http_target=~\"\\\\/beholder|\\\\/illithd|\\\\/manticore|\\\\/owlbear|\\\\/login|\\\\/unicorn\"}[1m]) / rate(traces_spanmetrics_calls_total{http_target=~\"\\\\/beholder|\\\\/illithd|\\\\/manticore|\\\\/owlbear|\\\\/login|\\\\/unicorn\"}[1m])) * 55",
+          "expr": "sum by (http_target)(rate(traces_spanmetrics_latency_sum{http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m]) / rate(traces_spanmetrics_latency_count{http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m])) * 55",
           "interval": "",
           "legendFormat": "",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -251,7 +249,7 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "8.5.4",
+      "pluginVersion": "9.4.0-99069pre",
       "targets": [
         {
           "datasource": {
@@ -281,8 +279,8 @@
           "links": [
             {
               "targetBlank": true,
-              "title": "Error traces for ${__field.labels.http_target}",
-              "url": "http://localhost:3000/explore?orgId=1&left=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} status.code=2\"}]"
+              "title": "Traces for Erroring Endpoint",
+              "url": "/explore?orgId=1&left={\"datasource\":\"${DS_GRAFANACLOUD-EXAMPLE1-TRACES}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"type\":\"tempo\",\"uid\":\"${DS_GRAFANACLOUD-EXAMPLE1-TRACES}\"},\"queryType\":\"traceql\",\"limit\":20,\"query\":\"{ %2Ehttp%2Etarget = \\\"${__field.labels.http_target}﻿\\\" %26%26 status = error }\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}"
             }
           ],
           "mappings": [],
@@ -295,7 +293,7 @@
               },
               {
                 "color": "red",
-                "value": 4
+                "value": 5
               }
             ]
           }
@@ -303,7 +301,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
+        "h": 15,
         "w": 8,
         "x": 16,
         "y": 4
@@ -323,17 +321,20 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "8.5.4",
+      "pluginVersion": "9.4.0-99069pre",
       "targets": [
         {
           "datasource": {
             "type": "prometheus",
             "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
           },
-          "exemplar": true,
-          "expr": "(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\",http_target=~\"\\\\/\\\\w+\"}[1m])))/(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code!=\"\",http_target!=\"\\\\/\\\\w+\"}[1m]))) * 100",
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code=\"STATUS_CODE_ERROR\",http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[5m])))/(sum by (http_target)(increase(traces_spanmetrics_calls_total{status_code!=\"\",http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[5m]))) * 100",
+          "instant": false,
           "interval": "",
           "legendFormat": "{{http_target}}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -351,15 +352,17 @@
             "mode": "thresholds"
           },
           "custom": {
-            "align": "center",
-            "displayMode": "auto",
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
             "inspect": false
           },
           "links": [
             {
               "targetBlank": true,
-              "title": "${__data.fields[\"HTTP Method\"]} ${__data.fields.Endpoint} traces",
-              "url": "/explore?orgId=1&left=\n[\"now-1h\",\"now\",\"${DS_GRAFANACLOUD-EXAMPLE1-TRACES}\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\", \"search\":\"http.target=${__data.fields.Endpoint} http.method=${__data.fields[\"HTTP Method\"]}\"}]"
+              "title": "Traces for Status Code/Endpoint",
+              "url": "/explore?orgId=1&left={\"datasource\":\"${DS_GRAFANACLOUD-EXAMPLE1-TRACES}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"type\":\"tempo\",\"uid\":\"${DS_GRAFANACLOUD-EXAMPLE1-TRACES}\"},\"queryType\":\"traceql\",\"limit\":20,\"query\":\"{ %2Ehttp%2Etarget = \\\"${__data.fields.http_target}﻿\\\" %26%26 %2Ehttp%2Estatus_code = ${__data.fields.http_status_code} }\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}"
             }
           ],
           "mappings": [],
@@ -380,14 +383,15 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 12,
-        "w": 11,
+        "h": 8,
+        "w": 16,
         "x": 0,
         "y": 11
       },
       "id": 15,
       "options": {
         "footer": {
+          "countRows": false,
           "fields": "",
           "reducer": [
             "sum"
@@ -396,7 +400,7 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "8.5.4",
+      "pluginVersion": "9.4.0-99069pre",
       "targets": [
         {
           "datasource": {
@@ -404,9 +408,142 @@
             "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\".+\"}[5m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\".+\"}[5m])))",
+          "exemplar": false,
+          "expr": "sum by (http_status_code,http_target,service_version)(increase(traces_spanmetrics_calls_total{http_status_code=~\"${httpStatus}\",http_target=~\"\\\\/${httpEndpoint}\"}[10m]))",
           "format": "table",
-          "range": true,
+          "instant": true,
+          "legendFormat": "__auto",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "HTTP Status codes by Endpoint",
+      "transformations": [
+        {
+          "id": "filterFieldsByName",
+          "options": {
+            "include": {
+              "names": [
+                "http_status_code",
+                "http_target",
+                "Value"
+              ]
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "fields": {},
+            "sort": [
+              {
+                "field": "http_status_code"
+              }
+            ]
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "links": [
+            {
+              "title": "Traces for Latencies for Method/Endpoint",
+              "url": "/explore?orgId=1&left={\"datasource\":\"${DS_GRAFANACLOUD-EXAMPLE1-TRACES}\",\"queries\":[{\"refId\":\"A\",\"datasource\":{\"type\":\"tempo\",\"uid\":\"${DS_GRAFANACLOUD-EXAMPLE1-TRACES}\"},\"queryType\":\"traceql\",\"limit\":20,\"query\":\"{ %2Ehttp%2Etarget = \\\"${__data.fields.http_target}﻿﻿﻿\\\" %26%26 %2Ehttp%2Emethod = \\\"${__data.fields[\"HTTP Method\"]}\\\"  %26%26 %2Eservice%2Eversion = \\\"${__data.fields.service_version}\\\" }\"}],\"range\":{\"from\":\"now-1h\",\"to\":\"now\"}}"
+            }
+          ],
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 65
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Value #A"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "lcd",
+                  "type": "gauge"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 11,
+        "x": 0,
+        "y": 19
+      },
+      "id": 2,
+      "links": [],
+      "options": {
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "frameIndex": 0,
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Average Latency"
+          }
+        ]
+      },
+      "pluginVersion": "9.4.0-99069pre",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
+          },
+          "editorMode": "code",
+          "exemplar": false,
+          "expr": "topk(10, sum by (http_method,http_target,service_version)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m])))",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -419,7 +556,8 @@
               "names": [
                 "http_method",
                 "http_target",
-                "Value"
+                "Value",
+                "service_version"
               ]
             }
           }
@@ -427,11 +565,13 @@
         {
           "id": "organize",
           "options": {
-            "excludeByName": {},
+            "excludeByName": {
+              "Value": false
+            },
             "indexByName": {},
             "renameByName": {
-              "Time": "HTTP Method",
               "Value": "Latency (ms)",
+              "Value #A": "Average Latency",
               "http_method": "HTTP Method",
               "http_target": "Endpoint"
             }
@@ -452,6 +592,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -482,13 +624,7 @@
               "mode": "off"
             }
           },
-          "links": [
-            {
-              "targetBlank": true,
-              "title": "Latency charts",
-              "url": "http://localhost:3000/explore?orgId=1&left=[\"now-1h\",\"now\",\"Prometheus\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"expr\":\"topk(10, sum by (http_method,http_target)(increase(traces_spanmetrics_duration_seconds_sum{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m]) / increase(traces_spanmetrics_duration_seconds_count{http_method!=\\\"\\\", http_target!=\\\"\\\"}[1m])))\"}]&right=\n[\"now-1h\",\"now\",\"Tempo\",{\"refId\":\"A\",\"instant\":true,\"range\":true,\"exemplar\":true,\"queryType\":\"nativeSearch\",\"search\":\"http.target=${__field.labels.http_target} http.method=${__field.labels.http_method}\"}]"
-            }
-          ],
+          "links": [],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -510,14 +646,15 @@
         "h": 12,
         "w": 13,
         "x": 11,
-        "y": 11
+        "y": 19
       },
       "id": 4,
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -530,10 +667,12 @@
             "type": "prometheus",
             "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
           },
+          "editorMode": "code",
           "exemplar": true,
-          "expr": "sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\"\\\\/beholder|\\\\/illithd|\\\\/manticore|\\\\/owlbear|\\\\/login|\\\\/unicorn\"}[10m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\"\\\\/beholder|\\\\/illithd|\\\\/manticore|\\\\/owlbear|\\\\/login|\\\\/unicorn\"}[10m]))",
+          "expr": "sum by (http_method,http_target)(increase(traces_spanmetrics_latency_sum{http_method=~\".+\", http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[10m]) / increase(traces_spanmetrics_latency_count{http_method=~\".+\", http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[10m]))",
           "interval": "",
           "legendFormat": "",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -551,6 +690,8 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
@@ -602,14 +743,15 @@
         "h": 10,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 31
       },
       "id": 8,
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
           "mode": "single",
@@ -622,10 +764,12 @@
             "type": "prometheus",
             "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
           },
+          "editorMode": "code",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum(rate(mythical_request_times_bucket[15s])) by (le, beast))",
           "interval": "",
           "legendFormat": "{{le}}",
+          "range": true,
           "refId": "A"
         }
       ],
@@ -641,7 +785,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 41
       },
       "id": 6,
       "options": {
@@ -668,21 +812,119 @@
       "type": "logs"
     }
   ],
-  "refresh": "30s",
-  "schemaVersion": 36,
+  "refresh": "5s",
+  "revision": 1,
+  "schemaVersion": 38,
   "style": "dark",
   "tags": [],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
+        },
+        "definition": "{http_status_code!=\"\"}",
+        "description": "HTTP Status",
+        "hide": 0,
+        "includeAll": true,
+        "label": "HTTP Status",
+        "multi": true,
+        "name": "httpStatus",
+        "options": [],
+        "query": {
+          "query": "{http_status_code!=\"\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/.*http_status_code=\"([^\"]*).*/",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
+        },
+        "definition": "{http_target=~\"(beholder|unicorn|manticore|illithid|owlbear)\"}",
+        "description": "HTTP Endpont",
+        "hide": 0,
+        "includeAll": true,
+        "label": "HTTP Endpoint",
+        "multi": true,
+        "name": "httpEndpoint",
+        "options": [],
+        "query": {
+          "query": "{http_target=~\"(beholder|unicorn|manticore|illithid|owlbear)\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/.*http_target=\"([^\"]*).*/",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${DS_GRAFANACLOUD-EXAMPLE1-PROM}"
+        },
+        "definition": "{service_version!=\"\"}",
+        "description": "Service version",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service Version",
+        "multi": true,
+        "name": "serviceVersion",
+        "options": [],
+        "query": {
+          "query": "{service_version!=\"\"}",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 2,
+        "regex": "/.*service_version=\"([^\"]*).*/",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
-  "title": "Metrics Logs Traces - MB - 1",
-  "uid": "1VSk5Lank",
-  "version": 12,
+  "title": "MLT Dashboard",
+  "uid": "4VSk5Lank",
+  "version": 1,
   "weekStart": ""
 }

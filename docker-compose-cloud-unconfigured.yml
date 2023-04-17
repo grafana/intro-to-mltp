@@ -7,7 +7,7 @@ services:
   # and auto-logs from those traces.
   # Includes Metrics, Logs and Traces
   agent:
-    image: grafana/agent:v0.24.0
+    image: grafana/agent:v0.32.1
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -19,6 +19,19 @@ services:
       "-config.file=/etc/agent/agent.yaml",
       "-server.http.address=0.0.0.0:12345",
     ]
+
+  # A RabbitMQ queue used to send message between the requester and the server microservices.
+  mythical-queue:
+    image: rabbitmq:management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_running
+      interval: 5s
+      timeout: 30s
+      retries: 10
 
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
@@ -94,16 +107,3 @@ services:
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
-
-  # A RabbitMQ queue used to send message between the requester and the server microservices.
-  mythical-queue:
-    image: rabbitmq:management
-    restart: always
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    healthcheck:
-      test: rabbitmq-diagnostics check_running
-      interval: 5s
-      timeout: 30s
-      retries: 10
