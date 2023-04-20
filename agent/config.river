@@ -1,0 +1,125 @@
+///////////////////////////////////////////////////////////////////////////////
+// Metrics scraping
+
+// Scrape Tempo, Mimir, Phlare and Loki
+// We use the prometheus.scrape component and give this a unique label.
+prometheus.scrape "mltpg_infra" {
+    // The targets array allows us to specify which service targets to scrape from.
+    // Define the address to scrape from, and add a 'group' and 'service' label for each target.
+    targets = [
+        {"__address__" = "mimir:9009", group = "infrastructure", service = "mimir"},
+        {"__address__" = "tempo:3200", group = "infrastructure", service = "tempo"},
+        {"__address__" = "loki:3100", group = "infrastructure", service = "loki"},
+        {"__address__" = "phlare:4100", group = "infrastructure", service = "phlare"},
+        {"__address__" = "grafana:3000", group = "infrastructure", service = "grafana"},
+    ]
+
+    // Scrape all of these services every 15 seconds.
+    scrape_interval = "15s"
+    // Send the metrics to the prometheus remote write receiver for exporting to Mimir.
+    forward_to = [prometheus.remote_write.mimir.receiver]
+    // The job name to add to the scraped metrics.
+    job_name = "mltpg_infra"
+}
+
+// Scrape the Mythical application, again, prometheus scraping with a unique label.
+prometheus.scrape "mythical" {
+    // Scrape from the mythical requester and server services, and add them to the 'mythical' group with their service
+    // names.
+    targets = [
+        {"__address__" = "mythical-server:4000", group = "mythical", service = "mythical-server"},
+        {"__address__" = "mythical-requester:4001", group = "mythical", service = "mythical-requester"},
+    ]
+    // We need a scrape interval and timeout of 2s as we want reactive metric data.
+    scrape_interval = "2s"
+    scrape_timeout = "2s"
+    // Send the metrics to the prometheus remote write receiver for exporting to Mimir.
+    forward_to = [prometheus.remote_write.mimir.receiver]
+    // Attach the job name to the metrics.
+    job_name = "mythical"
+}
+
+// Scrape the local Agent itself.
+// This takes the place of the `integrations: agent:` block in the original configuration file.
+prometheus.scrape "agent" {
+    // Only one target, the Agent, it's part of the 'infrastructure' group.
+    targets = [{"__address__" = "localhost:12345", group = "infrastructure", service = "agent"}]
+    // Send the metrics to the prometheus remote write receiver for exporting to Mimir.
+    forward_to = [prometheus.remote_write.mimir.receiver]
+    // Attach job name to the metrics.
+    job_name = "agent"
+}
+
+// Node Exporter is built in a scrapeable prometheus component, taking the place of `integrations: node_exporter:` in
+// the original Agent config file.
+// The Agent exports everything, using an empty block.
+prometheus.exporter.unix {
+}
+// Scrape the Unix exporter metrics.
+prometheus.scrape "unix" {
+    // Use the Unix prometheus exporter as the target.
+    targets = prometheus.exporter.unix.targets
+    // Send the metrics to the prometheus remote write receiver for exporting to Mimir.
+    forward_to = [prometheus.remote_write.mimir.receiver]
+    // Attach job name to the metrics.
+    job_name = "node_exporter"
+}
+
+// The prometheus.remote_write component defines an endpoint for remotely writing metrics to.
+// In this case, our locally running Mimir service.
+prometheus.remote_write "mimir" {
+    // The endpoint is the Mimir service.
+    endpoint {
+        url = "http://mimir:9009/api/v1/push"
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Tracing
+
+// The OpenTelemetry receiver is used to ingest all incoming trace spans. A label 'otlp_receiver' is added to uniquely
+// identify this instance.
+otelcol.receiver.otlp "otlp_receiver" {
+    // We don't technically need this, but it shows how to change listen address and incoming port.
+    // In this case, the Agent is listening on all available bindable addresses on port 4317 (which is the
+    // default OTLP gRPC port) for the OTLP protocol.
+    grpc {
+        endpoint = "0.0.0.0:4317"
+    }
+
+    // We define where to send the output of all ingested traces. In this case, to the OpenTelemetry batch processor
+    // named 'default'.
+    output {
+        traces = [otelcol.processor.batch.default.input]
+    }
+}
+
+// The OpenTelemetry batch processor collects trace spans until a batch size or timeout is met, before sending those
+// spans onto another target. This processor is labeled 'default'.
+otelcol.processor.batch "default" {
+    // Wait until we've received 16K of data.
+    send_batch_size = 16384
+    // Or until 2 seconds have elapsed.
+    timeout = "2s"
+    // When the Agent has enough batched data, send it to the OpenTelemetry exporter named 'tempo'.
+    output {
+        traces = [otelcol.exporter.otlp.tempo.input]
+    }
+}
+
+// The OpenTelemetry exporter exports processed trace spans to another target that is listening for OTLP format traces.
+// A unique label, 'tempo', is added to uniquely identify this exporter.
+otelcol.exporter.otlp "tempo" {
+    // Define the client for exporting.
+    client {
+        // Send to the locally running Tempo instance, on port 4317 (OTLP gRPC).
+        endpoint = "tempo:4317"
+        // Configure TLS settings for communicating with the endpoint.
+        tls {
+            // The connection is insecure.
+            insecure = true
+            // Do not verify TLS certificates when connecting.
+            insecure_skip_verify = true
+        }
+    }
+}

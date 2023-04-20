@@ -1,0 +1,145 @@
+# Define the protocols to receive data for.
+# See https://opentelemetry.io/docs/collector/configuration/#receivers
+receivers:
+  # Configure receiving OTLP data via gRPC on port 4317.
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+  # Defines a Prometheus configuration set.
+  prometheus:
+    # Define a set of configurations for scraping by the OpenTelemetry Collector.
+    config:
+      # The `scrape_configs` section pertains to the Prometheus `scrape_configs`
+      # configuration block.
+      # See https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config
+      scrape_configs:
+        # Scrape Mimir metrics.
+        - job_name: 'mimir'
+          static_configs:
+            - targets: ['mimir:9009']
+              labels:
+                service: 'mimir'
+                group: 'infrastructure'
+
+        # Scrape Loki metrics.
+        - job_name: 'loki'
+          static_configs:
+            - targets: ['loki:3100']
+              labels:
+                service: 'loki'
+                group: 'infrastructure'
+
+        # Scrape Tempo metrics.
+        - job_name: 'tempo'
+          static_configs:
+            - targets: ['tempo:3200']
+              labels:
+                service: 'tempo'
+                group: 'infrastructure'
+
+        # Scrape Grafana metrics.
+        - job_name: 'grafana'
+          static_configs:
+            - targets: ['grafana:3000']
+              labels:
+                service: 'grafana'
+                group: 'infrastructure'
+
+        # Scrape from the Mythical Server service.
+        - job_name: 'mythical-server'
+          scrape_interval: 2s
+          static_configs:
+            - targets: ['mythical-server:4000']
+              labels:
+                service: 'mythical-server'
+                group: 'mythical'
+
+        # Scrape from the Mythical Requester service.
+        - job_name: 'mythical-requester'
+          scrape_interval: 2s
+          static_configs:
+            - targets: ['mythical-requester:4001']
+              labels:
+                service: 'mythical-requester'
+                group: 'mythical'
+
+# Define processors to process received data.
+# See https://opentelemetry.io/docs/collector/configuration/#processors
+processors:
+  # Use the in-built `batch` processor to batch up data before writing it for export.
+  # Use the default values for it.
+  batch:
+
+  # The spanmetrics processor is used to output metrics based on received trace spans.
+  #spanmetrics:
+  #    # Defines which exporter the processor will write metrics to.
+  #    metrics_exporter: prometheusremotewrite
+  #    # Defines additional label dimensions of the metrics from trace span attributes present.
+  #    dimensions:
+  #      - name: http.method
+  #      - name: http.target
+  #      - name: http.status_code
+  #      - name: service.version
+
+  ## The servicegraph processor is used to output service node metrics based on received trace spans.
+  #servicegraph:
+  #    # Defines which exporter the processor will write metrics to.
+  #    metrics_exporter: prometheusremotewrite
+  #    # Defines additional label dimensions of the metrics from trace span attributes present.
+  #    store:                      # Configuration for the in-memory store.
+  #      ttl: 2s                   # Time to wait for an edge to be completed.
+  #      max_items: 200            # Number of edges that will be stored in the storeMap.
+  #    cache_loop: 2m              # The timeout used to clean the cache periodically.
+  #    store_expiration_loop: 10s  # The timeout used to expire old entries from the store periodically.
+  #    # Virtual node peer attributes allow server nodes to be generated where instrumentation isn't present (eg. where
+  #    # service client calls remotely to a service that does not include instrumentation).
+  #    # Service nodes/edges will be generated for any attribute defined.
+  #    virtual_node_peer_attributes:
+  #      - db.name
+
+# Define exporters to data stores.
+# See https://opentelemetry.io/docs/collector/configuration/#exporters
+# Also see https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor#recommended-processors
+exporters:
+  # Exporter for sending trace data to Tempo.
+  otlp/grafana:
+    # Send to the locally running Tempo service.
+    endpoint: tempo:4317
+    # TLS is not enabled for the instance.
+    tls:
+      insecure: true
+
+  # Exporter for sending Prometheus data to Mimir.
+  prometheusremotewrite:
+    # Send to the locally running Mimir service.
+    endpoint: http://mimir:9009/api/v1/push
+    # TLS is not enabled for the instance.
+    tls:
+      insecure: true
+
+# Define the full service graph for the OpenTelemetry collector.
+service:
+  # A pipeline can exist for each of the signals received.
+  pipelines:
+    # Define the trace pipeline.
+    traces:
+      # Receive from the `otlp` receiver.
+      receivers: [otlp]
+      # Use the `batch` processor to process received trace spans.
+      processors: [batch]
+      # Comment out the previous line and uncomment the line below to generate span metrics and service graph metrics
+      # from within the OpenTelemetry Collector.
+      #processors: [spanmetrics, servicegraph, batch]
+      # Export to the `otlp/grafana` exporter.
+      exporters: [otlp/grafana]
+
+    # Define the metrics pipeline.
+    metrics:
+      # Receive metrics from the `prometheus` receiver.
+      receivers: [prometheus]
+      # Use the `batch` processor to process received metrics.
+      processors: [batch]
+      # Export to the `prometheusremtotewrite` exporter.
+      exporters: [prometheusremotewrite]
