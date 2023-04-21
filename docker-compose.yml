@@ -6,7 +6,7 @@ services:
   # Grafana agent batches and processes traces sent to it, generating metrics
   # and auto-logs from those traces.
   agent:
-    image: grafana/agent:latest
+    image: grafana/agent:v0.32.1
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -21,7 +21,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:main
+    image: grafana/grafana:9.4.7
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -32,13 +32,6 @@ services:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
-
-  # The Loki service stores logs sent to it, and takes queries from Grafana
-  # to visualise those logs.
-  loki:
-    image: grafana/loki
-    ports:
-      - "3100:3100"
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
   mythical-queue:
@@ -128,13 +121,6 @@ services:
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
 
-  # The Node Exporter collects resource usage from the host.
-  nodeexporter:
-    image: prom/node-exporter
-    privileged: true
-    ports:
-      - "9100:9100"
-
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
@@ -149,8 +135,15 @@ services:
     volumes:
       - "${PWD}/tempo/tempo.yaml:/etc/tempo.yaml"
 
+  # The Loki service stores logs sent to it, and takes queries from Grafana
+  # to visualise those logs.
+  loki:
+    image: grafana/loki:2.8.0
+    ports:
+      - "3100:3100"
+
   mimir:
-    image: grafana/mimir:latest
+    image: grafana/mimir:2.7.1
     command: ["-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
@@ -158,7 +151,7 @@ services:
       - "${PWD}/mimir/mimir.yaml:/etc/mimir.yaml"
 
   phlare:
-    image: grafana/phlare:latest
+    image: grafana/phlare:0.5.1
     ports:
       - "4100:4100"
     command: [ "-config.file=/etc/phlare.yaml" ]
