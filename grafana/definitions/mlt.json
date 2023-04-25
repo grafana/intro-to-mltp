@@ -116,7 +116,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "sum by (http_target)(rate(traces_spanmetrics_latency_sum{http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m]) / rate(traces_spanmetrics_latency_count{http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m])) * 55",
+          "expr": "(sum by (http_target)(rate(traces_spanmetrics_latency_sum{http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m]))) / (sum by (http_target)(rate(traces_spanmetrics_latency_count{http_target=~\"${httpEndpoint}\",service_version=~\"${serviceVersion}\"}[1m]))) * 55",
           "interval": "",
           "legendFormat": "",
           "range": true,
