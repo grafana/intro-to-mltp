@@ -3,34 +3,17 @@ volumes:
   grafana:
   postgres:
 services:
-  # Grafana agent batches and processes traces sent to it, generating
-  # auto-logs from those traces.
-  agent:
-    image: grafana/agent:v0.32.1
+  # The opentelemetry-collector batches and processes traces sent to it.
+  opentelemetry-collector:
+    image: otel/opentelemetry-collector-contrib
     ports:
       - "12347:12345"
       - "12348:12348"
       - "6832:6832"
       - "55679:55679"
     volumes:
-      # To run using a Flow configuration instead, comment out the following line.
-      - "${PWD}/agent/config.yaml:/etc/agent/agent.yaml"
-      # To run using a Flow configuration instead, uncomment the following line.
-      #- "${PWD}/agent/config.river:/etc/agent/config.river"
-    # To run using a Flow configuration instead, comment out the following block.
-    command: [
-      "-config.file=/etc/agent/agent.yaml",
-      "-server.http.address=0.0.0.0:12345",
-    ]
-    # To run using a Flow configuration instead, uncomment the following `environment` and
-    # `command` blocks.
-    #environment:
-    #  - AGENT_MODE=flow
-    #command: [
-    #  "run",
-    #  "--server.http.listen-addr=0.0.0.0:12345",
-    #  "/etc/agent/config.river",
-    #]
+      - ./otel/otel.yml:/etc/otel-collector-config.yml
+    command: ["--config=/etc/otel-collector-config.yml"]
 
   # The Grafana dashboarding server.
   grafana:
@@ -87,14 +70,14 @@ services:
     environment:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
-      - TRACING_COLLECTOR_HOST=agent
+      - TRACING_COLLECTOR_HOST=opentelemetry-collector
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
 
   # The API server microservice.
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
-  # service and sends traces to the Grafana Agent instance.
+  # service and sends traces to the Grafana opentelemetry-collector instance.
   mythical-server:
     build:
       context: ./source
@@ -109,7 +92,7 @@ services:
     environment:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
-      - TRACING_COLLECTOR_HOST=agent
+      - TRACING_COLLECTOR_HOST=opentelemetry-collector
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
@@ -129,12 +112,12 @@ services:
     environment:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
-      - TRACING_COLLECTOR_HOST=agent
+      - TRACING_COLLECTOR_HOST=opentelemetry-collector
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
 
-  # The Tempo service stores traces send to it by Grafana Agent, and takes
+  # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
     image: grafana/tempo:2.0.1

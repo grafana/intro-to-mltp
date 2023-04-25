@@ -63,11 +63,18 @@ The [pre-provisioned dashboard](grafana/definitions/mlt.json) demonstrates a [RE
 
 [Data links](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/), [exemplars](https://grafana.com/docs/grafana-cloud/data-configuration/traces/exemplars/), and logs are utilized to allow jumping from the dashboard to a Grafana Explore page to observe traces, metrics, and logs in more detail.
 
-The following is a brief explanation of each of the most important provided components.
+The following sections are a brief explanation of each of the most important provided components.
+
+### Using the OpenTelemetry Collector
+
+You can swap out the Grafana Agent for the OpenTelemetry collector using an alternative configuration.
+
+Read the 'OpenTelemetry Collector' section below to use this environment instead.
+
 
 ## Grafana
 
-Grafana is a multi-platform open source analytics and interactive visualisation web application. For more details about Grafana, please see the [documentation](https://grafana.com/docs/grafana/latest/).
+Grafana is a multi-platform open source analytics and interactive visualisation web application. For more details about Grafana, read the [documentation](https://grafana.com/docs/grafana/latest/).
 
 The Grafana service is described in the `grafana` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
@@ -83,7 +90,7 @@ The updated `topnav` navigation within Grafana is enabled. If you wish to defaul
 
 ## Mimir
 
-Mimir is a backend store for metrics data from various sources. For more details about Mimir, please see the [documentation](https://grafana.com/docs/mimir/latest/).
+Mimir is a backend store for metrics data from various sources. For more details about Mimir, read the [documentation](https://grafana.com/docs/mimir/latest/).
 
 The Mimir service is described in the `mimir` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
@@ -113,7 +120,7 @@ in the [`docker-compose.yml`](docker-compose.yml) manifest for the `mythical-rec
 
 ## Tempo
 
-Tempo is a backend store for longterm trace retention. For more details about Tempo, please see the [documentation](https://grafana.com/docs/tempo/latest/).
+Tempo is a backend store for longterm trace retention. For more details about Tempo, read the [documentation](https://grafana.com/docs/tempo/latest/).
 
 The Tempo service is described in the `tempo` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
@@ -132,7 +139,7 @@ Traces are instrumented using the OpenTelemetry SDK, more details on which can b
 
 *As of March 2023, Grafana Labs acquired Pyroscope. Moving forward, Grafana's continuous profiling product will be known as Grafana Pyroscope as the Phlare and Pyroscope projects are merged. See this [blog post](https://grafana.com/blog/2023/03/15/pyroscope-grafana-phlare-join-for-oss-continuous-profiling/?pg=docs-phlare-latest) for more information.*
 
-Phlare is a continuous profiling backend store. For more details about Phlare, please see the [documentation](https://grafana.com/docs/phlare/latest/).
+Phlare is a continuous profiling backend store. For more details about Phlare, read the [documentation](https://grafana.com/docs/phlare/latest/).
 
 The Tempo service is described in the `phlare` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
@@ -146,7 +153,7 @@ You can see an example of profiling in action once the system is running by usin
 
 ## Grafana Agent
 
-Grafana Agent is a configurable local agent for receiving metrics, logs and traces and forwarding them to relevant database stores. For more details about Grafana Agent, please see the [documentation](https://grafana.com/docs/agent/latest/).
+Grafana Agent is a configurable local agent for receiving metrics, logs and traces and forwarding them to relevant database stores. For more details about Grafana Agent, read the [documentation](https://grafana.com/docs/agent/latest/).
 
 Grafana Agent is a locally installed agent that acts as:
 * A Prometheus scraping service and metric/label rewriter.
@@ -182,9 +189,61 @@ Tempo metrics generation will only generate span and service graph metrics for t
 
 In these instances, using Grafana Agent to generate metrics can ensure a complete set of metrics for all traces span data are generated, as the Agent carries out tail sampling post-metrics generation.
 
+### Flow and River Configuration
+
+Whilst the default configuration is via the 'traditional' Grafana Agent configuration YAML file, you can switch this to a provided [Flow](https://grafana.com/docs/agent/latest/flow/) configuration defined in Grafana's configuration language, River.
+
+River provides a more programmatic way of defining Grafana Agent functionality, and, whilst currently in Beta, is rapidly gaining parity with the current YAML configuration feature set.
+
+Grafana Agent already supports a large number of components.
+
+To use the Flow configuration instead, comment out the following lines in the `agent` service definition in the [`docker-compose.yml`](docker-compose.yml) file:
+
+```
+      - "${PWD}/agent/config.yaml:/etc/agent/agent.yaml"
+```
+
+```
+    command: [
+      "-config.file=/etc/agent/agent.yaml",
+      "-server.http.address=0.0.0.0:12345",
+    ]
+```
+
+
+And then uncomment the following lines:
+```
+      #- "${PWD}/agent/config.river:/etc/agent/config.river"
+```
+
+```
+    #environment:
+    #  - AGENT_MODE=flow
+    #command: [
+    #  "run",
+    #  "--server.http.listen-addr=0.0.0.0:12345",
+    #  "/etc/agent/config.river",
+    #]
+```
+
+The new changes can be used by restarting Docker Compose if it is currently running:
+```bash
+docker compose restart
+```
+
+Or using the startup commands in the 'Running the Demonstration Environment' section.
+
+Once running, you can observe the Flow configuration running on the Grafana Agent itself by navigating to [http://localhost:12347](http://localhost:12347).
+
+This webpage will allow you to view all of the current components being used for receiving MLT signals,
+as well as graphs denoting source and target relationships between components.
+
+Read the [Debugging](https://grafana.com/docs/agent/latest/flow/monitoring/debugging/) documentation for Grafana Agent for more details.
+
+The [tutorial](https://grafana.com/docs/agent/latest/flow/tutorials/) guide to working with Flow and River is a great first starting point, whilst the full [reference guide](https://grafana.com/docs/agent/latest/flow/reference/) for Flow shows the currently supported components and configuration blocks.
 ## Microservice Source
 
-The source for the microservice application can be found in the [`source`](source) directory. It is a three-service application that utilises a [PostgreSQL](https://www.postgresql.org/) database and an [AQMP](https://www.amqp.org/) bus to store data.
+The source for the microservice application can be found in the [`source`](source) directory. This three-service application utilizes a [PostgreSQL](https://www.postgresql.org/) database and an [AQMP](https://www.amqp.org/) bus to store data.
 
 The services are written in [JavaScript](https://www.javascript.com/) and execute under [NodeJS](https://nodejs.org/en) inside [Docker](https://www.docker.com/products/docker-desktop/) containers.
 
@@ -220,3 +279,45 @@ This demo can be run against Grafana Cloud using Docker Compose as follows:
    ```
 
 >**Note:** The configuration for Grafana Agent to send data to Grafana Cloud includes configuration that generates span metrics and service graph metrics.
+
+## OpenTelemetry Collector
+
+You can also use an alternative environment that uses the OpenTelemetry Collector in place of Grafana Agent.
+
+### Running the Demonstration Environment
+
+Docker Compose downloads the required Docker images, before starting the demonstration environment.
+
+In the following examples, the in-built `compose` command is used with a latest version of Docker (for example, `docker compose up`). If using an older version of Docker with a separate Docker Compose binary, ensure that `docker compose` is replaced with `docker-compose`.
+
+Data is emitted from the microservice application and stored in Loki, Tempo, and Prometheus. You can login to the Grafana service to visualize this data.
+
+To execute the environment and login:
+
+1. Start a new command-line interface in your Operating System and run:
+   ```bash
+   docker compose -f docker-compose-otel.yml up
+   ```
+2. Login to the local Grafana service at http://localhost:3000/.
+
+   *NOTE:* This assumes that port 3000 is not already in use. If this port is not free, edit the `docker-compose.yml` file and alter the line
+   ```
+   - "3000:3000"
+   ```
+   to some other host port that is free, for example:
+   ```
+   - "3123:3000"
+   ```
+3. Explore the data sources using the [Grafana Explorer](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22Mimir%22,%22queries%22:%5B%7B%22refId%22:%22A%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
+
+The OpenTelemetry Collector is defined as the `opentelemetry-collector` service in the [`docker-compose-otel.yml`](docker-compose-otel.yml) manifest.
+
+A basic configuration that mimics that of the Grafana Agent configuration can be found in the [`otel/otel.yml`](otel/otel.yml) configuration file.
+
+In much the same way that the Grafana Agent configuration operates, this scrapes several targets to retrieve Prometheus metrics before batching them and remote writing them to the local Mimir service.
+
+Additionally, the OpenTelemetry Collector receives traces via OTLP gRPC, batches them, and then remote writes them to the local Tempo instance.
+
+Span metrics and service metrics are also available, but have been commented out from the configuration file as generation is handled in Tempo by default. You may uncomment these configuration sections, whilst commenting out the metrics generation in [`tempo/tempo.yaml`](tempo/tempo.yaml) to generate metrics from within the OpenTelemetry Collector.
+
+>**Note:** Span metrics generation in the OpenTelemetry Collector emits metrics in a different nomenclature to that of Grafana Agent and Tempo. The metrics are emitted without the `traces_spanmetrics` prefix (eg. `calls_total` instead of `traces_spanmetrics_calls_total`). As such, the included provisioned dashboard will not show data as the PromQL queries expect the Grafana Agent/Tempo nomenclature. It is trivial to alter the queries however. Additionally, automatic logging is not availble in the OpenTelemetry Collector. Service graph generation uses the same nomenclature, and should work as expected.
