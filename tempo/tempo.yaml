@@ -89,5 +89,4 @@ metrics_generator:
 
 # Global override configuration.
 overrides:
-  max_search_bytes_per_trace: 5000000 # The maximum number of search bytes for a trace, essentially the total of all span resources/attributes.
   metrics_generator_processors: ['service-graphs', 'span-metrics'] # The types of metrics generation to enable for each tenant.
