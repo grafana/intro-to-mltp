@@ -22,7 +22,7 @@ The demos from this series were based on the application and code in this reposi
 * Four-service application:
   * A service requesting data from a REST API server.
   * A REST API server that receives requests and utilises a Database for storing/retrieving data for those requests.
-  * A recorder service for storing messages to an AQMP bus.
+  * A recorder service for storing messages to an AMQP bus.
   * A Postgres Database for storing/retrieving data from.
 * Tempo service for storing trace information.
 * Loki service for storing log information.
@@ -243,11 +243,11 @@ Read the [Debugging](https://grafana.com/docs/agent/latest/flow/monitoring/debug
 The [tutorial](https://grafana.com/docs/agent/latest/flow/tutorials/) guide to working with Flow and River is a great first starting point, whilst the full [reference guide](https://grafana.com/docs/agent/latest/flow/reference/) for Flow shows the currently supported components and configuration blocks.
 ## Microservice Source
 
-The source for the microservice application can be found in the [`source`](source) directory. This three-service application utilizes a [PostgreSQL](https://www.postgresql.org/) database and an [AQMP](https://www.amqp.org/) bus to store data.
+The source for the microservice application can be found in the [`source`](source) directory. This three-service application utilizes a [PostgreSQL](https://www.postgresql.org/) database and an [AMQP](https://www.amqp.org/) bus to store data.
 
 The services are written in [JavaScript](https://www.javascript.com/) and execute under [NodeJS](https://nodejs.org/en) inside [Docker](https://www.docker.com/products/docker-desktop/) containers.
 
-The [`requester`](source/mythical-beasts-requester/index.js) service makes 'random' requests to the [`server`](source/mythical-beasts-server/index.js), which then inserts, retrieves or deletes data from the Postgres database. The `requester` service also stores data to the AQMP queue via the [`recorder`](source/mythical-beasts-recorder/index.js) service.
+The [`requester`](source/mythical-beasts-requester/index.js) service makes 'random' requests to the [`server`](source/mythical-beasts-server/index.js), which then inserts, retrieves or deletes data from the Postgres database. The `requester` service also stores data to the AMQP queue via the [`recorder`](source/mythical-beasts-recorder/index.js) service.
 
 All three services use common code to deal with the [`queue`](source/common/queue.js), [`logging`](source/common/logging.js) and [`tracing`](source/common/tracing.js) requirements they have. The latter is an example of a simple shim API library for utilising the OpenTelemetry SDK in an application.
 
