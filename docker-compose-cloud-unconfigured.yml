@@ -14,7 +14,7 @@ services:
       - "6832:6832"
       - "55679:55679"
     volumes:
-      - "${PWD}/agent/config-cloud-configured.yaml:/etc/agent/agent.yaml"
+      - "./agent/config-cloud-configured.yaml:/etc/agent/agent.yaml"
     command: [
       "-config.file=/etc/agent/agent.yaml",
       "-server.http.address=0.0.0.0:12345",

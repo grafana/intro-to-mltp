@@ -6,7 +6,7 @@ services:
   # Grafana agent batches and processes traces sent to it, generating
   # auto-logs from those traces.
   agent:
-    image: grafana/agent:v0.32.1
+    image: grafana/agent:v0.34.3
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -14,9 +14,9 @@ services:
       - "55679:55679"
     volumes:
       # To run using a Flow configuration instead, comment out the following line.
-      - "${PWD}/agent/config.yaml:/etc/agent/agent.yaml"
+      - "./agent/config.yaml:/etc/agent/agent.yaml"
       # To run using a Flow configuration instead, uncomment the following line.
-      #- "${PWD}/agent/config.river:/etc/agent/config.river"
+      #- "./agent/config.river:/etc/agent/config.river"
     # To run using a Flow configuration instead, comment out the following block.
     command: [
       "-config.file=/etc/agent/agent.yaml",
@@ -34,14 +34,14 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:9.4.7
+    image: grafana/grafana:10.0.2
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=flameGraph topnav
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -137,36 +137,38 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.1.0
+    image: grafana/tempo:2.1.1
     ports:
       - "3200:3200"
       - "4317:4317"
+      - "4318:4318"
+      - "9411:9411"
       - "55680:55680"
       - "55681:55681"
       - "14250:14250"
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
-      - "${PWD}/tempo/tempo.yaml:/etc/tempo.yaml"
+      - "./tempo/tempo.yaml:/etc/tempo.yaml"
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:2.8.0
+    image: grafana/loki:2.8.3
     ports:
       - "3100:3100"
 
   mimir:
-    image: grafana/mimir:2.7.1
+    image: grafana/mimir:2.9.0
     command: ["-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
     volumes:
-      - "${PWD}/mimir/mimir.yaml:/etc/mimir.yaml"
+      - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
   phlare:
-    image: grafana/phlare:0.5.1
+    image: grafana/phlare:0.6.1
     ports:
       - "4100:4100"
     command: [ "-config.file=/etc/phlare.yaml" ]
     volumes:
-      - "${PWD}/phlare/phlare.yaml:/etc/phlare.yaml"
+      - "./phlare/phlare.yaml:/etc/phlare.yaml"

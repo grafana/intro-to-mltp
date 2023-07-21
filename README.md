@@ -200,7 +200,7 @@ Grafana Agent already supports a large number of components.
 To use the Flow configuration instead, comment out the following lines in the `agent` service definition in the [`docker-compose.yml`](docker-compose.yml) file:
 
 ```
-      - "${PWD}/agent/config.yaml:/etc/agent/agent.yaml"
+      - "./agent/config.yaml:/etc/agent/agent.yaml"
 ```
 
 ```
@@ -213,7 +213,7 @@ To use the Flow configuration instead, comment out the following lines in the `a
 
 And then uncomment the following lines:
 ```
-      #- "${PWD}/agent/config.river:/etc/agent/config.river"
+      #- "./agent/config.river:/etc/agent/config.river"
 ```
 
 ```

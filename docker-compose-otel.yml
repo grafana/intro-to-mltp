@@ -129,7 +129,7 @@ services:
       - "14250:14250"
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
-      - "${PWD}/tempo/tempo.yaml:/etc/tempo.yaml"
+      - "./tempo/tempo.yaml:/etc/tempo.yaml"
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
@@ -144,7 +144,7 @@ services:
     ports:
       - "9009:9009"
     volumes:
-      - "${PWD}/mimir/mimir.yaml:/etc/mimir.yaml"
+      - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
   phlare:
     image: grafana/phlare:0.5.1
@@ -152,4 +152,4 @@ services:
       - "4100:4100"
     command: [ "-config.file=/etc/phlare.yaml" ]
     volumes:
-      - "${PWD}/phlare/phlare.yaml:/etc/phlare.yaml"
+      - "./phlare/phlare.yaml:/etc/phlare.yaml"
