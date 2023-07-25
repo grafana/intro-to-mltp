@@ -120,7 +120,7 @@ services:
   # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.0.1
+    image: grafana/tempo:2.2.0-rc.0
     ports:
       - "3200:3200"
       - "4317:4317"
