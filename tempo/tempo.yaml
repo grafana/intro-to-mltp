@@ -19,6 +19,7 @@ distributor:
       protocols:
         http:
         grpc:            # This example repository only utilises the OTLP gRPC receiver on port 4317.
+    zipkin:              # Receive trace data in any supported Zipkin format.
 
 # The ingester receives data from the distributor and processes it into indices and blocks.
 ingester:
