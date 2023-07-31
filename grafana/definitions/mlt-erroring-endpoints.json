@@ -25,7 +25,22 @@
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
     "id": 3,
-    "links": [],
+    "links": [
+      {
+        "asDropdown": true,
+        "icon": "external link",
+        "includeVars": false,
+        "keepTime": false,
+        "tags": [
+          "intro-to-mlt"
+        ],
+        "targetBlank": false,
+        "title": "Intro to MLt Dashboards",
+        "tooltip": "",
+        "type": "dashboards",
+        "url": ""
+      }
+    ],
     "liveNow": false,
     "panels": [
       {
