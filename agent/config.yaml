@@ -151,8 +151,18 @@ traces:
       #    - name: http.target
       #    - name: http.status_code
       #    - name: service.version
-      #  # Expose these metrics on port 12348 for Grafana Agent to scrape.
-      #  handler_endpoint: 0.0.0.0:12348
-      # Enable service graphs for visual representation of services within Grafana.
+      #  # Use the `mimir` metrics configuration above as the basis for sending metrics to Mimir.
+      #  # Note that this won't get scraped, it'll simply use the `remote_write` configuration.
+      #  metrics_instance: mimir
+      ## Enable service graphs for visual representation of services within Grafana.
       #service_graphs:
       #  enabled: true
+
+      # An example of how to configure the tail sampler.
+      # Remove these comments to only sample traces which contain erroring spans.
+      #tail_sampling:
+      #  policies:
+      #    - type: status_code
+      #      status_code:
+      #        status_codes:
+      #          - ERROR
