@@ -71,7 +71,6 @@ You can swap out the Grafana Agent for the OpenTelemetry collector using an alte
 
 Read the 'OpenTelemetry Collector' section below to use this environment instead.
 
-
 ## Grafana
 
 Grafana is a multi-platform open source analytics and interactive visualisation web application. For more details about Grafana, read the [documentation](https://grafana.com/docs/grafana/latest/).
@@ -94,7 +93,7 @@ Mimir is a backend store for metrics data from various sources. For more details
 
 The Mimir service is described in the `mimir` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
-The configuration file (`mimir/mimir.yml`):
+The configuration file ([`mimir/mimir.yml`](mimir/mimir.yml)):
 * Configures a single service container acting as all relevant microservices.
 * Stores the metrics data in-container (this will be lost on container deletion).
 
@@ -124,34 +123,47 @@ Tempo is a backend store for longterm trace retention. For more details about Te
 
 The Tempo service is described in the `tempo` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
-The Tempo service imports a configuration file (`tempo/tempo.yaml`) that initialises the service with some sensible defaults as well as allowing the receiving of traces in a variety of different formats.
+The Tempo service imports a configuration file ([`tempo/tempo.yaml`](tempo/tempo.yaml)) that initialises the service with some sensible defaults as well as allowing the receiving of traces in a variety of different formats.
 
 Tempo is also configured to generate metrics from incoming trace spans as part of it's configuration. As such, this no longer occurs via Grafana Agent (although the original configuration for the Agent to carry this out has been left in the Agent configuration file as a guide).
 
-For an example of a span search, look at the Explorer page using the Tempo data source, [here](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22nativeSearch%22,%22serviceName%22:%22mythical-requester%22,%22minDuration%22:%22100ms%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
+For an example of a simple search, look at the Explorer page using the Tempo data source, [here](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceqlSearch%22,%22limit%22:20,%22filters%22:%5B%7B%22id%22:%224ad1d67f%22,%22operator%22:%22%3D%22,%22scope%22:%22span%22%7D,%7B%22id%22:%22service-name%22,%22tag%22:%22service.name%22,%22operator%22:%22%3D%22,%22scope%22:%22resource%22,%22value%22:%5B%22mythical-server%22%5D,%22valueType%22:%22string%22%7D,%7B%22id%22:%22min-duration%22,%22tag%22:%22duration%22,%22operator%22:%22%3E%22,%22valueType%22:%22duration%22,%22value%22:%22100ms%22%7D%5D%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D). **Note:** Native searches no longer exist, and these are interpretted as TraceQL before execution. See the bottom of the search panel to show the equivalent TraceQL
 
 [This example](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceql%22,%22serviceName%22:%22mythical-requester%22,%22minDuration%22:%22100ms%22,%22limit%22:20,%22query%22:%22%7B%20.service.name%20%3D%20%5C%22mythical-server%5C%22%20%26%26%20duration%20%3E%20100ms%20%7D%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D) uses the same parameters as above, but in TraceQL (a fully featured tracing query language).
 
 For an example of the mini-APM table and Service Graphs, use the 'Service Graph' tab [here](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22serviceMap%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
 
 Traces are instrumented using the OpenTelemetry SDK, more details on which can be found [here](https://opentelemetry.io/docs/).
-## Phlare
+## Pyroscope
 
 *As of March 2023, Grafana Labs acquired Pyroscope. Moving forward, Grafana's continuous profiling product will be known as Grafana Pyroscope as the Phlare and Pyroscope projects are merged. See this [blog post](https://grafana.com/blog/2023/03/15/pyroscope-grafana-phlare-join-for-oss-continuous-profiling/?pg=docs-phlare-latest) for more information.*
 
-Phlare is a continuous profiling backend store. For more details about Phlare, read the [documentation](https://grafana.com/docs/phlare/latest/).
+Pyroscope is a continuous profiling backend store.
 
-The Tempo service is described in the `phlare` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
+The Pyroscope service is described in the `pyroscope` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
-Phlare uses a configuration file (`phlare/phlare.yaml`) that is configured to scrape [pprof](https://github.com/google/pprof) profiles from the Mythical microservices.
+Pyroscope uses a configuration file ([`pyroscope/pyroscope.yaml`](pyroscope/pyroscope.yaml)) that is configured to scrape [pprof](https://github.com/google/pprof) based profiles from the Mythical microservices. It uses the [Pyroscope NodeJS](https://github.com/grafana/pyroscope-nodejs) bindings in source instrumentation.
 
-pprof samples are scraped directly from the application on the `/debug/pprof/profile` endpoint (and supported using appropriate NPM modules).
+Samples are scraped directly from the application on the `/debug/pprof/profile` and `/debug/pprof/heap` endpoints.
 
-You can see an example of profiling in action once the system is running by using the Explorer to visualise the profiles stored [here](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22phlare%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22phlare%22,%22uid%22:%22phlare%22%7D,%22labelSelector%22:%22%7B%7D%22,%22queryType%22:%22both%22,%22groupBy%22:%5B%5D,%22profileTypeId%22:%22process_cpu:sample:count:wall:microseconds%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
+You can see an example of profiling in action once the system is running by using the Explorer to visualise the profiles stored [here](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22pyroscope%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22phlare%22,%22uid%22:%22pyroscope%22%7D,%22groupBy%22:%5B%5D,%22labelSelector%22:%22%7B%7D%22,%22queryType%22:%22both%22,%22profileTypeId%22:%22mythical-beasts-server.cpu%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
 
-*Note:* Currently it can take a few minutes before enough profiling information is available. You may see an error until a few minutes have passed on initial startup.
+## k6
+
+k6 is a load testing suite that allows you to synthetically load and monitor your application. For more details about Tempo, read the [documentation](https://k6.io/docs/).
+
+The Tempo service is described in the `k6` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
+
+The k6 service uses the script ([`k6/mythical-loadtest.js`](k6/mythical-loadtest.js)) to define the tests that it should run. These are currently a `GET`, `POST` and `DELETE` set of tests on the application's API endpoints.
+
+k6 can run one of more VU (Virtual Users) concurrently, to simulate parallel load on the application. Currently, the number of VUs is set to 1, although this may be changed by altering the value for the `K6_VUS` environment variable in the relevant Docker Compose YAML file.
+**Note:** The higher the number of VUs executing, the higher the load on the machine running the Docker Compose sandbox, as this will transfer a significant amount of data. You may find tests being throttled if you ramp this number up without enough resource/bandwidth.
+
+k6 will generate [metrics](https://k6.io/docs/using-k6/metrics/) about the tests that it carries out, and will send these to the running Mimir instance. These metrics can then be used to determine the latencies of endpoints, number of errors occuring, etc. The official Grafana dashboard for k6 is included, and once the sandbox is running, may be found [here](http://localhost:3000/d/01npcT44k/official-k6-test-result?orgId=1&refresh=10s).
 
 ## Grafana Agent
+
+**Note:** The intention is to move this repository over to Flow/River as the default configuration in early September, to fall in line with Grafana's stance on Flow also becoming the default for Agent configuration.
 
 Grafana Agent is a configurable local agent for receiving metrics, logs and traces and forwarding them to relevant database stores. For more details about Grafana Agent, read the [documentation](https://grafana.com/docs/agent/latest/).
 

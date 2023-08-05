@@ -2,7 +2,8 @@ const tracingUtils = require('./tracing')('recorder', 'mythical-recorder');
 const express = require('express');
 const promClient = require('prom-client');
 const queueUtils = require('./queue')();
-const pprof = require('pprof');
+const Pyroscope = require('@pyroscope/nodejs');
+const { expressMiddleware } = require('@pyroscope/nodejs');
 
 // Prometheus client registration
 const app = express();
@@ -21,23 +22,11 @@ app.get('/metrics', async (req, res) => {
     res.send(await register.metrics());
 });
 
-// Endpoint for pprof handler (for Phlare)
-app.get('/debug/pprof/profile', async (req, res) => {
-    if (!req.query.seconds) {
-        res.status(400).send('seconds parameter is required');
-        return;
-    }
-    try {
-        const profile = await pprof.time.profile({
-            durationMillis: req.query.seconds * 1000
-        });
-        const encoded = await pprof.encode(profile);
-        res.set('Content-Type', 'application/octet-stream');
-        res.send(encoded);
-    } catch (err) {
-        console.log(`Error getting profile - ${err}`);
-    }
+// Initialise the Pyroscope library to send pprof data.
+Pyroscope.init({
+    appName: 'mythical-beasts-recorder',
 });
+app.use(expressMiddleware());
 
 const startQueueConsumer = async () => {
     const tracingObj = await tracingUtils();

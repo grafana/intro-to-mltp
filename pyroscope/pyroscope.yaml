@@ -1,0 +1,26 @@
+# Scrape configs determine where to scrape pprof profile data from.
+scrape-configs:
+  # Job name identifies specific scrape jobs.
+  - job-name: mythical-requester
+    scrape-interval: 10s  # Scrape interval of every 10s.
+    enabled-profiles: [cpu, mem]
+    # Static configurations are pre-determined locations for profile scraping.
+    # In this case, the requester service is scraped for CPU and memory profiles.
+    static-configs:
+      - application: mythical-beasts-requester
+        targets:
+          - mythical-requester:4001  # Service to scrape pprof data from.
+  - job-name: mythical-server
+    scrape-interval: 10s
+    enabled-profiles: [cpu, mem]
+    static-configs:
+      - application: mythical-beasts-server
+        targets:
+          - mythical-server:4000
+  - job-name: mythical-recorder
+    scrape-interval: 10s
+    enabled-profiles: [cpu, mem]
+    static-configs:
+      - application: mythical-beasts-recorder
+        targets:
+          - mythical-recorder:4002

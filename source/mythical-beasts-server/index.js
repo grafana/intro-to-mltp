@@ -1,5 +1,6 @@
 const traceUtils = require('./tracing')('server', 'mythical-server');
-const pprof = require('pprof');
+const Pyroscope = require('@pyroscope/nodejs');
+const { expressMiddleware } = require('@pyroscope/nodejs');
 const logUtils = require('./logging')('mythical-server', 'server');
 
 (async () => {
@@ -11,7 +12,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
     const express = require('express');
     const bodyParser = require('body-parser');
     const { Client } = require('pg');
-    const { nameSet, servicePrefix, spanTag }  = require('./endpoints')();
+    const { nameSet, servicePrefix, spanTag } = require('./endpoints')();
 
     // Prometheus client registration
     const app = express();
@@ -111,31 +112,11 @@ const logUtils = require('./logging')('mythical-server', 'server');
         res.send(await register.metrics());
     });
 
-    // Endpoint for pprof handler (for Phlare)
-    app.get('/debug/pprof/profile', async (req, res) => {
-        if (!req.query.seconds) {
-            res.status(400).send('seconds parameter is required');
-            return;
-        }
-        try {
-            const profile = await pprof.time.profile({
-                durationMillis: req.query.seconds * 1000
-            });
-            const encoded = await pprof.encode(profile);
-            res.set('Content-Type', 'application/octet-stream');
-            res.send(encoded);
-        } catch (err) {
-            const endpoint = '/debug/pprof/profile';
-            logEntry({
-                level: 'error',
-                namespace: process.env.NAMESPACE,
-                job: `${servicePrefix}-requester`,
-                endpointLabel: spanTag,
-                endpoint,
-                message: `http.method=GET endpoint=${endpoint} status=error`,
-            });
-        }
+    // Initialise the Pyroscope library to send pprof data.
+    Pyroscope.init({
+        appName: 'mythical-beasts-server',
     });
+    app.use(expressMiddleware());
 
     // Generic GET endpoint
     app.get('/:endpoint', async (req, res) => {
@@ -247,13 +228,12 @@ const logUtils = require('./logging')('mythical-server', 'server');
             }) === true) {
             return;
         }
-
         // POST a new unicorn name
         try {
             await databaseAction({
                 method: Database.POST,
                 table: endpoint,
-                name: req.body.name,
+                name: (Math.random() < 0.1) ? null : req.body.name,
             });
 
             // Metrics
