@@ -137,7 +137,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.2.0-rc.0
+    image: joeelliott/canary-frigg:45c0fd58a
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -165,10 +165,10 @@ services:
     volumes:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
-  phlare:
-    image: grafana/phlare:0.6.1
-    ports:
-      - "4100:4100"
-    command: [ "-config.file=/etc/phlare.yaml" ]
-    volumes:
-      - "./phlare/phlare.yaml:/etc/phlare.yaml"
+  # phlare:
+  #   image: grafana/phlare:0.6.1
+  #   ports:
+  #     - "4100:4100"
+  #   command: [ "-config.file=/etc/phlare.yaml" ]
+  #   volumes:
+  #     - "./phlare/phlare.yaml:/etc/phlare.yaml"
