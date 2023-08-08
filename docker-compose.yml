@@ -137,7 +137,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: joeelliott/canary-frigg:7b26f4e1d
+    image: joeelliott/canary-frigg:9c3ffaee4
     ports:
       - "3200:3200"
       - "4317:4317"
