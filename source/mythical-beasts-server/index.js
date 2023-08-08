@@ -46,6 +46,12 @@ const logUtils = require('./logging')('mythical-server', 'server');
 
     // Database action function
     const databaseAction = async (action) => {
+        
+        
+        if(action.customerId !== null && action.customerId === 2){
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+        
         // Which action?
         const span = api.trace.getSpan(api.context.active());
         span.setAttribute('span.kind', api.SpanKind.CLIENT);
@@ -145,6 +151,13 @@ const logUtils = require('./logging')('mythical-server', 'server');
         const traceId = spanContext.traceId;
 
         currentSpan.setAttribute(spanTag, endpoint);
+        
+        //9 random IDs
+        const custIds = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
+        //random number between 0 and 9
+        const rndCustomer = Math.floor(Math.random() * (10) );
+        currentSpan.setAttribute('customerId', custIds[rndCustomer]);
+        //console.log("Customer name %s", custIds[rndCustomer]);
 
         let metricBody = {
             labels: {
@@ -176,6 +189,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
             const results = await databaseAction({
                 method: Database.GET,
                 table: endpoint,
+                customerId: rndCustomer,
             });
 
             // Metrics

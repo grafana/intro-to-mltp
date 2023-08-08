@@ -3,6 +3,7 @@ const express = require('express');
 const promClient = require('prom-client');
 const queueUtils = require('./queue')();
 const pprof = require('pprof');
+const logUtils = require('./logging')('mythical-recorder', 'recorder');
 
 // Prometheus client registration
 const app = express();
@@ -41,6 +42,7 @@ app.get('/debug/pprof/profile', async (req, res) => {
 
 const startQueueConsumer = async () => {
     const tracingObj = await tracingUtils();
+    const logEntry = await logUtils(tracingObj);
     const { consumeMessages } = await queueUtils( tracingObj );
 
     const { tracer } = tracingObj;
@@ -54,7 +56,17 @@ const startQueueConsumer = async () => {
             }
 
             if (msg !== null) {
-                console.log(`Received a message: ${msg.content.toString()}`);
+                console.log(`Jen received a message: ${msg.content.toString()}`);
+                logEntry({
+                    //level: 'info',
+                    //namespace: process.env.NAMESPACE,
+                    //job: `${servicePrefix}-recorder`,
+                    job: `mythical-recorder`,
+                    //endpointLabel: spanTag,
+                    //endpoint,
+                    //message: `traceID=${traceId} Received a message: ${msg.content.toString()}`,
+                    message: `Received a message: ${msg.content.toString()}`,
+                });
             } else {
                 console.log('Consumer cancelled by server');
             }
@@ -63,6 +75,16 @@ const startQueueConsumer = async () => {
             const workTime = (Math.random() * 30) + 20;
             await new Promise(resolve => setTimeout(resolve, workTime));
 
+            beastname = msg.content.toString().match(/\S+ \/(\S+)/i)
+            
+            if (beastname !== null){
+                span.setAttribute('beast', beastname[1])
+            }
+            else {
+                span.setAttribute('beast', 'notFound')
+            }
+
+            span.setAttribute('favoritePerson', 'Jen');
             span.end();
         });
     });
