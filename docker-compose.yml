@@ -152,10 +152,10 @@ services:
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
-  loki:
-    image: grafana/loki:2.8.3
-    ports:
-      - "3100:3100"
+  # loki:
+  #   image: grafana/loki:2.8.3
+  #   ports:
+  #     - "3100:3100"
 
   mimir:
     image: grafana/mimir:2.9.0

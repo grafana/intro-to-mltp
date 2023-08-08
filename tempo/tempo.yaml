@@ -87,6 +87,10 @@ metrics_generator:
     remote_write:
       - url: http://mimir:9009/api/v1/push  # URL of locally running Mimir instance.
         send_exemplars: true                # Send exemplars along with their metrics.
+  traces_storage:
+    path: /var/tempo/traces
+    version: vParquet2
+
 
 # Global override configuration.
 overrides:
