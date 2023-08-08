@@ -34,7 +34,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana-dev:10.2.0-130024pre
+    image: grafana/grafana-dev:10.2.0-130025pre
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
