@@ -17,17 +17,26 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:9.4.7
+    image: grafana/grafana:10.0.3
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=flameGraph topnav
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch correlations traceQLStreaming
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
+
+  # This creates a writeable Tempo data source and a couple of correlations.
+  # NOTE: This relies on the Tempo data source not existing at first start, should you delete
+  #       the Tempo data source and re-run this service (via a `docker compose up`), extra
+  #       copies of correlations will be generated!
+  grafana_api_data:
+    build: ./curl
+    depends_on:
+      - grafana
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
   mythical-queue:
@@ -120,7 +129,7 @@ services:
   # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.2.0-rc.0
+    image: grafana/tempo:2.2.0
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -134,22 +143,34 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:2.8.0
+    image: grafana/loki:2.8.3
     ports:
       - "3100:3100"
 
   mimir:
-    image: grafana/mimir:2.7.1
-    command: ["-config.file=/etc/mimir.yaml"]
+    image: grafana/mimir:2.9.0
+    command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
     volumes:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
-  phlare:
-    image: grafana/phlare:0.5.1
-    ports:
-      - "4100:4100"
-    command: [ "-config.file=/etc/phlare.yaml" ]
+  k6:
+    image: grafana/k6
     volumes:
-      - "./phlare/phlare.yaml:/etc/phlare.yaml"
+      - "./k6:/scripts"
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://mimir:9009/api/v1/push
+      - K6_DURATION=3600s
+      - K6_VUS=1
+      - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
+    restart: always
+    command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
+
+  pyroscope:
+    image: pyroscope/pyroscope:0.37.2
+    ports:
+      - "4040:4040"
+    volumes:
+      - "./pyroscope/pyroscope.yaml:/etc/pyroscope/server.yml"
+    command: ["server"]

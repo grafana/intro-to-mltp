@@ -1,7 +1,7 @@
 const tracingUtils = require('./tracing')('requester', 'mythical-requester');
-const pprof = require('pprof');
+const Pyroscope = require('@pyroscope/nodejs');
+const { expressMiddleware } = require('@pyroscope/nodejs');
 const request = require('request-promise-native');
-//const { uniqueNamesGenerator, adjectives, colors } = require('unique-names-generator');
 const { uniqueNamesGenerator, names, colors, animals } = require('unique-names-generator');
 const logUtils = require('./logging')('mythical-requester', 'requester');
 const express = require('express');
@@ -32,31 +32,11 @@ app.get('/metrics', async (req, res) => {
     res.send(await register.metrics());
 });
 
-// Endpoint for pprof handler (for Phlare)
-app.get('/debug/pprof/profile', async (req, res) => {
-    if (!req.query.seconds) {
-        res.status(400).send('seconds parameter is required');
-        return;
-    }
-    try {
-        const profile = await pprof.time.profile({
-            durationMillis: req.query.seconds * 1000
-        });
-        const encoded = await pprof.encode(profile);
-        res.set('Content-Type', 'application/octet-stream');
-        res.send(encoded);
-    } catch (err) {
-        const endpoint = '/debug/pprof/profile';
-        logEntry({
-            level: 'error',
-            namespace: process.env.NAMESPACE,
-            job: `${servicePrefix}-requester`,
-            endpointLabel: spanTag,
-            endpoint,
-            message: `http.method=GET endpoint=${endpoint} status=error`,
-        });
-    }
+// Initialise the Pyroscope library to send pprof data.
+Pyroscope.init({
+    appName: 'mythical-beasts-requester',
 });
+app.use(expressMiddleware());
 
 // We just keep going, requesting names and adding them
 const makeRequest = async (tracingObj, sendMessage, logEntry) => {
@@ -144,7 +124,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
         } else {
             // Generate new name
             const randomName = uniqueNamesGenerator({ dictionaries: [colors, names, animals] });
-            const body = (Math.random() < 0.1) ? { whoops: 'yes' } : { name : randomName };
+            const body = { name : randomName };
 
             try {
                 await request({

@@ -13,22 +13,22 @@ datasources:
           name: traceId
           url: '$${__value.raw}'
 
-  - name: Tempo
-    type: tempo
-    access: proxy
-    uid: tempo
-    url: http://tempo:3200
-    jsonData:
-      nodeGraph:
-        enabled: true
-      serviceMap:
-        datasourceUid: 'Mimir'
-      tracesToLogs:
-        datasourceUid: loki
-        filterByTraceID: false
-        spanEndTimeShift: "500ms"
-        spanStartTimeShift: "-500ms"
-        tags: ['beast']
+  #- name: Tempo
+  #  type: tempo
+  #  access: proxy
+  #  uid: tempo
+  #  url: http://tempo:3200
+  #  jsonData:
+  #    nodeGraph:
+  #      enabled: true
+  #    serviceMap:
+  #      datasourceUid: 'Mimir'
+  #    tracesToLogs:
+  #      datasourceUid: loki
+  #      filterByTraceID: false
+  #      spanEndTimeShift: "500ms"
+  #      spanStartTimeShift: "-500ms"
+  #      tags: ['beast']
 
   - name: Mimir
     type: prometheus
@@ -42,8 +42,22 @@ datasources:
       httpMethod: POST
       timeInterval: "2s"
 
-  - name: Phlare
+  - name: Pyroscope
     type: phlare
     access: proxy
-    uid: phlare
-    url: http://phlare:4100
+    uid: pyroscope
+    url: http://pyroscope:4040
+    jsonData:
+      backendType: pyroscope
+
+  - name: Postgres
+    type: postgres
+    uid: postgres
+    url: mythical-database:5432
+    user: postgres
+    jsonData:
+      database: postgres
+      sslmode: disable
+      postgresVersion: 1400
+    secureJsonData:
+      password: mythical
