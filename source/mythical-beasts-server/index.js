@@ -49,6 +49,30 @@ const logUtils = require('./logging')('mythical-server', 'server');
         // Which action?
         const span = api.trace.getSpan(api.context.active());
         span.setAttribute('span.kind', api.SpanKind.CLIENT);
+        
+        const custIds = ["A", "B", "C", "D", "E", "F", "G"];
+        const rndCustomerIdx = Math.floor(Math.random() * custIds.length )
+        const rndCustomer = custIds[rndCustomerIdx];
+
+        const regions = ["us-east-1", "eu-west-1", "gb-south-0", "eu-west-2", "us-central-5", "us-west-0", "ap-south-0"]
+        const rndRegion = regions[Math.floor(Math.random() * regions.length )];
+
+        const clusters = ["prod-1", "prod-2", "prod-3", "prod-4", "prod-5", "prod-6", "prod-7"]
+        const rndCluster = clusters[Math.floor(Math.random() * (rndCustomerIdx + 1) )]; // use rndCustomerIdx so customer E is constrained to a few clusters
+
+        // if we are in a minute evenly divisible by 5 and our client is E then 
+        // add fake latency
+        now = new Date();
+        if (now.getMinutes() % 5 == 0 && rndCustomer == 'E' && rndRegion == "eu-west-2") {
+            sleepTimeMs = (Math.random() * 2000) + 1000
+            await new Promise(r => setTimeout(r, sleepTimeMs));
+        }
+
+        // attach cust attribute no matter what
+        span.setAttribute('customer.id', rndCustomer)
+        span.setAttribute('infra.region', rndRegion)
+        span.setAttribute('infra.cluster', rndCluster)
+
         if (action.method === Database.GET) {
             const results = await pgClient.query(`SELECT name from ${action.table}`);
             return results.rows;

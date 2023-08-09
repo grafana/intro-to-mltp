@@ -197,7 +197,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     });
 
     // Sometime in the next two seconds, but larger than 100ms
-    const nextReqIn = (Math.random() * 1000) + 100;
+    const nextReqIn = (Math.random() * 350) + 35;
     setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), nextReqIn);
 };
 
@@ -207,10 +207,10 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     logEntry = await logUtils(tracingObj);
 
     // Kick off four requests that cycle at regular intervals
-    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 5000);
-    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 6000);
-    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 7000);
-    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 8000);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 1000);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 1500);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 2000);
+    setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), 2500);
 
     // Ensure the danger gauge gets reset every minute
     setInterval(() => {
