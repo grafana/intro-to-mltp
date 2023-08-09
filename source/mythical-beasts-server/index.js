@@ -48,7 +48,6 @@ const logUtils = require('./logging')('mythical-server', 'server');
     const databaseAction = async (action) => {
         // Which action?
         const span = api.trace.getSpan(api.context.active());
-        span.setAttribute('span.kind', api.SpanKind.CLIENT);
         
         const custIds = ["A", "B", "C", "D", "E", "F", "G"];
         const rndCustomerIdx = Math.floor(Math.random() * custIds.length )
