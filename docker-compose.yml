@@ -35,7 +35,7 @@ services:
   # The Grafana dashboarding server.
   grafana:
     container_name: 'application-observability-app'
-    image: grafana/grafana-dev:10.2.0-130199pre
+    image: grafana/grafana-dev:10.2.0-130206pre
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
