@@ -1,0 +1,13 @@
+apiVersion: 1
+
+apps:
+  - type: grafana-app-observability-app
+    org_id: 1
+    org_name: Grafana
+    jsonData:
+      targetInfoMetricName: traces_target_info
+      orgId: 1
+      stackId: 75
+      tempoEndpoint: http://localhost:3200
+    secureJsonData:
+      tempoApiToken: NA
