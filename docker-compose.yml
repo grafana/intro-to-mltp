@@ -35,14 +35,14 @@ services:
   # The Grafana dashboarding server.
   grafana:
     container_name: 'application-observability-app'
-    image: grafana/grafana-dev:10.2.0-130206pre
+    image: grafana/grafana-dev:10.2.0-130214pre
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
       - '../app-observability-plugin/dist:/var/lib/grafana/plugins/application-observability-app'
       - './grafana/custom.ini:/etc/grafana/grafana.ini'
     ports:
-      - "3001:3000"
+      - "3000:3000"
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch
       - GF_AUTH_ANONYMOUS_ENABLED=true
