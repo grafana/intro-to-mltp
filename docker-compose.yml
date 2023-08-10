@@ -34,7 +34,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana/grafana-dev:10.2.0-130267pre
+    image:  grafana/grafana-dev:10.2.0-130267pre
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -134,7 +134,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: joeelliott/canary-frigg:de8f7bf7d
+    image: joeelliott/canary-frigg:01f98d9c4
     ports:
       - "3200:3200"
       - "4317:4317"
