@@ -39,7 +39,7 @@ services:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
-      - "3001:3000"
+      - "3000:3000"
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch
       - GF_AUTH_ANONYMOUS_ENABLED=true
