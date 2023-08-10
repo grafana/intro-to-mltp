@@ -704,14 +704,14 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "histogram_quantile(0.95, sum(rate(mythical_request_times_bucket[$__rate_interval])) by (le, beast))",
+          "expr": "histogram_quantile(0.99, sum(rate(mythical_request_times_bucket[$__rate_interval])) by (le, beast))",
           "interval": "",
           "legendFormat": "{{le}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "95th Percentile Response Latencies (ms)",
+      "title": "99th Percentile Response Latencies (ms)",
       "type": "timeseries"
     },
     {
