@@ -59,10 +59,10 @@ const logUtils = require('./logging')('mythical-server', 'server');
         const clusters = ["prod-1", "prod-2", "prod-3", "prod-4", "prod-5", "prod-6", "prod-7"]
         const rndCluster = clusters[Math.floor(Math.random() * (rndCustomerIdx + 1) )]; // use rndCustomerIdx so customer E is constrained to a few clusters
 
-        // if we are in a minute evenly divisible by 5 and our client is E then 
+        // if our client is E then for 2 minutes out of every 5 minute period, 
         // add fake latency
         now = new Date();
-        if (now.getMinutes() % 5 == 0 && rndCustomer == 'E' && rndRegion == "eu-west-2") {
+        if ( (now.getMinutes() % 5 == 0 || now.getMinutes() % 5 == 1 ) && rndCustomer == 'E' && rndRegion == "eu-west-2") {
             sleepTimeMs = (Math.random() * 2000) + 1000
             await new Promise(r => setTimeout(r, sleepTimeMs));
         }
