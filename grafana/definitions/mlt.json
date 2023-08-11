@@ -690,6 +690,12 @@
         "y": 31
       },
       "id": 8,
+      "links": [
+        {
+          "title": "GrubbleUp",
+          "url": "http://localhost:3000/explore?panes=%7B%22OxM%22:%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22megaSelect%22,%22limit%22:20,%22filters%22:%5B%7B%22id%22:%22ec5cc861%22,%22operator%22:%22%3D%22,%22scope%22:%22span%22%7D%5D,%22view%22:%22p99%22,%22megaSpan%22:%22http:%2F%2Fmythical-server:4000%2Fowlbear%22%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1"
+        }
+      ],
       "options": {
         "legend": {
           "calcs": [],
