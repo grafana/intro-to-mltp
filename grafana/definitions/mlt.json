@@ -660,6 +660,12 @@
               "mode": "off"
             }
           },
+          "links": [
+            {
+              "title": "GrubbleUp",
+              "url": "http://localhost:3000/explore?panes=%7B%22vKH%22:%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22megaSelect%22,%22limit%22:20,%22filters%22:%5B%7B%22id%22:%221daaf0df%22,%22operator%22:%22%3D%22,%22scope%22:%22span%22%7D%5D,%22view%22:%22p99%22,%22megaSpan%22:%22http:%2F%2Fmythical-server:4000%2Fowlbear%22%7D%5D,%22range%22:%7B%22from%22:%22now-15m%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1"
+            }
+          ],
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -713,41 +719,6 @@
       ],
       "title": "99th Percentile Response Latencies (ms)",
       "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "loki",
-        "uid": "loki"
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 41
-      },
-      "id": 6,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": false,
-        "showCommonLabels": false,
-        "showLabels": false,
-        "showTime": false,
-        "sortOrder": "Descending",
-        "wrapLogMessage": false
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "loki"
-          },
-          "expr": "{job=\"agent\"} | logfmt | status=\"STATUS_CODE_ERROR\"",
-          "refId": "A"
-        }
-      ],
-      "title": "Autologged Errors",
-      "type": "logs"
     }
   ],
   "refresh": "5s",
