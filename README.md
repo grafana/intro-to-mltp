@@ -24,6 +24,7 @@ The demos from this series were based on the application and code in this reposi
   * A REST API server that receives requests and utilises a Database for storing/retrieving data for those requests.
   * A recorder service for storing messages to an AMQP bus.
   * A Postgres Database for storing/retrieving data from.
+* k6 service running a load test against the above application.
 * Tempo service for storing trace information.
 * Loki service for storing log information.
 * Mimir service for storing metric information.
@@ -150,9 +151,9 @@ You can see an example of profiling in action once the system is running by usin
 
 ## k6
 
-k6 is a load testing suite that allows you to synthetically load and monitor your application. For more details about Tempo, read the [documentation](https://k6.io/docs/).
+k6 is a load testing suite that allows you to synthetically load and monitor your application. For more details about k6, read the [documentation](https://k6.io/docs/).
 
-The Tempo service is described in the `k6` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
+The k6 service is described in the `k6` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
 The k6 service uses the script ([`k6/mythical-loadtest.js`](k6/mythical-loadtest.js)) to define the tests that it should run. These are currently a `GET`, `POST` and `DELETE` set of tests on the application's API endpoints.
 
