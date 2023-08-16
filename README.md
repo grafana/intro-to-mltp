@@ -24,6 +24,7 @@ The demos from this series were based on the application and code in this reposi
   * A REST API server that receives requests and utilises a Database for storing/retrieving data for those requests.
   * A recorder service for storing messages to an AMQP bus.
   * A Postgres Database for storing/retrieving data from.
+* k6 service running a load test against the above application.
 * Tempo service for storing trace information.
 * Loki service for storing log information.
 * Mimir service for storing metric information.
@@ -150,9 +151,9 @@ You can see an example of profiling in action once the system is running by usin
 
 ## k6
 
-k6 is a load testing suite that allows you to synthetically load and monitor your application. For more details about Tempo, read the [documentation](https://k6.io/docs/).
+k6 is a load testing suite that allows you to synthetically load and monitor your application. For more details about k6, read the [documentation](https://k6.io/docs/).
 
-The Tempo service is described in the `k6` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
+The k6 service is described in the `k6` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
 The k6 service uses the script ([`k6/mythical-loadtest.js`](k6/mythical-loadtest.js)) to define the tests that it should run. These are currently a `GET`, `POST` and `DELETE` set of tests on the application's API endpoints.
 
@@ -332,4 +333,4 @@ Additionally, the OpenTelemetry Collector receives traces via OTLP gRPC, batches
 
 Span metrics and service metrics are also available, but have been commented out from the configuration file as generation is handled in Tempo by default. You may uncomment these configuration sections, whilst commenting out the metrics generation in [`tempo/tempo.yaml`](tempo/tempo.yaml) to generate metrics from within the OpenTelemetry Collector.
 
->**Note:** Span metrics generation in the OpenTelemetry Collector emits metrics in a different nomenclature to that of Grafana Agent and Tempo. The metrics are emitted without the `traces_spanmetrics` prefix (eg. `calls_total` instead of `traces_spanmetrics_calls_total`). As such, the included provisioned dashboard will not show data as the PromQL queries expect the Grafana Agent/Tempo nomenclature. It is trivial to alter the queries however. Additionally, automatic logging is not availble in the OpenTelemetry Collector. Service graph generation uses the same nomenclature, and should work as expected.
+>**Note:** Span metrics generation in the OpenTelemetry Collector emits metrics in a different nomenclature to that of Grafana Agent and Tempo. The metrics are emitted without the `traces_spanmetrics` prefix (eg. `calls_total` instead of `traces_spanmetrics_calls_total`). As such, the included provisioned dashboard will not show data as the PromQL queries expect the Grafana Agent/Tempo nomenclature. It is trivial to alter the queries however. Additionally, automatic logging is not available in the OpenTelemetry Collector. Service graph generation uses the same nomenclature, and should work as expected.
