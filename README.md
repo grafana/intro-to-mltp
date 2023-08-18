@@ -1,7 +1,7 @@
-# Introduction to Metrics, Logs and Traces in Grafana
+# Introduction to Metrics, Logs, Traces and Profiles in Grafana
 
-This is the companion repository to a series of presentations over the [three pillars of
-observability within Grafana](https://grafana.com/blog/2022/04/01/get-started-with-metrics-logs-and-traces-in-our-new-grafana-labs-asia-pacific-webinar-series/). Whilst that series is now over a year old, we have kept this repository up-to-date with the latest versions of our products.
+This was originally the  companion repository to a series of presentations over the [three pillars of
+observability within Grafana](https://grafana.com/blog/2022/04/01/get-started-with-metrics-logs-and-traces-in-our-new-grafana-labs-asia-pacific-webinar-series/). Whilst that series is now over a year old, we have kept this repository up-to-date with the latest versions of our products and added more functionality as our products have grown.
 
 It is presented as a self-enclosed Docker sandbox that includes all of the components required to run on a local machine and experiment with the products provided.
 
@@ -25,10 +25,10 @@ The demos from this series were based on the application and code in this reposi
   * A recorder service for storing messages to an AMQP bus.
   * A Postgres Database for storing/retrieving data from.
 * k6 service running a load test against the above application.
-* Tempo service for storing trace information.
-* Loki service for storing log information.
-* Mimir service for storing metric information.
-* Phlare service for storing profiling information.
+* Tempo service for storing and querying trace information.
+* Loki service for storing and querying log information.
+* Mimir service for storing and querying metric information.
+* Pyroscope service for storing and querying profiling information.
 * Grafana service for visualising observability data.
 * Grafana Agent service for receiving traces and producing metrics and logs based on these traces.
 * A Node Exporter service to retrieve resource metrics from the local host.
@@ -136,8 +136,6 @@ For an example of the mini-APM table and Service Graphs, use the 'Service Graph'
 
 Traces are instrumented using the OpenTelemetry SDK, more details on which can be found [here](https://opentelemetry.io/docs/).
 ## Pyroscope
-
-*As of March 2023, Grafana Labs acquired Pyroscope. Moving forward, Grafana's continuous profiling product will be known as Grafana Pyroscope as the Phlare and Pyroscope projects are merged. See this [blog post](https://grafana.com/blog/2023/03/15/pyroscope-grafana-phlare-join-for-oss-continuous-profiling/?pg=docs-phlare-latest) for more information.*
 
 Pyroscope is a continuous profiling backend store.
 
