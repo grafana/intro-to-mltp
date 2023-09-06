@@ -24,6 +24,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 4,
   "links": [
     {
       "asDropdown": true,
@@ -58,6 +59,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisShow": false,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 57,
@@ -67,6 +69,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineStyle": {
               "fill": "solid"
@@ -176,6 +179,8 @@
       },
       "id": 13,
       "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
@@ -187,7 +192,7 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "9.4.0-99069pre",
+      "pluginVersion": "10.2.0-133752",
       "targets": [
         {
           "datasource": {
@@ -259,7 +264,7 @@
         },
         "textMode": "auto"
       },
-      "pluginVersion": "9.4.0-99069pre",
+      "pluginVersion": "10.2.0-133752",
       "targets": [
         {
           "datasource": {
@@ -328,6 +333,7 @@
       },
       "id": 15,
       "options": {
+        "cellHeight": "sm",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -338,7 +344,7 @@
         },
         "showHeader": true
       },
-      "pluginVersion": "9.4.0-99069pre",
+      "pluginVersion": "10.2.0-133752",
       "targets": [
         {
           "datasource": {
@@ -451,6 +457,7 @@
       "id": 2,
       "links": [],
       "options": {
+        "cellHeight": "sm",
         "footer": {
           "countRows": false,
           "fields": "",
@@ -468,7 +475,7 @@
           }
         ]
       },
-      "pluginVersion": "9.4.0-99069pre",
+      "pluginVersion": "10.2.0-133752",
       "targets": [
         {
           "datasource": {
@@ -534,6 +541,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisShow": false,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 23,
@@ -543,6 +551,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineStyle": {
               "fill": "solid"
@@ -632,6 +641,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisShow": false,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 35,
@@ -641,6 +651,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "smooth",
             "lineStyle": {
               "fill": "solid"
@@ -753,11 +764,7 @@
   "refresh": "5s",
   "revision": 1,
   "schemaVersion": 38,
-  "style": "dark",
-  "tags": [
-    "intro-to-mlt",
-    "mythical-beasts"
-  ],
+  "tags": [],
   "templating": {
     "list": [
       {
@@ -771,10 +778,10 @@
           ]
         },
         "datasource": {
-          "type": "prometheus",
-          "uid": "mimir"
+          "type": "tempo",
+          "uid": "tempo"
         },
-        "definition": "{http_status_code!=\"\"}",
+        "definition": "",
         "description": "HTTP Status",
         "hide": 0,
         "includeAll": true,
@@ -783,11 +790,12 @@
         "name": "httpStatus",
         "options": [],
         "query": {
-          "query": "{http_status_code!=\"\"}",
-          "refId": "StandardVariableQuery"
+          "label": "http.status_code",
+          "refId": "TempoDatasourceVariableQueryEditor-VariableQuery",
+          "type": 1
         },
         "refresh": 2,
-        "regex": "/.*http_status_code=\"([^\"]*).*/",
+        "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
@@ -803,10 +811,10 @@
           ]
         },
         "datasource": {
-          "type": "prometheus",
-          "uid": "mimir"
+          "type": "tempo",
+          "uid": "tempo"
         },
-        "definition": "{http_target=~\"(beholder|unicorn|manticore|illithid|owlbear)\"}",
+        "definition": "",
         "description": "HTTP Endpont",
         "hide": 0,
         "includeAll": true,
@@ -815,11 +823,12 @@
         "name": "httpEndpoint",
         "options": [],
         "query": {
-          "query": "{http_target=~\"(beholder|unicorn|manticore|illithid|owlbear)\"}",
-          "refId": "StandardVariableQuery"
+          "label": "http.target",
+          "refId": "TempoDatasourceVariableQueryEditor-VariableQuery",
+          "type": 1
         },
         "refresh": 2,
-        "regex": "/.*http_target=\"([^\"]*).*/",
+        "regex": "/^\\/(beholder|unicorn|manticore|illithid|owlbear).*/",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
@@ -835,10 +844,10 @@
           ]
         },
         "datasource": {
-          "type": "prometheus",
-          "uid": "mimir"
+          "type": "tempo",
+          "uid": "tempo"
         },
-        "definition": "{service_version!=\"\"}",
+        "definition": "",
         "description": "Service version",
         "hide": 0,
         "includeAll": true,
@@ -847,11 +856,12 @@
         "name": "serviceVersion",
         "options": [],
         "query": {
-          "query": "{service_version!=\"\"}",
-          "refId": "StandardVariableQuery"
+          "label": "service.version",
+          "refId": "TempoDatasourceVariableQueryEditor-VariableQuery",
+          "type": 1
         },
         "refresh": 2,
-        "regex": "/.*service_version=\"([^\"]*).*/",
+        "regex": "",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
@@ -865,7 +875,7 @@
   "timepicker": {},
   "timezone": "",
   "title": "MLT Dashboard",
-  "uid": "4VSk5Lank",
-  "version": 1,
+  "uid": "ed4f4709-4d3b-48fd-a311-a036b85dbd5b",
+  "version": 4,
   "weekStart": ""
 }
