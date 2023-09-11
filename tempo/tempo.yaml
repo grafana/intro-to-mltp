@@ -86,8 +86,10 @@ metrics_generator:
     # Where to remote write metrics to.
     remote_write:
       - url: http://mimir:9009/api/v1/push  # URL of locally running Mimir instance.
-        send_exemplars: true                # Send exemplars along with their metrics.
+        send_exemplars: true # Send exemplars along with their metrics.
+  traces_storage:
+    path: /tmp/tempo/generator/traces
 
 # Global override configuration.
 overrides:
-  metrics_generator_processors: ['service-graphs', 'span-metrics'] # The types of metrics generation to enable for each tenant.
+  metrics_generator_processors: ['service-graphs', 'span-metrics','local-blocks'] # The types of metrics generation to enable for each tenant.
