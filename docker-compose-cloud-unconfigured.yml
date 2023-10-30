@@ -52,9 +52,9 @@ services:
       args:
         SERVICE: mythical-beasts-requester
     depends_on:
-      mythical-queue:
+      - mythical-queue:
         condition: service_healthy
-      mythical-server:
+      - mythical-server:
         condition: service_started
     ports:
       - "4001:4001"
@@ -96,7 +96,7 @@ services:
       args:
         SERVICE: mythical-beasts-recorder
     depends_on:
-      mythical-queue:
+      - mythical-queue:
         condition: service_healthy
     ports:
       - "4002:4002"
