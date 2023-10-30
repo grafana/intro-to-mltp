@@ -52,10 +52,8 @@ services:
       args:
         SERVICE: mythical-beasts-requester
     depends_on:
-      - mythical-queue:
-        condition: service_healthy
-      - mythical-server:
-        condition: service_started
+      - mythical-queue
+      - mythical-server
     ports:
       - "4001:4001"
     environment:
@@ -96,8 +94,7 @@ services:
       args:
         SERVICE: mythical-beasts-recorder
     depends_on:
-      - mythical-queue:
-        condition: service_healthy
+      - mythical-queue
     ports:
       - "4002:4002"
     environment:
