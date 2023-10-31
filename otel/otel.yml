@@ -1,7 +1,6 @@
 # Define the protocols to receive data for.
 # See https://opentelemetry.io/docs/collector/configuration/#receivers
 receivers:
-  # Configure receiving OTLP data via gRPC on port 4317.
   otlp:
     protocols:
       grpc:
@@ -9,11 +8,7 @@ receivers:
 
   # Defines a Prometheus configuration set.
   prometheus:
-    # Define a set of configurations for scraping by the OpenTelemetry Collector.
     config:
-      # The `scrape_configs` section pertains to the Prometheus `scrape_configs`
-      # configuration block.
-      # See https://prometheus.io/docs/prometheus/latest/configuration/configuration/#scrape_config
       scrape_configs:
         # Scrape Mimir metrics.
         - job_name: 'mimir'
@@ -68,36 +63,13 @@ receivers:
 # Define processors to process received data.
 # See https://opentelemetry.io/docs/collector/configuration/#processors
 processors:
-  # Use the in-built `batch` processor to batch up data before writing it for export.
-  # Use the default values for it.
   batch:
-
-  # The spanmetrics processor is used to output metrics based on received trace spans.
-  #spanmetrics:
-  #    # Defines which exporter the processor will write metrics to.
-  #    metrics_exporter: prometheusremotewrite
-  #    # Defines additional label dimensions of the metrics from trace span attributes present.
-  #    dimensions:
-  #      - name: http.method
-  #      - name: http.target
-  #      - name: http.status_code
-  #      - name: service.version
-
-  ## The servicegraph processor is used to output service node metrics based on received trace spans.
-  #servicegraph:
-  #    # Defines which exporter the processor will write metrics to.
-  #    metrics_exporter: prometheusremotewrite
-  #    # Defines additional label dimensions of the metrics from trace span attributes present.
-  #    store:                      # Configuration for the in-memory store.
-  #      ttl: 2s                   # Time to wait for an edge to be completed.
-  #      max_items: 200            # Number of edges that will be stored in the storeMap.
-  #    cache_loop: 2m              # The timeout used to clean the cache periodically.
-  #    store_expiration_loop: 10s  # The timeout used to expire old entries from the store periodically.
-  #    # Virtual node peer attributes allow server nodes to be generated where instrumentation isn't present (eg. where
-  #    # service client calls remotely to a service that does not include instrumentation).
-  #    # Service nodes/edges will be generated for any attribute defined.
-  #    virtual_node_peer_attributes:
-  #      - db.name
+  transform:
+       # error_mode: ignore
+       trace_statements:
+         context: resource
+         statements:
+           - replace_match(attributes["service.name"], "mythical-server", "edge_proxy")
 
 # Define exporters to data stores.
 # See https://opentelemetry.io/docs/collector/configuration/#exporters
@@ -128,11 +100,7 @@ service:
       # Receive from the `otlp` receiver.
       receivers: [otlp]
       # Use the `batch` processor to process received trace spans.
-      processors: [batch]
-      # Comment out the previous line and uncomment the line below to generate span metrics and service graph metrics
-      # from within the OpenTelemetry Collector.
-      #processors: [spanmetrics, servicegraph, batch]
-      # Export to the `otlp/grafana` exporter.
+      processors: [transform, batch]
       exporters: [otlp/grafana]
 
     # Define the metrics pipeline.

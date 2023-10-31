@@ -168,7 +168,7 @@ services:
     command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
 
   pyroscope:
-    image: pyroscope/pyroscope:0.37.2
+    image: grafana/pyroscope:latest
     ports:
       - "4040:4040"
     volumes:
