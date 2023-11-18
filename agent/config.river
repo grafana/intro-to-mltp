@@ -53,12 +53,12 @@ prometheus.scrape "agent" {
 // Node Exporter is built in a scrapeable prometheus component, taking the place of `integrations: node_exporter:` in
 // the original Agent config file.
 // The Agent exports everything, using an empty block.
-prometheus.exporter.unix {
+prometheus.exporter.unix "default" {
 }
 // Scrape the Unix exporter metrics.
 prometheus.scrape "unix" {
     // Use the Unix prometheus exporter as the target.
-    targets = prometheus.exporter.unix.targets
+    targets = prometheus.exporter.unix.default.targets
     // Send the metrics to the prometheus remote write receiver for exporting to Mimir.
     forward_to = [prometheus.remote_write.mimir.receiver]
     // Attach job name to the metrics.
@@ -90,7 +90,10 @@ otelcol.receiver.otlp "otlp_receiver" {
     // We define where to send the output of all ingested traces. In this case, to the OpenTelemetry batch processor
     // named 'default'.
     output {
-        traces = [otelcol.processor.batch.default.input]
+        traces = [
+            otelcol.processor.batch.default.input,
+            otelcol.connector.spanlogs.autologging.input,
+        ]
     }
 }
 
@@ -121,5 +124,104 @@ otelcol.exporter.otlp "tempo" {
             // Do not verify TLS certificates when connecting.
             insecure_skip_verify = true
         }
+    }
+}
+
+// The OpenTelemetry spanlog connector processes incoming trace spans and extracts data from them ready
+// for logging. This is the equivalent of Grafana Agent's static automatic_logging pipeline.
+otelcol.connector.spanlogs "autologging" {
+    // We only want to output a line for each root span (ie. every single trace), and not for every
+    // process or span (outputting a line for every span would be extremely verbose).
+    spans = false
+    roots = true
+    processes = false
+    // We want to ensure that the following three span attributes are included in the log line, if
+    // present.
+    span_attributes = [ "http.method", "http.target", "http.status_code" ]
+
+    // Overrides the default key in the log line to be `traceId`, which is then used by Grafana to
+    // identify the trace ID for correlation with the Tempo datasource.
+    overrides {
+        trace_id_key = "traceId"
+    }
+    // Send to the OpenTelemetry Loki exporter.
+    output {
+        logs = [otelcol.exporter.loki.autologging.input]
+    }
+}
+
+// Simply forwards the incoming OpenTelemetry log format out as a Loki log.
+// We need this stage to ensure we can then process the logline as a Loki object.
+otelcol.exporter.loki "autologging" {
+    forward_to = [loki.process.autologging.receiver]
+}
+
+// The Loki processor allows us to accept a correctly formatted Loki log and mutate it into
+// a set of fields for output.
+loki.process "autologging" {
+    // The JSON stage simply extracts the `body` (the actual logline) from the Loki log, ignoring
+    // all other fields.
+    stage.json {
+        expressions = { "body" = "" }
+    }
+    // The output stage takes the body (the main logline) and uses this as the source for the output
+    // logline. In this case, it essentially turns it into logfmt.
+    stage.output {
+        source = "body"
+    }
+
+    // Finally send the processed logline onto the Loki exporter.
+    forward_to = [loki.write.autologging.receiver]
+}
+
+// The Loki writer receives a processed Loki log and then writes it to a Loki instance.
+loki.write "autologging" {
+    // Add the `agent` value to the `job` label, so we can identify it as having been generated
+    // by Grafana Agent when querying.
+    external_labels = {
+        job = "agent",
+    }
+
+    // Output the Loki log to the local Loki instance.
+    endpoint {
+        url = "http://loki:3100/loki/api/v1/push"
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Profiling
+
+// Scrape the Mythical application services for profiling data.
+pyroscope.scrape "mythical" {
+    // Denotes the targets to be scraped, in this case the mythical server, requester and recorder.
+    targets = [
+        {"__address__" = "mythical-server:4000", group = "mythical", service_name = "mythical-server"},
+        {"__address__" = "mythical-requester:4001", group = "mythical", service_name = "mythical-requester"},
+        {"__address__" = "mythical-recorder:4002", group = "mythical", service_name = "mythical-recorder"},
+    ]
+    // The profiling configuration block determines the profiling information to be retrieved. For the
+    // NodeJS application, we're looking for both CPU and memory data.
+    profiling_config {
+        profile.process_cpu {
+            enabled = true
+            path = "/debug/pprof/profile"
+            delta = true
+        }
+        profile.memory {
+            enabled = true
+            path = "/debug/pprof/heap"
+            delta = false
+        }
+    }
+
+    // Forward all scraped data to the Pyroscope exporter.
+    forward_to = [pyroscope.write.mythical.receiver]
+}
+
+// The Pyroscope exporter writes data with any additional information to the local Pyroscope instance.
+pyroscope.write "mythical" {
+    // The endpoint is the listening Pyroscope instance.
+    endpoint {
+        url = "http://pyroscope:4040"
     }
 }

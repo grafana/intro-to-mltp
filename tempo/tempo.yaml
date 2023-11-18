@@ -1,6 +1,8 @@
 # For more information on this configuration, see the complete reference guide at
 # https://grafana.com/docs/tempo/latest/configuration/
 
+stream_over_http_enabled: true
+
 # Configure the server block.
 server:
   # Listen for all incoming requests on port 3200.

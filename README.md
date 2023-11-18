@@ -145,7 +145,7 @@ Pyroscope uses a configuration file ([`pyroscope/pyroscope.yaml`](pyroscope/pyro
 
 Samples are scraped directly from the application on the `/debug/pprof/profile` and `/debug/pprof/heap` endpoints.
 
-You can see an example of profiling in action once the system is running by using the Explorer to visualise the profiles stored [here](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22pyroscope%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22phlare%22,%22uid%22:%22pyroscope%22%7D,%22groupBy%22:%5B%5D,%22labelSelector%22:%22%7B%7D%22,%22queryType%22:%22both%22,%22profileTypeId%22:%22mythical-beasts-server.cpu%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
+You can see an example of profiling in action once the system is running by using the Explorer to visualise the profiles stored [here](http://localhost:3000/explore?panes=%7B%22Cnw%22:%7B%22datasource%22:%22pyroscope%22,%22queries%22:%5B%7B%22groupBy%22:%5B%5D,%22labelSelector%22:%22%7Bservice_name%3D%5C%22mythical-server%5C%22%7D%22,%22queryType%22:%22both%22,%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22grafana-pyroscope-datasource%22,%22uid%22:%22pyroscope%22%7D,%22profileTypeId%22:%22process_cpu:wall:microseconds:wall:microseconds%22%7D%5D,%22range%22:%7B%22from%22:%22now-6h%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1).
 
 ## k6
 
@@ -162,7 +162,7 @@ k6 will generate [metrics](https://k6.io/docs/using-k6/metrics/) about the tests
 
 ## Grafana Agent
 
-**Note:** The intention is to move this repository over to Flow/River as the default configuration in early September, to fall in line with Grafana's stance on Flow also becoming the default for Agent configuration.
+**Note:** We have now moved to a default of a Flow/River configuration, due to parity with static mode (as well as more advanced functionality).
 
 Grafana Agent is a configurable local agent for receiving metrics, logs and traces and forwarding them to relevant database stores. For more details about Grafana Agent, read the [documentation](https://grafana.com/docs/agent/latest/).
 
@@ -184,9 +184,17 @@ In this example environment, Grafana Agent:
 * Generates automatic logging lines based on the trace data received.
 * Sends metric, log and trace data onwards to the Mimir, Loki and Tempo services, respectively.
 
-Note that as Grafana Agent scrapes metrics for every service defined in the [`docker-compose.yml`](docker-compose.yml) that a significant number of metric [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/) are produced (approximately 11,000 at time of writing).
+Grafana Agent implements a graph-based configuration via it's Flow architecuture, using a programatic language, River, to define Grafana Agent functionality.
 
-The full configuration for Grafana Agent can be found [here](agent/config.yaml).
+Once running, you can observe the Flow configuration running on the Grafana Agent itself by navigating to [http://localhost:12347](http://localhost:12347). This webpage will allow you to view all of the current components being used for receiving MLT signals, as well as graphs denoting source and target relationships between components.
+
+The full configuration for Grafana Agent can be found [here](agent/config.river).
+
+Read the [Debugging](https://grafana.com/docs/agent/latest/flow/monitoring/debugging/) documentation for Grafana Agent for more details.
+
+The [tutorial](https://grafana.com/docs/agent/latest/flow/tutorials/) guide to working with Flow and River is a great first starting point, whilst the full [reference guide](https://grafana.com/docs/agent/latest/flow/reference/) for Flow shows the currently supported components and configuration blocks.
+
+Note that as Grafana Agent scrapes metrics for every service defined in the [`docker-compose.yml`](docker-compose.yml) that a significant number of metric [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/) are produced (approximately 11,000 at time of writing).
 
 ### Metrics Generation
 
@@ -202,56 +210,16 @@ In these instances, using Grafana Agent to generate metrics can ensure a complet
 
 ### Flow and River Configuration
 
-Whilst the default configuration is via the 'traditional' Grafana Agent configuration YAML file, you can switch this to a provided [Flow](https://grafana.com/docs/agent/latest/flow/) configuration defined in Grafana's configuration language, River.
+Whilst the default configuration is via Flow's River language, you can switch this to a provided Static configuration defined in YAML.
 
-River provides a more programmatic way of defining Grafana Agent functionality, and, whilst currently in Beta, is rapidly gaining parity with the current YAML configuration feature set.
+To use the Static configuration instead, follow the inline commented instructions in the `agent` service section of the [`docker-compose.yml`](docker-compose.yml) file.
 
-Grafana Agent already supports a large number of components.
-
-To use the Flow configuration instead, comment out the following lines in the `agent` service definition in the [`docker-compose.yml`](docker-compose.yml) file:
-
-```
-      - "./agent/config.yaml:/etc/agent/agent.yaml"
-```
-
-```
-    command: [
-      "-config.file=/etc/agent/agent.yaml",
-      "-server.http.address=0.0.0.0:12345",
-    ]
-```
-
-
-And then uncomment the following lines:
-```
-      #- "./agent/config.river:/etc/agent/config.river"
-```
-
-```
-    #environment:
-    #  - AGENT_MODE=flow
-    #command: [
-    #  "run",
-    #  "--server.http.listen-addr=0.0.0.0:12345",
-    #  "/etc/agent/config.river",
-    #]
-```
-
-The new changes can be used by restarting Docker Compose if it is currently running:
+Once altered, the Static configuration can be used by restarting Docker Compose if it is currently running:
 ```bash
 docker compose restart
 ```
+or using the startup commands in the 'Running the Demonstration Environment' section.
 
-Or using the startup commands in the 'Running the Demonstration Environment' section.
-
-Once running, you can observe the Flow configuration running on the Grafana Agent itself by navigating to [http://localhost:12347](http://localhost:12347).
-
-This webpage will allow you to view all of the current components being used for receiving MLT signals,
-as well as graphs denoting source and target relationships between components.
-
-Read the [Debugging](https://grafana.com/docs/agent/latest/flow/monitoring/debugging/) documentation for Grafana Agent for more details.
-
-The [tutorial](https://grafana.com/docs/agent/latest/flow/tutorials/) guide to working with Flow and River is a great first starting point, whilst the full [reference guide](https://grafana.com/docs/agent/latest/flow/reference/) for Flow shows the currently supported components and configuration blocks.
 ## Microservice Source
 
 The source for the microservice application can be found in the [`source`](source) directory. This three-service application utilizes a [PostgreSQL](https://www.postgresql.org/) database and an [AMQP](https://www.amqp.org/) bus to store data.
@@ -302,6 +270,8 @@ Docker Compose downloads the required Docker images, before starting the demonst
 In the following examples, the in-built `compose` command is used with a latest version of Docker (for example, `docker compose up`). If using an older version of Docker with a separate Docker Compose binary, ensure that `docker compose` is replaced with `docker-compose`.
 
 Data is emitted from the microservice application and stored in Loki, Tempo, and Prometheus. You can login to the Grafana service to visualize this data.
+
+*Note:* The OpenTelemetry Collector does not currently include an exporter for Pyroscope, and therefore the Docker Compose manifest for the OpenTelemetry Collector does not support the export of profiles.
 
 To execute the environment and login:
 
