@@ -6,42 +6,42 @@ services:
   # Grafana agent batches and processes traces sent to it, generating
   # auto-logs from those traces.
   agent:
-    image: grafana/agent:v0.34.3
+    image: grafana/agent:v0.37.4
     ports:
       - "12347:12345"
       - "12348:12348"
       - "6832:6832"
       - "55679:55679"
     volumes:
-      # To run using a Flow configuration instead, comment out the following line.
-      - "./agent/config.yaml:/etc/agent/agent.yaml"
-      # To run using a Flow configuration instead, uncomment the following line.
-      #- "./agent/config.river:/etc/agent/config.river"
-    # To run using a Flow configuration instead, comment out the following block.
-    command: [
-      "-config.file=/etc/agent/agent.yaml",
-      "-server.http.address=0.0.0.0:12345",
-    ]
-    # To run using a Flow configuration instead, uncomment the following `environment` and
-    # `command` blocks.
-    #environment:
-    #  - AGENT_MODE=flow
+      # To run using a Static configuration instead, uncomment out the following line.
+      #- "./agent/config.yaml:/etc/agent/agent.yaml"
+      # To run using a Static configuration instead, comment the following line.
+      - "./agent/config.river:/etc/agent/config.river"
+    # To run using a Static configuration instead, uncomment out the following block.
     #command: [
-    #  "run",
-    #  "--server.http.listen-addr=0.0.0.0:12345",
-    #  "/etc/agent/config.river",
+    #  "-config.file=/etc/agent/agent.yaml",
+    #  "-server.http.address=0.0.0.0:12345",
     #]
+    # To run using a Static configuration instead, comment the following `environment` and
+    # `command` blocks.
+    environment:
+      - AGENT_MODE=flow
+    command: [
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "/etc/agent/config.river",
+    ]
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:main
+    image: grafana/grafana:10.2.1
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch correlations traceQLStreaming metricsSummary traceqlEditor
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -146,7 +146,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.2.0
+    image: grafana/tempo:2.3.0
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -162,12 +162,12 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:2.8.3
+    image: grafana/loki:2.9.2
     ports:
       - "3100:3100"
 
   mimir:
-    image: grafana/mimir:2.9.0
+    image: grafana/mimir:2.10.4
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
@@ -187,9 +187,7 @@ services:
     command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
 
   pyroscope:
-    image: pyroscope/pyroscope:0.37.2
+    image: grafana/pyroscope:1.2.0
     ports:
       - "4040:4040"
-    volumes:
-      - "./pyroscope/pyroscope.yaml:/etc/pyroscope/server.yml"
     command: ["server"]
