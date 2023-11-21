@@ -64,11 +64,12 @@ services:
 
   # A microservice that makes requests to the API server microservice. Requests are also pushed onto the mythical-queue.
   mythical-requester:
-    build:
-      context: ./source
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE: mythical-beasts-requester
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-requester
+    image: grafana/intro-to-mltp:mythical-beasts-requester-latest
     depends_on:
       mythical-queue:
         condition: service_healthy
@@ -88,11 +89,12 @@ services:
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
   # service and sends traces to the Grafana opentelemetry-collector instance.
   mythical-server:
-    build:
-      context: ./source
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE: mythical-beasts-server
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-server
+    image: grafana/intro-to-mltp:mythical-beasts-server-latest
     ports:
       - "4000:4000"
       - "80:80"
@@ -108,11 +110,12 @@ services:
 
   # A microservice that consumes requests from the mythical-queue
   mythical-recorder:
-    build:
-      context: ./source
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE: mythical-beasts-recorder
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-recorder
+    image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
     depends_on:
       mythical-queue:
         condition: service_healthy
