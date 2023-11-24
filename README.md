@@ -183,6 +183,7 @@ In this example environment, Grafana Agent:
 * Receives trace data, via trace configs, emitted by the microservice application.
 * Generates automatic logging lines based on the trace data received.
 * Sends metric, log and trace data onwards to the Mimir, Loki and Tempo services, respectively.
+* Has optional (unused by default) configurations for metrics generation and trace tail sampling.
 
 Grafana Agent implements a graph-based configuration via it's Flow architecuture, using a programatic language, River, to define Grafana Agent functionality.
 

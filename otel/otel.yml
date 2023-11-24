@@ -99,6 +99,27 @@ processors:
   #    virtual_node_peer_attributes:
   #      - db.name
 
+  # The tail sampler processor will only keep traces where spans match the defined policies.
+  tail_sampling:
+    decision_wait: 30s    # The time to wait for a decision to be made.
+    # The following policies follow a logical OR pattern, meaning that if any of the policies match,
+    # the trace will be kept. For logical AND, you can use the `and` policy. Every span of a trace is
+    # examined by each policy in turn. A match will cause a short-circuit.
+    policies: [
+      # This policy defines that traces that include spans that contain errors should be kept.
+      {
+        name: sample-erroring-traces,           # Name of the policy.
+        type: status_code,                      # The type must match the type of policy to be used.
+        status_code: { status_codes: [ERROR] }  # Only sample traces which have a span containing an error.
+      },
+      # This policy defines that traces that are over 200ms should be sampled.
+      {
+        name: sample-long-traces,               # Name of the policy.
+        type: latency,                          # The type must match the type of policy to be used.
+        latency: { threshold_ms: 200 },         # Only sample traces which are longer than 200ms in duration.
+      },
+    ]
+
 # Define exporters to data stores.
 # See https://opentelemetry.io/docs/collector/configuration/#exporters
 # Also see https://github.com/open-telemetry/opentelemetry-collector/tree/main/processor#recommended-processors
@@ -129,7 +150,9 @@ service:
       receivers: [otlp]
       # Use the `batch` processor to process received trace spans.
       processors: [batch]
-      # Comment out the previous line and uncomment the line below to generate span metrics and service graph metrics
+      # Comment out other `processor` definitions and uncomment the line below to use tail sampling.
+      #processors: [tail_sampling, batch]
+      # Comment out other `processor` definitions and uncomment the line below to generate span metrics and service graph metrics
       # from within the OpenTelemetry Collector.
       #processors: [spanmetrics, servicegraph, batch]
       # Export to the `otlp/grafana` exporter.
