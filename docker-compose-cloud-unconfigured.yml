@@ -7,7 +7,7 @@ services:
   # and auto-logs from those traces.
   # Includes Metrics, Logs and Traces
   agent:
-    image: grafana/agent:v0.34.3
+    image: grafana/agent:v0.38.0
     ports:
       - "12347:12345"
       - "12348:12348"

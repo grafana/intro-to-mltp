@@ -6,7 +6,7 @@ services:
   # Grafana agent batches and processes traces sent to it, generating
   # auto-logs from those traces.
   agent:
-    image: grafana/agent:v0.37.4
+    image: grafana/agent:v0.38.0
     ports:
       - "12347:12345"
       - "12348:12348"
