@@ -47,23 +47,36 @@ receivers:
                 service: 'grafana'
                 group: 'infrastructure'
 
-        # Scrape from the Mythical Server service.
-        - job_name: 'mythical-server'
+        # Scrape from the Mythical Server and Requester service.
+        - job_name: 'mythical'
           scrape_interval: 2s
           static_configs:
             - targets: ['mythical-server:4000']
               labels:
                 service: 'mythical-server'
                 group: 'mythical'
-
-        # Scrape from the Mythical Requester service.
-        - job_name: 'mythical-requester'
-          scrape_interval: 2s
-          static_configs:
             - targets: ['mythical-requester:4001']
               labels:
                 service: 'mythical-requester'
                 group: 'mythical'
+
+        # Scrape from the Beyla Mythical services.
+        - job_name: 'beyla-infra'
+          scrape_interval: 15s
+          static_configs:
+            - targets: ['beyla-requester:9090']
+              labels:
+                service: 'beyla-requester'
+                group: 'beyla'
+            - targets: ['beyla-server:9090']
+              labels:
+                service: 'beyla-server'
+                group: 'beyla'
+            - targets: ['beyla-recorder:9090']
+              labels:
+                service: 'beyla-recorder'
+                group: 'beyla'
+
 
 # Define processors to process received data.
 # See https://opentelemetry.io/docs/collector/configuration/#processors
