@@ -72,32 +72,21 @@ processors:
   # Use the default values for it.
   batch:
 
-  # The spanmetrics processor is used to output metrics based on received trace spans.
-  #spanmetrics:
-  #    # Defines which exporter the processor will write metrics to.
-  #    metrics_exporter: prometheusremotewrite
-  #    # Defines additional label dimensions of the metrics from trace span attributes present.
-  #    dimensions:
-  #      - name: http.method
-  #      - name: http.target
-  #      - name: http.status_code
-  #      - name: service.version
-
-  ## The servicegraph processor is used to output service node metrics based on received trace spans.
-  #servicegraph:
-  #    # Defines which exporter the processor will write metrics to.
-  #    metrics_exporter: prometheusremotewrite
-  #    # Defines additional label dimensions of the metrics from trace span attributes present.
-  #    store:                      # Configuration for the in-memory store.
-  #      ttl: 2s                   # Time to wait for an edge to be completed.
-  #      max_items: 200            # Number of edges that will be stored in the storeMap.
-  #    cache_loop: 2m              # The timeout used to clean the cache periodically.
-  #    store_expiration_loop: 10s  # The timeout used to expire old entries from the store periodically.
-  #    # Virtual node peer attributes allow server nodes to be generated where instrumentation isn't present (eg. where
-  #    # service client calls remotely to a service that does not include instrumentation).
-  #    # Service nodes/edges will be generated for any attribute defined.
-  #    virtual_node_peer_attributes:
-  #      - db.name
+  # The servicegraph processor is used to output service node metrics based on received trace spans.
+  servicegraph:
+      # Defines which exporter the processor will write metrics to.
+      metrics_exporter: prometheusremotewrite
+      # Defines additional label dimensions of the metrics from trace span attributes present.
+      store:                      # Configuration for the in-memory store.
+        ttl: 2s                   # Time to wait for an edge to be completed.
+        max_items: 200            # Number of edges that will be stored in the storeMap.
+      cache_loop: 2m              # The timeout used to clean the cache periodically.
+      store_expiration_loop: 10s  # The timeout used to expire old entries from the store periodically.
+      # Virtual node peer attributes allow server nodes to be generated where instrumentation isn't present (eg. where
+      # service client calls remotely to a service that does not include instrumentation).
+      # Service nodes/edges will be generated for any attribute defined.
+      virtual_node_peer_attributes:
+        - db.name
 
   # The tail sampler processor will only keep traces where spans match the defined policies.
   tail_sampling:
@@ -119,6 +108,25 @@ processors:
         latency: { threshold_ms: 200 },         # Only sample traces which are longer than 200ms in duration.
       },
     ]
+
+# Define processors to process received data.
+# See https://opentelemetry.io/docs/collector/configuration/#connectors
+connectors:
+  # The spanmetrics connector is used to output span metrics based on received trace spans.
+  spanmetrics:
+    namespace: traces.spanmetrics   # Prefix all metrics with `traces.spanmetrics` (this becomes `traces_spanmetrics`).
+    # Determine the type of histogram to use for span metrics.
+    histogram:
+      explicit:                     # Explicit histograms have pre-defined bucket sizes (use default here).
+    # Defines additional label dimensions of the metrics from trace span attributes present.
+    dimensions:
+      - name: http.method
+      - name: http.target
+      - name: http.status_code
+      - name: service.version
+    # Ensure exemplars are enabled and sent to the metrics store.
+    exemplars:
+      enabled: true
 
 # Define exporters to data stores.
 # See https://opentelemetry.io/docs/collector/configuration/#exporters
@@ -152,16 +160,22 @@ service:
       processors: [batch]
       # Comment out other `processor` definitions and uncomment the line below to use tail sampling.
       #processors: [tail_sampling, batch]
-      # Comment out other `processor` definitions and uncomment the line below to generate span metrics and service graph metrics
+      # Comment out other `processor` definitions and uncomment the line below to generate service graph metrics
       # from within the OpenTelemetry Collector.
-      #processors: [spanmetrics, servicegraph, batch]
+      #processors: [servicegraph, batch]
       # Export to the `otlp/grafana` exporter.
       exporters: [otlp/grafana]
+      # Comment out other `exporters` definitions and uncomment the line below to generate span metrics
+      # from within the OpenTelemetry Collector as well as exporting traces to Tempo.
+      #exporters: [otlp/grafana, spanmetrics]
 
     # Define the metrics pipeline.
     metrics:
       # Receive metrics from the `prometheus` receiver.
       receivers: [prometheus]
+      # Comment out other `receivers` definitions and uncomment the line below to import spanmetrics as well
+      # as prometheus metrics.
+      #receivers: [prometheus, spanmetrics]
       # Use the `batch` processor to process received metrics.
       processors: [batch]
       # Export to the `prometheusremtotewrite` exporter.

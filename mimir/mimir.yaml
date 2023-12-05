@@ -81,3 +81,4 @@ limits:
   # A maximum of 100000 exemplars in memory at any one time.
   # This setting enables exemplar processing and storage.
   max_global_exemplars_per_user: 100000
+  ingestion_rate: 30000
