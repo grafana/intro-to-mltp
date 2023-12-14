@@ -1,4 +1,4 @@
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import http from 'k6/http';
 
 // This is the URL we're going to test, in this case the application server.
@@ -27,6 +27,7 @@ export default function () {
         'POST status was 201': (r) => r.status == 201,
         'POST transaction time below 300ms': (r) => r.timings.duration < 300,
     });
+    sleep(1);
 
     // Now we'll ensure we can retrieve the named beast with a GET.
     const resGet = http.get(`${url}/${beast}`);
@@ -35,6 +36,7 @@ export default function () {
         'GET status was 200': (r) => r.status == 200,
         'GET transaction time below 300ms': (r) => r.timings.duration < 300,
     });
+    sleep(1);
 
     // Finally we'll remove this entry (to leave the service in good condition) by removing the random name.
     const resDelete = http.del(`${url}/${beast}`, JSON.stringify({ name: randomName }),
@@ -44,4 +46,5 @@ export default function () {
         'DELETE status was 204': (r) => r.status == 204,
         'DELETE transaction time was below 300ms': (r) => r.timings.duration < 300,
     });
+    sleep(1);
 }

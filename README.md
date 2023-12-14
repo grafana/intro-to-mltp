@@ -29,6 +29,7 @@ The demos from this series were based on the application and code in this reposi
 * Loki service for storing and querying log information.
 * Mimir service for storing and querying metric information.
 * Pyroscope service for storing and querying profiling information.
+* Beyla services for watching the four-service application and automatically generating signals.
 * Grafana service for visualising observability data.
 * Grafana Agent service for receiving traces and producing metrics and logs based on these traces.
 * A Node Exporter service to retrieve resource metrics from the local host.
@@ -159,6 +160,23 @@ k6 can run one of more VU (Virtual Users) concurrently, to simulate parallel loa
 **Note:** The higher the number of VUs executing, the higher the load on the machine running the Docker Compose sandbox, as this will transfer a significant amount of data. You may find tests being throttled if you ramp this number up without enough resource/bandwidth.
 
 k6 will generate [metrics](https://k6.io/docs/using-k6/metrics/) about the tests that it carries out, and will send these to the running Mimir instance. These metrics can then be used to determine the latencies of endpoints, number of errors occuring, etc. The official Grafana dashboard for k6 is included, and once the sandbox is running, may be found [here](http://localhost:3000/d/01npcT44k/official-k6-test-result?orgId=1&refresh=10s).
+
+## Beyla
+
+Beyla is an eBPF-based tool for generating metrics and trace data without the need for application instrumentation. For more details about Tempo, read the [documentation](https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/).
+
+The Beyla services are described in the `beyla-requester`, `beyla-server` and `beyla-recorder` sections of the [`docker-compose.yml`](docker-compose.yml) manifest.
+
+The configuration for Beyla can be found in the [`beyla/config.yaml`](beyla/config.yaml) file, and describes the main application endpoints for the Mythical Server service.
+
+Beyla operates by using hooks into the kernel networking layer to examine calls made to it from the specified process. It then generates a set of default metrics and trace types based on the network calls made.
+
+It also uses a subset of the OpenTelemetry environment variables/configuration options to determine where to send those metrics and traces (as well as its own envars and config options to expose extra functionality). See the configuration options for [Beyla here](https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/configure/options/).
+
+For this Docker Compose setup, a Beyla service is required for each of the other containers that should be inspected, as the pid namespace needs to be shared between the application service and the relevant Beyla service. This also allows the unique service naming for each individual application service via Beyla.
+
+Once the Docker Compose project is running, you can see examples of traces that are emitted by Beyla can be [seen here](http://localhost:3000/explore?panes=%7B%228kW%22:%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceqlSearch%22,%22limit%22:20,%22tableType%22:%22traces%22,%22filters%22:%5B%7B%22id%22:%22f5c8c83c%22,%22operator%22:%22%3D%22,%22scope%22:%22span%22%7D,%7B%22id%22:%22service-name%22,%22tag%22:%22service.name%22,%22operator%22:%22%3D~%22,%22scope%22:%22resource%22,%22value%22:%5B%22beyla-mythical-recorder%22,%22beyla-mythical-requester%22,%22beyla-mythical-server%22%5D,%22valueType%22:%22string%22%7D%5D,%22groupBy%22:%5B%7B%22id%22:%2285840e80%22,%22scope%22:%22span%22%7D%5D%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1), and an example of the metrics that are emmitted by Beyla can be [seen here](http://localhost:3000/explore?panes=%7B%228kW%22:%7B%22datasource%22:%22mimir%22,%22queries%22:%5B%7B%22refId%22:%22B%22,%22expr%22:%22histogram_quantile%280.95,%20rate%28http_server_duration_seconds_bucket%7Bhttp_route%3D~%5C%22%5C%5C%5C%5C%2F%28unicorn%7Cowlbear%7Cbeholder%7Cmanticore%7Cilithid%29%5C%22%7D%5B1m%5D%29%29%22,%22range%22:true,%22instant%22:true,%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22mimir%22%7D,%22editorMode%22:%22code%22,%22legendFormat%22:%22__auto%22,%22hide%22:false%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1).
+
 
 ## Grafana Agent
 
