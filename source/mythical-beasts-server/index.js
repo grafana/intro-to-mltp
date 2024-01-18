@@ -169,7 +169,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
                 job: `${servicePrefix}-server`,
                 endpointLabel: spanTag,
                 endpoint,
-                message: `traceID=${traceId} endpoint=${endpoint} http.method=GET status=SUCCESS`,
+                message: `traceID=${traceId} http.method=GET endpoint=${endpoint} status=SUCCESS`,
             });
 
             res.send(results);
@@ -183,7 +183,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
                 job: `${servicePrefix}-server`,
                 endpointLabel: spanTag,
                 endpoint,
-                message: `traceID=${traceId} endpoint=${endpoint} http.method=GET status=FAILURE err="${err}"`,
+                message: `traceID=${traceId} http.method=GET endpoint=${endpoint} status=FAILURE error="${err}"`,
             });
 
             res.status(500).send(err);
@@ -246,7 +246,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
                 job: `${servicePrefix}-server`,
                 endpointLabel: spanTag,
                 endpoint,
-                message: `traceID=${traceId} endpoint=${endpoint} http.method=POST status=SUCCESS`,
+                message: `traceID=${traceId} http.method=POST endpoint=${endpoint} status=SUCCESS`,
             });
 
             res.sendStatus(201);
@@ -261,7 +261,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
                 job: `${servicePrefix}-server`,
                 endpointLabel: spanTag,
                 endpoint,
-                message: `traceID=${traceId} endpoint=${endpoint} http.method=GET status=FAILURE err="${err}"`,
+                message: `traceID=${traceId} http.method=GET endpoint=${endpoint} status=FAILURE error="${err}"`,
             });
 
             res.status(500).send(err);
@@ -325,7 +325,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
                 job: `${servicePrefix}-server`,
                 endpointLabel: spanTag,
                 endpoint,
-                message: `traceID=${traceId} endpoint=${endpoint} http.method=DELETE status=SUCCESS`,
+                message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} status=SUCCESS`,
             });
 
             res.sendStatus(204);
@@ -340,7 +340,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
                 job: `${servicePrefix}-server`,
                 endpointLabel: spanTag,
                 endpoint,
-                message: `traceID=${traceId} endpoint=${endpoint} http.method=DELETE status=FAILURE err="${err}"`,
+                message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} status=FAILURE error="${err}"`,
             });
 
             res.status(500).send(err);
@@ -406,7 +406,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
                 level: 'error',
                 namespace: process.env.NAMESPACE,
                 job: `${servicePrefix}-server`,
-                message: `traceID=${traceId} endpoint=${endpoint} http.method=${method} status=FAILURE err='Table is not available'`,
+                message: `traceID=${traceId} http.method=${method} endpoint=${endpoint} status=FAILURE error='Table is not available'`,
             });
             res.status(500).send('Table is not available');
             return true;
