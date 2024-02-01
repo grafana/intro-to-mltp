@@ -13,22 +13,22 @@ datasources:
           name: traceId
           url: '$${__value.raw}'
 
-  #- name: Tempo
-  #  type: tempo
-  #  access: proxy
-  #  uid: tempo
-  #  url: http://tempo:3200
-  #  jsonData:
-  #    nodeGraph:
-  #      enabled: true
-  #    serviceMap:
-  #      datasourceUid: 'Mimir'
-  #    tracesToLogs:
-  #      datasourceUid: loki
-  #      filterByTraceID: false
-  #      spanEndTimeShift: "500ms"
-  #      spanStartTimeShift: "-500ms"
-  #      tags: ['beast']
+  - name: Tempo
+    type: tempo
+    access: proxy
+    uid: tempo
+    url: http://tempo:3200
+    jsonData:
+      nodeGraph:
+        enabled: true
+      serviceMap:
+        datasourceUid: 'Mimir'
+      tracesToLogs:
+        datasourceUid: loki
+        filterByTraceID: false
+        spanEndTimeShift: "500ms"
+        spanStartTimeShift: "-500ms"
+        tags: ['beast']
 
   - name: Mimir
     type: prometheus
