@@ -58,7 +58,7 @@ To execute the environment and login:
    ```
    - "3123:3000"
    ```
-3. Navigate to the [MLT dashboard](http://localhost:3000/d/4VSk5Lank/mlt-dashboard?orgId=1&refresh=5s).
+3. Navigate to the [MLT dashboard](http://localhost:3000/d/ed4f4709-4d3b-48fd-a311-a036b85dbd5b/mlt-dashboard?orgId=1&refresh=5s).
 4. Explore the data sources using the [Grafana Explorer](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22Mimir%22,%22queries%22:%5B%7B%22refId%22:%22A%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
 
 The [pre-provisioned dashboard](grafana/definitions/mlt.json) demonstrates a [RED (Rate, Error, Duration)](https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/) overview of the microservice application, where almost all metrics are being generated via trace spans. The dashboard also provides an example of logging.
