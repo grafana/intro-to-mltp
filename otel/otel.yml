@@ -85,21 +85,6 @@ processors:
   # Use the default values for it.
   batch:
 
-  # The servicegraph processor is used to output service node metrics based on received trace spans.
-  servicegraph:
-      # Defines which exporter the processor will write metrics to.
-      metrics_exporter: prometheusremotewrite
-      # Defines additional label dimensions of the metrics from trace span attributes present.
-      store:                      # Configuration for the in-memory store.
-        ttl: 2s                   # Time to wait for an edge to be completed.
-        max_items: 200            # Number of edges that will be stored in the storeMap.
-      cache_loop: 2m              # The timeout used to clean the cache periodically.
-      store_expiration_loop: 10s  # The timeout used to expire old entries from the store periodically.
-      # Virtual node peer attributes allow server nodes to be generated where instrumentation isn't present (eg. where
-      # service client calls remotely to a service that does not include instrumentation).
-      # Service nodes/edges will be generated for any attribute defined.
-      virtual_node_peer_attributes:
-        - db.name
 
   # The tail sampler processor will only keep traces where spans match the defined policies.
   tail_sampling:
@@ -140,6 +125,23 @@ connectors:
     # Ensure exemplars are enabled and sent to the metrics store.
     exemplars:
       enabled: true
+
+  # The servicegraph connector is used to output service node metrics based on received trace spans.
+  servicegraph:
+      # Defines which exporter the processor will write metrics to.
+      metrics_exporter: prometheusremotewrite
+      # Defines additional label dimensions of the metrics from trace span attributes present.
+      store:                      # Configuration for the in-memory store.
+        ttl: 2s                   # Time to wait for an edge to be completed.
+        max_items: 200            # Number of edges that will be stored in the storeMap.
+      cache_loop: 2m              # The timeout used to clean the cache periodically.
+      store_expiration_loop: 10s  # The timeout used to expire old entries from the store periodically.
+      # Virtual node peer attributes allow server nodes to be generated where instrumentation isn't present (eg. where
+      # service client calls remotely to a service that does not include instrumentation).
+      # Service nodes/edges will be generated for any attribute defined.
+      virtual_node_peer_attributes:
+        - db.name
+
 
 # Define exporters to data stores.
 # See https://opentelemetry.io/docs/collector/configuration/#exporters

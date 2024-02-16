@@ -52,6 +52,7 @@ services:
     #  args:
     #    SERVICE: mythical-beasts-requester
     image: grafana/intro-to-mltp:mythical-beasts-requester-latest
+    restart: always
     depends_on:
       mythical-queue:
         condition: service_healthy
@@ -77,6 +78,7 @@ services:
     #  args:
     #    SERVICE: mythical-beasts-server
     image: grafana/intro-to-mltp:mythical-beasts-server-latest
+    restart: always
     ports:
       - "4000:4000"
       - "80:80"
@@ -98,6 +100,7 @@ services:
     #  args:
     #    SERVICE: mythical-beasts-recorder
     image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
+    restart: always
     depends_on:
       mythical-queue:
         condition: service_healthy
