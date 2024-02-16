@@ -193,7 +193,7 @@ services:
       BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
       OTEL_SERVICE_NAME: "beyla-mythical-requester"             # The service name to use for OpenTelemetry traces.
-      OTEL_EXPORTER_OTLP_TRACES_INSECURE: true                  # Whether to use an insecure connection to Grafana Agent.
+      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                # Whether to use an insecure connection to Grafana Agent.
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Agent.
       # The endpoint to send traces to.
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://opentelemetry-collector:4317/"
@@ -231,7 +231,7 @@ services:
       BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
       OTEL_SERVICE_NAME: "beyla-mythical-server"                # The service name to use for OpenTelemetry traces.
-      OTEL_EXPORTER_OTLP_TRACES_INSECURE: true                  # Whether to use an insecure connection to Grafana Agent.
+      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                # Whether to use an insecure connection to Grafana Agent.
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Agent.
       # The endpoint to send traces to.
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://opentelemetry-collector:4317/"
@@ -269,7 +269,7 @@ services:
       BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
       OTEL_SERVICE_NAME: "beyla-mythical-recorder"              # The service name to use for OpenTelemetry traces.
-      OTEL_EXPORTER_OTLP_TRACES_INSECURE: true                  # Whether to use an insecure connection to Grafana Agent.
+      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                # Whether to use an insecure connection to Grafana Agent.
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Agent.
       # The endpoint to send traces to.
       OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://opentelemetry-collector:4317/"
