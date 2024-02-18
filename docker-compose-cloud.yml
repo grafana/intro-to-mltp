@@ -14,10 +14,14 @@ services:
       - "6832:6832"
       - "55679:55679"
     volumes:
-      - "./agent/config-cloud-configured.yaml:/etc/agent/agent.yaml"
+      - "./agent/config.river:/etc/agent/config.river"
+      - "./agent/endpoints-cloud.json:/etc/agent/endpoints.json"
+    environment:
+      - AGENT_MODE=flow
     command: [
-      "-config.file=/etc/agent/agent.yaml",
-      "-server.http.address=0.0.0.0:12345",
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "/etc/agent/config.river",
     ]
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
@@ -62,7 +66,7 @@ services:
       - "4001:4001"
     environment:
       - NAMESPACE=production
-      - LOGS_TARGET=https://${GRAFANA_LOGS_USERNAME}:${GRAFANA_LOGS_API_KEY}@${GRAFANA_LOGS_HOST}/loki/api/v1/push
+      - LOGS_TARGET=http://agent:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=agent
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
@@ -86,7 +90,7 @@ services:
       - mythical-database
     environment:
       - NAMESPACE=production
-      - LOGS_TARGET=https://${GRAFANA_LOGS_USERNAME}:${GRAFANA_LOGS_API_KEY}@${GRAFANA_LOGS_HOST}/loki/api/v1/push
+      - LOGS_TARGET=http://agent:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=agent
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
@@ -108,7 +112,7 @@ services:
       - "4002:4002"
     environment:
       - NAMESPACE=production
-      - LOGS_TARGET=https://${GRAFANA_LOGS_USERNAME}:${GRAFANA_LOGS_API_KEY}@${GRAFANA_LOGS_HOST}/loki/api/v1/push
+      - LOGS_TARGET=http://agent:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=agent
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
