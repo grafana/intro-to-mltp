@@ -33,7 +33,7 @@ module.exports = () => {
             'owlbear',
             'beholder',
         ];
-        servicePrefix = 'mythical-beasts';
+        servicePrefix = 'mythical';
         spanTag = 'beast';
         accumulators = [
             1,

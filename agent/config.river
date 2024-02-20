@@ -1,4 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
+// Configuration file
+local.file "endpoints" {
+    // The endpoints file is used to define the endpoints, credentials and options
+    // for the Agent export to.
+    filename = "/etc/agent/endpoints.json"
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Metrics scraping
 
 // Scrape Tempo, Mimir, Phlare and Loki
@@ -89,7 +97,38 @@ prometheus.scrape "unix" {
 prometheus.remote_write "mimir" {
     // The endpoint is the Mimir service.
     endpoint {
-        url = "http://mimir:9009/api/v1/push"
+        url = json_path(local.file.endpoints.content, ".metrics.url")[0]
+
+        // Basic auth credentials. If the endpoint is not TLS, whilst sent, these will be ignored.
+        basic_auth {
+            username = json_path(local.file.endpoints.content, ".metrics.basicAuth.username")[0]
+            password = json_path(local.file.endpoints.content, ".metrics.basicAuth.password")[0]
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Logging
+
+loki.source.api "mythical" {
+    http {
+        listen_address = "0.0.0.0"
+        listen_port = "3100"
+    }
+
+    forward_to = [loki.write.mythical.receiver]
+}
+
+loki.write "mythical" {
+    // Output the Loki log to the local Loki instance.
+    endpoint {
+        url = json_path(local.file.endpoints.content, ".logs.url")[0]
+
+        // The basic auth credentials for the Loki instance.
+        basic_auth {
+            username = json_path(local.file.endpoints.content, ".logs.basicAuth.username")[0]
+            password = json_path(local.file.endpoints.content, ".logs.basicAuth.password")[0]
+        }
     }
 }
 
@@ -132,6 +171,7 @@ otelcol.receiver.otlp "otlp_receiver" {
 otelcol.processor.batch "default" {
     // Wait until we've received 16K of data.
     send_batch_size = 16384
+    send_batch_max_size = 16384
     // Or until 2 seconds have elapsed.
     timeout = "2s"
     // When the Agent has enough batched data, send it to the OpenTelemetry exporter named 'tempo'.
@@ -145,15 +185,29 @@ otelcol.processor.batch "default" {
 otelcol.exporter.otlp "tempo" {
     // Define the client for exporting.
     client {
+        // Authentication block.
+        auth = otelcol.auth.headers.tempo.handler
+
         // Send to the locally running Tempo instance, on port 4317 (OTLP gRPC).
-        endpoint = "tempo:4317"
+        endpoint = json_path(local.file.endpoints.content, ".traces.url")[0]
+
         // Configure TLS settings for communicating with the endpoint.
         tls {
             // The connection is insecure.
-            insecure = true
+            insecure = json_path(local.file.endpoints.content, ".traces.tls.insecure")[0]
             // Do not verify TLS certificates when connecting.
-            insecure_skip_verify = true
+            insecure_skip_verify = json_path(local.file.endpoints.content, ".traces.tls.insecureSkipVerify")[0]
         }
+    }
+}
+
+// The OpenTelemetry auth headers component is used to define the headers for the OTLP exporter. Note we don't
+// use basic auth here because the OTel spec. demands TLS enabled for basic auth. Using basic header auth
+// allow us to still wire up the basic auth credentials to the Tempo exporter even when they won't be required.
+otelcol.auth.headers "tempo" {
+    header {
+        key = "Authorization"
+        value = join(["Basic ", json_path(local.file.endpoints.content, ".traces.basicAuthToken")[0]], "")
     }
 }
 
@@ -214,7 +268,13 @@ loki.write "autologging" {
 
     // Output the Loki log to the local Loki instance.
     endpoint {
-        url = "http://loki:3100/loki/api/v1/push"
+        url = json_path(local.file.endpoints.content, ".logs.url")[0]
+
+        // The basic auth credentials for the Loki instance.
+        basic_auth {
+            username = json_path(local.file.endpoints.content, ".logs.basicAuth.username")[0]
+            password = json_path(local.file.endpoints.content, ".logs.basicAuth.password")[0]
+        }
     }
 }
 
@@ -362,6 +422,12 @@ pyroscope.scrape "mythical" {
 pyroscope.write "mythical" {
     // The endpoint is the listening Pyroscope instance.
     endpoint {
-        url = "http://pyroscope:4040"
+        url = json_path(local.file.endpoints.content, ".profiles.url")[0]
+
+        // The basic auth credentials for the Pyroscope instance.
+        basic_auth {
+            username = json_path(local.file.endpoints.content, ".profiles.basicAuth.username")[0]
+            password = json_path(local.file.endpoints.content, ".profiles.basicAuth.password")[0]
+        }
     }
 }
