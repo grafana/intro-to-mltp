@@ -25,14 +25,14 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:10.2.3
+    image: grafana/grafana:10.3.3
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -150,7 +150,7 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:2.9.3
+    image: grafana/loki:2.9.4
     ports:
       - "3100:3100"
 
@@ -175,7 +175,7 @@ services:
     command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
 
   pyroscope:
-    image: grafana/pyroscope:1.2.1
+    image: grafana/pyroscope:1.4.0
     ports:
       - "4040:4040"
     command: ["server"]
