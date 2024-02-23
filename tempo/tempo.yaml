@@ -58,6 +58,9 @@ storage:
 metrics_generator:
   # Specifies which processors to use.
   processor:
+    # keep all spans in the local blocks. this will allow for traceql metrics using structural queries
+    local_blocks:
+      filter_server_spans: false
     # Span metrics create metrics based on span type, duration, name and service.
     span_metrics:
         # Configure extra dimensions to add as metric labels.

@@ -176,10 +176,28 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
         requestSpan.end();
     });
 
+    // The following awful code creates spikes in the request rate which makes for more interesting graphs
+    // Joe Elliott did not write this. Do not check the blame.
+    counter++;
+    if (counter >= 3000) {
+      counter = 0;
+    }
+
+    var nextReqIn;
+    if (counter < 2000) {
+        // Choose low values in the first minute of every 5-minute interval
+        nextReqIn =  Math.floor(Math.random() * 50); 
+      } else {
+        // Choose high values for the next 4 minutes
+        nextReqIn = Math.floor(Math.random() * 1000) + 100; 
+      }
+
     // Sometime in the next two seconds, but larger than 100ms
-    const nextReqIn = (Math.random() * 1000) + 100;
+    //const nextReqIn = (Math.random() * 1000) + 100;
     setTimeout(() => makeRequest(tracingObj, sendMessage, logEntry), nextReqIn);
 };
+
+let counter = 0;
 
 (async () => {
     const tracingObj = await tracingUtils();
