@@ -1,5 +1,33 @@
 # Introduction to Metrics, Logs, Traces and Profiles in Grafana
 
+This readme has the following sections:
+
+- [Introduction to Metrics, Logs, Traces and Profiles in Grafana](#Introduction-to-Metrics-Logs-Traces-and-Profiles-in-Grafana)
+  - [History](#History)
+  - [Prerequisites](#Prerequisites)
+  - [Overview](#Overview)
+  - [Running the Demonstration Environment](#Running-the-Demonstration-Environment)
+    - [Using the OpenTelemetry Collector](#Using-the-OpenTelemetry-Collector)
+    - [Using Grafana Cloud Hosted Observability](#Grafana-Cloud)
+  - [Services](#Services)
+    - [Grafana](#Grafana)
+    - [Mimir](#Mimir)
+    - [Loki](#Loki)
+    - [Tempo](#Tempo)
+    - [Pyroscope](#Pyroscope)
+    - [k6](#k6)
+    - [Beyla](#Beyla)
+    - [Grafana Agent](#Grafana-Agent)
+      - [Metrics Generation](#Metrics-Generation)
+      - [Flow and River Configuration](#Flow-and-River-Configuration)
+  - [Microservice Source](#Microservice-Source)
+  - [Grafana Cloud Hosted Observability](#Grafana-Cloud)
+  - [Using the OpenTelemetry Collector](#Using-the-OpenTelemetry-Collector)
+    - [Running the Demonstration Environment with OpenTelemetry Collector](#Running-the-Demonstration-Environment-With-Opentelemetry-Collector)
+  - [Span and service graph metrics generation](#Span-and-service-graph-metrics-generation)
+
+## History
+
 This was originally the  companion repository to a series of presentations over the [three pillars of
 observability within Grafana](https://grafana.com/blog/2022/04/01/get-started-with-metrics-logs-and-traces-in-our-new-grafana-labs-asia-pacific-webinar-series/). Whilst that series is now over a year old, we have kept this repository up-to-date with the latest versions of our products and added more functionality as our products have grown.
 
@@ -67,13 +95,20 @@ The [pre-provisioned dashboard](grafana/definitions/mlt.json) demonstrates a [RE
 
 The following sections are a brief explanation of each of the most important provided components.
 
-### Using the OpenTelemetry Collector
+### Using Grafana Cloud for Observability (Optional)
+
+You can swap out the local Observability Stack and instead use Grafana Cloud.
+
+Read the [Using Grafana Cloud Hosted Observability](#Grafana-Cloud) section below to use this environment instead.
+
+### OpenTelemetry Collector (Optional)
 
 You can swap out the Grafana Agent for the OpenTelemetry collector using an alternative configuration.
 
-Read the 'OpenTelemetry Collector' section below to use this environment instead.
+Read the [Using the OpenTelemetry Collector](#Using-the-OpenTelemetry-Collector) section below to use this environment instead.
 
-## Grafana
+## Services
+### Grafana
 
 Grafana is a multi-platform open source analytics and interactive visualisation web application. For more details about Grafana, read the [documentation](https://grafana.com/docs/grafana/latest/).
 
@@ -89,7 +124,7 @@ The Docker Compose manifest:
 
 The updated `topnav` navigation within Grafana is enabled. If you wish to default back to the old UI, remove the `topnav` feature flag in the `GF_FEATURE_TOGGLES_ENABLE` environment variable for the `grafana` service in the [`docker-compose.yml`](docker-compose.yml) manifest.
 
-## Mimir
+### Mimir
 
 Mimir is a backend store for metrics data from various sources. For more details about Mimir, read the [documentation](https://grafana.com/docs/mimir/latest/).
 
@@ -103,7 +138,7 @@ In addition to the scraped metrics, the Mimir service also receives remotely wri
 
 [This example](http://localhost:3000/explore?left=%7B%22datasource%22:%22mimir%22,%22queries%22:%5B%7B%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22mimir%22%7D,%22exemplar%22:true,%22expr%22:%22histogram_quantile%280.95,%20sum%28rate%28mythical_request_times_bucket%5B15s%5D%29%29%20by%20%28le,%20beast%29%29%22,%22interval%22:%22%22,%22refId%22:%22A%22%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D&orgId=1) of the Mimir data source shows a histogram with [exemplars](https://grafana.com/docs/grafana-cloud/data-configuration/traces/exemplars/) (links to relevant traces). The example is available once the system is running and has collected enough data.
 
-## Loki
+### Loki
 
 Loki is a backend store for long-term log retention. For more details about Loki, read the [documentation](https://grafana.com/docs/loki/latest/).
 
@@ -119,7 +154,7 @@ The microservices application sends its logs directly to the Loki service in thi
 ```
 in the [`docker-compose.yml`](docker-compose.yml) manifest for the `mythical-receiver`, `mythical-server` and `mythical-recorder` services. This will instead force the microservices to output logs to `stdout` which will be picked up by the Loki Docker driver.
 
-## Tempo
+### Tempo
 
 Tempo is a backend store for longterm trace retention. For more details about Tempo, read the [documentation](https://grafana.com/docs/tempo/latest/).
 
@@ -136,7 +171,7 @@ For an example of a simple search, look at the Explorer page using the Tempo dat
 For an example of the mini-APM table and Service Graphs, use the 'Service Graph' tab [here](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22serviceMap%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
 
 Traces are instrumented using the OpenTelemetry SDK, more details on which can be found [here](https://opentelemetry.io/docs/).
-## Pyroscope
+### Pyroscope
 
 Pyroscope is a continuous profiling backend store.
 
@@ -148,7 +183,7 @@ Samples are scraped directly from the application on the `/debug/pprof/profile` 
 
 You can see an example of profiling in action once the system is running by using the Explorer to visualise the profiles stored [here](http://localhost:3000/explore?panes=%7B%22Cnw%22:%7B%22datasource%22:%22pyroscope%22,%22queries%22:%5B%7B%22groupBy%22:%5B%5D,%22labelSelector%22:%22%7Bservice_name%3D%5C%22mythical-server%5C%22%7D%22,%22queryType%22:%22both%22,%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22grafana-pyroscope-datasource%22,%22uid%22:%22pyroscope%22%7D,%22profileTypeId%22:%22process_cpu:wall:microseconds:wall:microseconds%22%7D%5D,%22range%22:%7B%22from%22:%22now-6h%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1).
 
-## k6
+### k6
 
 k6 is a load testing suite that allows you to synthetically load and monitor your application. For more details about k6, read the [documentation](https://k6.io/docs/).
 
@@ -161,7 +196,7 @@ k6 can run one of more VU (Virtual Users) concurrently, to simulate parallel loa
 
 k6 will generate [metrics](https://k6.io/docs/using-k6/metrics/) about the tests that it carries out, and will send these to the running Mimir instance. These metrics can then be used to determine the latencies of endpoints, number of errors occuring, etc. The official Grafana dashboard for k6 is included, and once the sandbox is running, may be found [here](http://localhost:3000/d/01npcT44k/official-k6-test-result?orgId=1&refresh=10s).
 
-## Beyla
+### Beyla
 
 Beyla is an eBPF-based tool for generating metrics and trace data without the need for application instrumentation. For more details about Tempo, read the [documentation](https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/).
 
@@ -178,7 +213,7 @@ For this Docker Compose setup, a Beyla service is required for each of the other
 Once the Docker Compose project is running, you can see examples of traces that are emitted by Beyla can be [seen here](http://localhost:3000/explore?panes=%7B%228kW%22:%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceqlSearch%22,%22limit%22:20,%22tableType%22:%22traces%22,%22filters%22:%5B%7B%22id%22:%22f5c8c83c%22,%22operator%22:%22%3D%22,%22scope%22:%22span%22%7D,%7B%22id%22:%22service-name%22,%22tag%22:%22service.name%22,%22operator%22:%22%3D~%22,%22scope%22:%22resource%22,%22value%22:%5B%22beyla-mythical-recorder%22,%22beyla-mythical-requester%22,%22beyla-mythical-server%22%5D,%22valueType%22:%22string%22%7D%5D,%22groupBy%22:%5B%7B%22id%22:%2285840e80%22,%22scope%22:%22span%22%7D%5D%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1), and an example of the metrics that are emmitted by Beyla can be [seen here](http://localhost:3000/explore?panes=%7B%228kW%22:%7B%22datasource%22:%22mimir%22,%22queries%22:%5B%7B%22refId%22:%22B%22,%22expr%22:%22histogram_quantile%280.95,%20rate%28http_server_duration_seconds_bucket%7Bhttp_route%3D~%5C%22%5C%5C%5C%5C%2F%28unicorn%7Cowlbear%7Cbeholder%7Cmanticore%7Cilithid%29%5C%22%7D%5B1m%5D%29%29%22,%22range%22:true,%22instant%22:true,%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22mimir%22%7D,%22editorMode%22:%22code%22,%22legendFormat%22:%22__auto%22,%22hide%22:false%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1).
 
 
-## Grafana Agent
+### Grafana Agent
 
 **Note:** We have now moved to a default of a Flow/River configuration, due to parity with static mode (as well as more advanced functionality).
 
@@ -215,7 +250,7 @@ The [tutorial](https://grafana.com/docs/agent/latest/flow/tutorials/) guide to w
 
 Note that as Grafana Agent scrapes metrics for every service defined in the [`docker-compose.yml`](docker-compose.yml) that a significant number of metric [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/) are produced (approximately 11,000 at time of writing).
 
-### Metrics Generation
+#### Metrics Generation
 
 It should be noted that since [v1.4.0](https://github.com/grafana/tempo/blob/main/CHANGELOG.md#v140--2022-04-28), Tempo has included the ability to generate [RED (Rate, Error, Duration)](https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/) [span](https://grafana.com/docs/tempo/latest/metrics-generator/span_metrics/) and [service graph](https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/) metrics.
 
@@ -227,7 +262,7 @@ Tempo metrics generation will only generate span and service graph metrics for t
 
 In these instances, using Grafana Agent to generate metrics can ensure a complete set of metrics for all traces span data are generated, as the Agent carries out tail sampling post-metrics generation.
 
-### Flow and River Configuration
+#### Flow and River Configuration
 
 Whilst the default configuration is via Flow's River language, you can switch this to a provided Static configuration defined in YAML.
 
@@ -271,12 +306,12 @@ This demo can be run against Grafana Cloud by configuring the `agent/endpoints-c
 
 The Grafana Agent will send all the signals to the Grafana Cloud stack specified in the `agent/endpoints-cloud.json` file.
 
-## OpenTelemetry Collector
+## Using the OpenTelemetry Collector
 
 You can also use an alternative environment that uses the OpenTelemetry Collector in place of Grafana Agent.
 Note that this only works for the local version of the repository, and *not* Grafana Cloud.
 
-### Running the Demonstration Environment
+### Running the Demonstration Environment with OpenTelemetry Collector
 
 Docker Compose downloads the required Docker images, before starting the demonstration environment.
 
