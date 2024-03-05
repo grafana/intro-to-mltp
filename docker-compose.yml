@@ -63,12 +63,12 @@ services:
 
   # A microservice that makes requests to the API server microservice. Requests are also pushed onto the mythical-queue.
   mythical-requester:
-    build:
-      context: ./source
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE: mythical-beasts-requester
-    #image: grafana/intro-to-mltp:mythical-beasts-requester-latest
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-requester
+    image: grafana/intro-to-mltp:mythical-beasts-requester-latest
     restart: always
     depends_on:
       mythical-queue:
@@ -89,12 +89,12 @@ services:
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
   # service and sends traces to the Grafana Agent instance.
   mythical-server:
-    build:
-      context: ./source
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE: mythical-beasts-server
-    #image: grafana/intro-to-mltp:mythical-beasts-server-latest
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-server
+    image: grafana/intro-to-mltp:mythical-beasts-server-latest
     restart: always
     ports:
       - "4000:4000"
@@ -111,12 +111,12 @@ services:
 
   # A microservice that consumes requests from the mythical-queue
   mythical-recorder:
-    build:
-      context: ./source
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE: mythical-beasts-recorder
-    #image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-recorder
+    image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
     restart: always
     depends_on:
       mythical-queue:
@@ -134,7 +134,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.3.1
+    image: grafana/tempo:2.4.0
     ports:
       - "3200:3200"
       - "4317:4317"
