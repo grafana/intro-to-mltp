@@ -54,7 +54,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
         links: (previousReqSpanContext) ? [{ context: previousReqSpanContext }] : undefined,
     });
     requestSpan.setAttribute(spanTag, endpoint);
-    requestSpan.setAttribute(`http.target`, endpoint);
+    requestSpan.setAttribute(`http.target`, '/' + endpoint);
     requestSpan.setAttribute(`http.method`, type);
     requestSpan.setAttribute('service.version', (Math.floor(Math.random() * 100)) < 50 ? '1.9.2' : '2.0.0');
     previousReqSpanContext = requestSpan.spanContext();
