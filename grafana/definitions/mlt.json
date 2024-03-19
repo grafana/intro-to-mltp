@@ -353,7 +353,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (http_status_code,http_target,service_version)(increase(traces_spanmetrics_calls_total{http_status_code=~\"${httpStatus}\",http_target=~\"\\\\/${httpEndpoint}\"}[10m]))",
+          "expr": "sum by (http_status_code,http_target,service_version)(increase(traces_spanmetrics_calls_total{http_status_code=~\"${httpStatus}\",http_target=~\"${httpEndpoint}\"}[10m]))",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -831,7 +831,7 @@
           "type": 1
         },
         "refresh": 2,
-        "regex": "/^\\/(beholder|unicorn|manticore|illithid|owlbear).*/",
+        "regex": "/^(\\/beholder|\\/unicorn|\\/manticore|\\/illithid|\\/owlbear).*/",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
