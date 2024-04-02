@@ -200,7 +200,7 @@ k6 will generate [metrics](https://k6.io/docs/using-k6/metrics/) about the tests
 
 ### Beyla
 
-Beyla is an eBPF-based tool for generating metrics and trace data without the need for application instrumentation. For more details about Tempo, read the [documentation](https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/).
+Beyla is an eBPF-based tool for generating metrics and trace data without the need for application instrumentation. For more details about Beyla, read the [documentation](https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/).
 
 The Beyla services are described in the `beyla-requester`, `beyla-server` and `beyla-recorder` sections of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
