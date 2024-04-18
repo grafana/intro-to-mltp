@@ -17,25 +17,27 @@ services:
       - "./agent/endpoints.json:/etc/agent/endpoints.json"
     environment:
       - AGENT_MODE=flow
-    command: [
-      "run",
-      "--server.http.listen-addr=0.0.0.0:12345",
-      "/etc/agent/config.river",
-    ]
+    command:
+      [
+        "run",
+        "--server.http.listen-addr=0.0.0.0:12345",
+        "/etc/agent/config.river",
+      ]
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:10.3.3
+    image: grafana/grafana-dev:11.1.0-173403
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles
+      - GF_FEATURE_TOGGLES_ENABLE=accessControlOnCall flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app,https://storage.googleapis.com/integration-artifacts/grafana-exploretraces-app/grafana-exploretraces-app-latest.zip;grafana-exploretraces-app
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
   mythical-queue:
@@ -134,7 +136,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Agent, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.4.0
+    image: grafana/tempo:latest
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -143,20 +145,27 @@ services:
       - "55680:55680"
       - "55681:55681"
       - "14250:14250"
-    command: [ "-config.file=/etc/tempo.yaml" ]
+    command: ["-config.file=/etc/tempo.yaml"]
     volumes:
       - "./tempo/tempo.yaml:/etc/tempo.yaml"
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:2.9.4
+    image: grafana/loki:main-e9b6ce9
     ports:
       - "3100:3100"
+    volumes:
+      - ./loki/config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml --pattern-ingester.enabled=true
 
   mimir:
     image: grafana/mimir:2.11.0
-    command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
+    command:
+      [
+        "-ingester.native-histograms-ingestion-enabled=true",
+        "-config.file=/etc/mimir.yaml",
+      ]
     ports:
       - "9009:9009"
     volumes:
@@ -172,7 +181,13 @@ services:
       - K6_VUS=4
       - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
     restart: always
-    command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
+    command:
+      [
+        "run",
+        "-o",
+        "experimental-prometheus-rw",
+        "/scripts/mythical-loadtest.js",
+      ]
 
   pyroscope:
     image: grafana/pyroscope:1.4.0
@@ -204,14 +219,14 @@ services:
     # https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/configure/options/ for more details on the
     # options set below.
     environment:
-      BEYLA_OPEN_PORT: "4001"                                   # Instrument any service listening on port 4001.
-      BEYLA_SERVICE_NAMESPACE: "mythical"                       # The namespace for the service.
-      BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
+      BEYLA_OPEN_PORT: "4001" # Instrument any service listening on port 4001.
+      BEYLA_SERVICE_NAMESPACE: "mythical" # The namespace for the service.
+      BEYLA_PROMETHEUS_PORT: "9090" # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
-      OTEL_SERVICE_NAME: "beyla-mythical-requester"             # The service name to use for OpenTelemetry traces.
-      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                 # Whether to use an insecure connection to Grafana Agent.
-      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Agent.
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://agent:4317/"  # The endpoint to send traces to.
+      OTEL_SERVICE_NAME: "beyla-mythical-requester" # The service name to use for OpenTelemetry traces.
+      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true" # Whether to use an insecure connection to Grafana Agent.
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc" # The protocol to use to send traces to Grafana Agent.
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://agent:4317/" # The endpoint to send traces to.
     # The `depends_on` block below ensures that the mythical-requester service is started before Beyla.
     depends_on:
       mythical-requester:
@@ -241,14 +256,14 @@ services:
     # https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/configure/options/ for more details on the
     # options set below.
     environment:
-      BEYLA_OPEN_PORT: "4000"                                   # Instrument any service listening on port 4001.
-      BEYLA_SERVICE_NAMESPACE: "mythical"                       # The namespace for the service.
-      BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
+      BEYLA_OPEN_PORT: "4000" # Instrument any service listening on port 4001.
+      BEYLA_SERVICE_NAMESPACE: "mythical" # The namespace for the service.
+      BEYLA_PROMETHEUS_PORT: "9090" # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
-      OTEL_SERVICE_NAME: "beyla-mythical-server"                # The service name to use for OpenTelemetry traces.
-      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                # Whether to use an insecure connection to Grafana Agent.
-      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Agent.
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://agent:4317/"  # The endpoint to send traces to.
+      OTEL_SERVICE_NAME: "beyla-mythical-server" # The service name to use for OpenTelemetry traces.
+      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true" # Whether to use an insecure connection to Grafana Agent.
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc" # The protocol to use to send traces to Grafana Agent.
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://agent:4317/" # The endpoint to send traces to.
     # The `depends_on` block below ensures that the mythical-server service is started before Beyla.
     depends_on:
       mythical-server:
@@ -278,14 +293,14 @@ services:
     # https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/configure/options/ for more details on the
     # options set below.
     environment:
-      BEYLA_OPEN_PORT: "4002"                                   # Instrument any service listening on port 4001.
-      BEYLA_SERVICE_NAMESPACE: "mythical"                       # The namespace for the service.
-      BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
+      BEYLA_OPEN_PORT: "4002" # Instrument any service listening on port 4001.
+      BEYLA_SERVICE_NAMESPACE: "mythical" # The namespace for the service.
+      BEYLA_PROMETHEUS_PORT: "9090" # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
-      OTEL_SERVICE_NAME: "beyla-mythical-recorder"              # The service name to use for OpenTelemetry traces.
-      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                # Whether to use an insecure connection to Grafana Agent.
-      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Agent.
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://agent:4317/"  # The endpoint to send traces to.
+      OTEL_SERVICE_NAME: "beyla-mythical-recorder" # The service name to use for OpenTelemetry traces.
+      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true" # Whether to use an insecure connection to Grafana Agent.
+      OTEL_EXPORTER_OTLP_PROTOCOL: "grpc" # The protocol to use to send traces to Grafana Agent.
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://agent:4317/" # The endpoint to send traces to.
     # The `depends_on` block below ensures that the mythical-recorder service is started before Beyla.
     depends_on:
       mythical-recorder:
