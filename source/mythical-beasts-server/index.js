@@ -230,10 +230,15 @@ const logUtils = require('./logging')('mythical-server', 'server');
         }
         // POST a new unicorn name
         try {
+            let name = req.body.name
+            if (process.env.ALWAYS_SUCCEED != "true" && Math.random() < 0.1) {
+                name = null
+            }
+
             await databaseAction({
                 method: Database.POST,
                 table: endpoint,
-                name: (Math.random() < 0.1) ? null : req.body.name,
+                name: name,
             });
 
             // Metrics
