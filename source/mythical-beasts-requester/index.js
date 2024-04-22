@@ -63,6 +63,12 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     // Increment the danger level on the gauge
     dangerGauge.inc(dangerLevel);
 
+    let serverHostPort = "mythical-server:4000"
+    // check env var for override
+    if (process.env.MYTHICAL_SERVER_HOST_PORT) {
+        serverHostPort = process.env.MYTHICAL_SERVER_HOST_PORT
+    }
+
     // Create a new context for this request
     api.context.with(api.trace.setSpan(api.context.active(), requestSpan), async () => {
         const start = Date.now();
@@ -74,7 +80,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
             try {
                 const result = await request({
                     method: 'GET',
-                    uri: `http://mythical-server:4000/${endpoint}`,
+                    uri: `http://${serverHostPort}/${endpoint}`,
                     headers
                 });
                 sendMessage(`GET /${endpoint}`);
@@ -94,7 +100,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     if (names.length > 0) {
                         await request({
                             method: 'DELETE',
-                            uri: `http://mythical-server:4000/${endpoint}`,
+                            uri: `http://${serverHostPort}/${endpoint}`,
                             json: true,
                             headers,
                             body: { name: names[0].name },
@@ -129,7 +135,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
             try {
                 await request({
                     method: 'POST',
-                    uri: `http://mythical-server:4000/${endpoint}`,
+                    uri: `http://${serverHostPort}/${endpoint}`,
                     json: true,
                     headers,
                     body,
