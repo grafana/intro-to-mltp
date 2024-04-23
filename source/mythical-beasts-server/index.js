@@ -41,7 +41,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
         name: 'mythical_request_times',
         help: 'Response times for the endpoints',
         labelNames: ['method', 'status', spanTag],
-        buckets: [1, 4, 8, 10, 20, 50, 100, 200, 500, 1000],
+        buckets: [10, 20, 50, 100, 200, 500, 1000, 2000, 4000, 8000, 16000],
         enableExemplars: true,
     });
 
