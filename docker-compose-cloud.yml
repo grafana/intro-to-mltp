@@ -3,25 +3,24 @@ volumes:
   grafana:
   postgres:
 services:
-  # Grafana agent batches and processes traces sent to it, generating metrics
-  # and auto-logs from those traces.
-  # Includes Metrics, Logs and Traces
-  agent:
-    image: grafana/agent:v0.39.0
+  # Grafana Alloy batches and processes traces sent to it, generating
+  # auto-logs from those traces.
+  # Includes Metrics, Logs, Traces and Profiles.
+  alloy:
+    image: grafana/alloy:v1.0.0
     ports:
       - "12347:12345"
       - "12348:12348"
       - "6832:6832"
       - "55679:55679"
     volumes:
-      - "./agent/config.river:/etc/agent/config.river"
-      - "./agent/endpoints-cloud.json:/etc/agent/endpoints.json"
-    environment:
-      - AGENT_MODE=flow
+      - "./alloy/config.alloy:/etc/alloy/config.alloy"
+      - "./alloy/endpoints-cloud.json:/etc/alloy/endpoints.json"
     command: [
       "run",
       "--server.http.listen-addr=0.0.0.0:12345",
-      "/etc/agent/config.river",
+      "--stability.level=public-preview",
+      "/etc/alloy/config.alloy",
     ]
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
@@ -66,15 +65,15 @@ services:
       - "4001:4001"
     environment:
       - NAMESPACE=production
-      - LOGS_TARGET=http://agent:3100/loki/api/v1/push
-      - TRACING_COLLECTOR_HOST=agent
+      - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
+      - TRACING_COLLECTOR_HOST=alloy
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
 
   # The API server microservice.
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
-  # service and sends traces to the Grafana Agent instance.
+  # service and sends traces to the Grafana Alloy instance.
   mythical-server:
     #build:
     #  context: ./source
@@ -90,8 +89,8 @@ services:
       - mythical-database
     environment:
       - NAMESPACE=production
-      - LOGS_TARGET=http://agent:3100/loki/api/v1/push
-      - TRACING_COLLECTOR_HOST=agent
+      - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
+      - TRACING_COLLECTOR_HOST=alloy
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
@@ -112,8 +111,8 @@ services:
       - "4002:4002"
     environment:
       - NAMESPACE=production
-      - LOGS_TARGET=http://agent:3100/loki/api/v1/push
-      - TRACING_COLLECTOR_HOST=agent
+      - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
+      - TRACING_COLLECTOR_HOST=alloy
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5

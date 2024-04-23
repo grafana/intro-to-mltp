@@ -2,8 +2,8 @@
 // Configuration file
 local.file "endpoints" {
     // The endpoints file is used to define the endpoints, credentials and options
-    // for the Agent export to.
-    filename = "/etc/agent/endpoints.json"
+    // for the Alloy export to.
+    filename = "/etc/alloy/endpoints.json"
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,20 +65,17 @@ prometheus.scrape "beyla_infra" {
     job_name = "beyla_infra"
 }
 
-// Scrape the local Agent itself.
-// This takes the place of the `integrations: agent:` block in the original configuration file.
+// Scrape the local Alloy itself.
 prometheus.scrape "agent" {
-    // Only one target, the Agent, it's part of the 'infrastructure' group.
-    targets = [{"__address__" = "localhost:12345", group = "infrastructure", service = "agent"}]
+    // Only one target, the Alloy, it's part of the 'infrastructure' group.
+    targets = [{"__address__" = "localhost:12345", group = "infrastructure", service = "alloy"}]
     // Send the metrics to the prometheus remote write receiver for exporting to Mimir.
     forward_to = [prometheus.remote_write.mimir.receiver]
     // Attach job name to the metrics.
-    job_name = "agent"
+    job_name = "alloy"
 }
 
-// Node Exporter is built in a scrapeable prometheus component, taking the place of `integrations: node_exporter:` in
-// the original Agent config file.
-// The Agent exports everything, using an empty block.
+// The Alloy exports everything, using an empty block.
 prometheus.exporter.unix "default" {
 }
 
@@ -140,7 +137,7 @@ loki.write "mythical" {
 // Note that both the instrumented application *and* Beyla use the same receiver to send traces.
 otelcol.receiver.otlp "otlp_receiver" {
     // We don't technically need this, but it shows how to change listen address and incoming port.
-    // In this case, the Agent is listening on all available bindable addresses on port 4317 (which is the
+    // In this case, the Alloy is listening on all available bindable addresses on port 4317 (which is the
     // default OTLP gRPC port) for the OTLP protocol.
     grpc {
         endpoint = "0.0.0.0:4317"
@@ -150,10 +147,10 @@ otelcol.receiver.otlp "otlp_receiver" {
     // named 'default'.
     output {
         traces = [
-            // Uncomment the next line to generate service graph metrics from the Agent. By default this is generated
+            // Uncomment the next line to generate service graph metrics from the Alloy. By default this is generated
             // by the Tempo component, so be sure to remove the relevant configuration in the `tempo/tempo.yaml` file.
             //otelcol.connector.servicegraph.tracemetrics.input,
-            // Uncomment the next line to generate span metrics from the Agent. By default this is generated
+            // Uncomment the next line to generate span metrics from the Alloy. By default this is generated
             // by the Tempo component, so be sure to remove the relevant configuration in the `tempo/tempo.yaml` file.
             //otelcol.connector.spanmetrics.tracemetrics.input,
             // The following would be used for tail sampling only traces containing errors.
@@ -174,7 +171,7 @@ otelcol.processor.batch "default" {
     send_batch_max_size = 16384
     // Or until 2 seconds have elapsed.
     timeout = "2s"
-    // When the Agent has enough batched data, send it to the OpenTelemetry exporter named 'tempo'.
+    // When the Alloy has enough batched data, send it to the OpenTelemetry exporter named 'tempo'.
     output {
         traces = [otelcol.exporter.otlp.tempo.input]
     }
@@ -212,7 +209,7 @@ otelcol.auth.headers "tempo" {
 }
 
 // The OpenTelemetry spanlog connector processes incoming trace spans and extracts data from them ready
-// for logging. This is the equivalent of Grafana Agent's static automatic_logging pipeline.
+// for logging. This is the equivalent of Grafana Alloy's static automatic_logging pipeline.
 otelcol.connector.spanlogs "autologging" {
     // We only want to output a line for each root span (ie. every single trace), and not for every
     // process or span (outputting a line for every span would be extremely verbose).
@@ -260,10 +257,10 @@ loki.process "autologging" {
 
 // The Loki writer receives a processed Loki log and then writes it to a Loki instance.
 loki.write "autologging" {
-    // Add the `agent` value to the `job` label, so we can identify it as having been generated
+    // Add the `alloy` value to the `job` label, so we can identify it as having been generated
     // by Grafana Agent when querying.
     external_labels = {
-        job = "agent",
+        job = "alloy",
     }
 
     // Output the Loki log to the local Loki instance.

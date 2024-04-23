@@ -17,7 +17,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:10.2.3
+    image: grafana/grafana:10.4.1
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -126,7 +126,7 @@ services:
   # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.4.0
+    image: grafana/tempo:2.4.1
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -140,12 +140,12 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:2.9.3
+    image: grafana/loki:3.0.0
     ports:
       - "3100:3100"
 
   mimir:
-    image: grafana/mimir:2.11.0
+    image: grafana/mimir:2.12.0
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
@@ -165,7 +165,7 @@ services:
     command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
 
   beyla-requester:
-    image: grafana/beyla:1.0.2
+    image: grafana/beyla:1.5.1
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
@@ -203,7 +203,7 @@ services:
         condition: service_started
 
   beyla-server:
-    image: grafana/beyla:1.0.2
+    image: grafana/beyla:1.5.1
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
@@ -241,7 +241,7 @@ services:
         condition: service_started
 
   beyla-recorder:
-    image: grafana/beyla:1.0.2
+    image: grafana/beyla:1.5.1
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.

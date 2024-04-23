@@ -19,7 +19,7 @@ This readme has the following sections:
     - [Pyroscope](#pyroscope)
     - [k6](#k6)
     - [Beyla](#beyla)
-    - [Grafana Agent](#grafana-agent)
+    - [Grafana Alloy](#grafana-alloy)
       - [Metrics Generation](#metrics-generation)
       - [Flow and River Configuration](#flow-and-river-configuration)
   - [Microservice Source](#microservice-source)
@@ -61,7 +61,7 @@ The demos from this series were based on the application and code in this reposi
 * Pyroscope service for storing and querying profiling information.
 * Beyla services for watching the four-service application and automatically generating signals.
 * Grafana service for visualising observability data.
-* Grafana Agent service for receiving traces and producing metrics and logs based on these traces.
+* Grafana Alloy service for receiving traces and producing metrics and logs based on these traces.
 * A Node Exporter service to retrieve resource metrics from the local host.
 
 ## Running the Demonstration Environment
@@ -105,7 +105,7 @@ Read the [Using Grafana Cloud Hosted Observability](#Grafana-Cloud) section belo
 
 ### OpenTelemetry Collector (Optional)
 
-You can swap out the Grafana Agent for the OpenTelemetry collector using an alternative configuration.
+You can swap out the Grafana Alloy for the OpenTelemetry collector using an alternative configuration.
 
 Read the [Using the OpenTelemetry Collector](#Using-the-OpenTelemetry-Collector) section below to use this environment instead.
 
@@ -164,7 +164,7 @@ The Tempo service is described in the `tempo` section of the [`docker-compose.ym
 
 The Tempo service imports a configuration file ([`tempo/tempo.yaml`](tempo/tempo.yaml)) that initialises the service with some sensible defaults as well as allowing the receiving of traces in a variety of different formats.
 
-Tempo is also configured to generate metrics from incoming trace spans as part of it's configuration. As such, this no longer occurs via Grafana Agent (although the original configuration for the Agent to carry this out has been left in the Agent configuration file as a guide).
+Tempo is also configured to generate metrics from incoming trace spans as part of it's configuration. As such, this no longer occurs via Grafana Alloy (although the original configuration for the Alloy to carry this out has been left in the Alloy configuration file as a guide).
 
 For an example of a simple search, look at the Explorer page using the Tempo data source, [here](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceqlSearch%22,%22limit%22:20,%22filters%22:%5B%7B%22id%22:%224ad1d67f%22,%22operator%22:%22%3D%22,%22scope%22:%22span%22%7D,%7B%22id%22:%22service-name%22,%22tag%22:%22service.name%22,%22operator%22:%22%3D%22,%22scope%22:%22resource%22,%22value%22:%5B%22mythical-server%22%5D,%22valueType%22:%22string%22%7D,%7B%22id%22:%22min-duration%22,%22tag%22:%22duration%22,%22operator%22:%22%3E%22,%22valueType%22:%22duration%22,%22value%22:%22100ms%22%7D%5D%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D). **Note:** Native searches no longer exist, and these are interpretted as TraceQL before execution. See the bottom of the search panel to show the equivalent TraceQL
 
@@ -215,60 +215,60 @@ For this Docker Compose setup, a Beyla service is required for each of the other
 Once the Docker Compose project is running, you can see examples of traces that are emitted by Beyla can be [seen here](http://localhost:3000/explore?panes=%7B%228kW%22:%7B%22datasource%22:%22tempo%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22datasource%22:%7B%22type%22:%22tempo%22,%22uid%22:%22tempo%22%7D,%22queryType%22:%22traceqlSearch%22,%22limit%22:20,%22tableType%22:%22traces%22,%22filters%22:%5B%7B%22id%22:%22f5c8c83c%22,%22operator%22:%22%3D%22,%22scope%22:%22span%22%7D,%7B%22id%22:%22service-name%22,%22tag%22:%22service.name%22,%22operator%22:%22%3D~%22,%22scope%22:%22resource%22,%22value%22:%5B%22beyla-mythical-recorder%22,%22beyla-mythical-requester%22,%22beyla-mythical-server%22%5D,%22valueType%22:%22string%22%7D%5D,%22groupBy%22:%5B%7B%22id%22:%2285840e80%22,%22scope%22:%22span%22%7D%5D%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1), and an example of the metrics that are emmitted by Beyla can be [seen here](http://localhost:3000/explore?panes=%7B%228kW%22:%7B%22datasource%22:%22mimir%22,%22queries%22:%5B%7B%22refId%22:%22B%22,%22expr%22:%22histogram_quantile%280.95,%20rate%28http_server_duration_seconds_bucket%7Bhttp_route%3D~%5C%22%5C%5C%5C%5C%2F%28unicorn%7Cowlbear%7Cbeholder%7Cmanticore%7Cilithid%29%5C%22%7D%5B1m%5D%29%29%22,%22range%22:true,%22instant%22:true,%22datasource%22:%7B%22type%22:%22prometheus%22,%22uid%22:%22mimir%22%7D,%22editorMode%22:%22code%22,%22legendFormat%22:%22__auto%22,%22hide%22:false%7D%5D,%22range%22:%7B%22from%22:%22now-5m%22,%22to%22:%22now%22%7D%7D%7D&schemaVersion=1&orgId=1).
 
 
-### Grafana Agent
+### Grafana Alloy
 
 **Note:** We have now moved to a default of a Flow/River configuration, due to parity with static mode (as well as more advanced functionality).
 
-Grafana Agent is a configurable local agent for receiving metrics, logs and traces and forwarding them to relevant database stores. For more details about Grafana Agent, read the [documentation](https://grafana.com/docs/agent/latest/).
+Grafana Alloy is a Grafana distribution of the OpenTelemetry collector, receiving metrics, logs and traces and forwarding them to relevant database stores. For more details about Grafana Alloy, read the [documentation](https://grafana.com/docs/alloy/latest/).
 
-Grafana Agent is a locally installed agent that acts as:
+Grafana Alloy acts as:
 * A Prometheus scraping service and metric/label rewriter.
 * A Promtail (Loki logs receiver) service and processor.
 * A Tempo trace receiver and span processor.
 * Remote writer for MLT data to Grafana Cloud (or any other compatible storage system).
 
-In this example environment, Grafana Agent:
+In this example environment, Grafana Alloy:
 * Receives metrics data, via scrape configs, emitted by:
   * The microservice application.
   * The Mimir service for operational monitoring.
   * The Loki service for operational monitoring.
   * The Tempo service for operatational monitoring.
-  * The Agent itself, for operational monitoring.
+  * The Alloy itself, for operational monitoring.
   * The installed Node Exporter service.
 * Receives trace data, via trace configs, emitted by the microservice application.
 * Generates automatic logging lines based on the trace data received.
 * Sends metric, log and trace data onwards to the Mimir, Loki and Tempo services, respectively.
 * Has optional (unused by default) configurations for metrics generation and trace tail sampling.
 
-Grafana Agent implements a graph-based configuration via it's Flow architecuture, using a programatic language, River, to define Grafana Agent functionality.
+Grafana Alloy implements a graph-based configuration via it's Flow architecuture, using a programatic language, River, to define Grafana Alloy functionality.
 
-Once running, you can observe the Flow configuration running on the Grafana Agent itself by navigating to [http://localhost:12347](http://localhost:12347). This webpage will allow you to view all of the current components being used for receiving MLT signals, as well as graphs denoting source and target relationships between components.
+Once running, you can observe the Flow configuration running on the Grafana Alloy itself by navigating to [http://localhost:12347](http://localhost:12347). This webpage will allow you to view all of the current components being used for receiving MLT signals, as well as graphs denoting source and target relationships between components.
 
-The full configuration for Grafana Agent can be found [here](agent/config.river).
+The full configuration for Grafana Alloy can be found [here](alloy/config.river).
 
-Read the [Debugging](https://grafana.com/docs/agent/latest/flow/monitoring/debugging/) documentation for Grafana Agent for more details.
+Read the [Debugging](https://grafana.com/docs/alloy/latest/flow/monitoring/debugging/) documentation for Grafana Alloy for more details.
 
-The [tutorial](https://grafana.com/docs/agent/latest/flow/tutorials/) guide to working with Flow and River is a great first starting point, whilst the full [reference guide](https://grafana.com/docs/agent/latest/flow/reference/) for Flow shows the currently supported components and configuration blocks.
+The [tutorial](https://grafana.com/docs/alloy/latest/flow/tutorials/) guide to working with Flow and River is a great first starting point, whilst the full [reference guide](https://grafana.com/docs/alloy/latest/flow/reference/) for Flow shows the currently supported components and configuration blocks.
 
-Note that as Grafana Agent scrapes metrics for every service defined in the [`docker-compose.yml`](docker-compose.yml) that a significant number of metric [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/) are produced (approximately 11,000 at time of writing).
+Note that as Grafana Alloy scrapes metrics for every service defined in the [`docker-compose.yml`](docker-compose.yml) that a significant number of metric [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/) are produced (approximately 11,000 at time of writing).
 
 #### Metrics Generation
 
 It should be noted that since [v1.4.0](https://github.com/grafana/tempo/blob/main/CHANGELOG.md#v140--2022-04-28), Tempo has included the ability to generate [RED (Rate, Error, Duration)](https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/) [span](https://grafana.com/docs/tempo/latest/metrics-generator/span_metrics/) and [service graph](https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/) metrics.
 
-As such, the Grafana Agent configuration now includes a commented section where those metrics used to be generated; this is now handled directly in Tempo via server-side metrics generation.
+As such, the Grafana Alloy configuration now includes a commented section where those metrics used to be generated; this is now handled directly in Tempo via server-side metrics generation.
 
-Whilst this is convenient for many users, you may prefer to generate metrics locally via Grafana Agent rather than Tempo server-side. These include environments where tail-based sampling may be utilized to discard certain traces.
+Whilst this is convenient for many users, you may prefer to generate metrics locally via Grafana Alloy rather than Tempo server-side. These include environments where tail-based sampling may be utilized to discard certain traces.
 
 Tempo metrics generation will only generate span and service graph metrics for trace spans that Tempo receives. If tail sampling is active, then a full view of the metrics in a system will not be available.
 
-In these instances, using Grafana Agent to generate metrics can ensure a complete set of metrics for all traces span data are generated, as the Agent carries out tail sampling post-metrics generation.
+In these instances, using Grafana Alloy to generate metrics can ensure a complete set of metrics for all traces span data are generated, as the Alloy carries out tail sampling post-metrics generation.
 
 #### Flow and River Configuration
 
 Whilst the default configuration is via Flow's River language, you can switch this to a provided Static configuration defined in YAML.
 
-To use the Static configuration instead, follow the inline commented instructions in the `agent` service section of the [`docker-compose.yml`](docker-compose.yml) file.
+To use the Static configuration instead, follow the inline commented instructions in the `alloy` service section of the [`docker-compose.yml`](docker-compose.yml) file.
 
 Once altered, the Static configuration can be used by restarting Docker Compose if it is currently running:
 ```bash
@@ -290,11 +290,11 @@ There is a common [`Dockerfile`](source/docker/Dockerfile) that is used to build
 
 ## Grafana Cloud
 
->**Note**: By default, as mentioned in the Grafana Agent section, metrics, logs, traces and profiles are scraped by default from every service. If sending metrics to Grafana Cloud, check the number of signals (for example, for metrics, the number of [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/)) that you can store without additional cost.
+>**Note**: By default, as mentioned in the Grafana Alloy section, metrics, logs, traces and profiles are scraped by default from every service. If sending metrics to Grafana Cloud, check the number of signals (for example, for metrics, the number of [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/)) that you can store without additional cost.
 
 In the following configuration instructions, you can generate a general purpose `write`` scope token that will work with metrics, logs and traces, but note that the profiling token is separate and needs to be generated specifically for Pyroscope.
 
-This demo can be run against Grafana Cloud by configuring the `agent/endpoints-cloud.json` file for each signal. This differs slightly for each of the signals.
+This demo can be run against Grafana Cloud by configuring the `alloy/endpoints-cloud.json` file for each signal. This differs slightly for each of the signals.
 
 1. Metrics - Navigate to the `Prometheus` section of your [Grafana Cloud stack](https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/) and scroll to the `Sending metrics` section. Use the `url` denoted to replace the `<metricsUrl>` value in the JSON file. If you do not already have a scope token to write metrics, you can generate one under the `Password / API Token` section. *Ensure that the token is a `write` scope token.* Replace the `<metricsUsername>` and `<metricsPassword>` entries with the username and token denoted in the Cloud Stack page.
 2. Logs - Navigate to the `Loki` section of your [Grafana Cloud stack](https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/) and scroll to the `Sending Logs` section. Use the `url` denoted to replace the `<logsUrl>` value in the JSON file, but do not include the username and token in the url. It should look something like this: `https://logs-prod3.grafana.net/loki/api/v1/push`. If you do not already have a scope token to write metrics, you can generate one under the `Replace <Grafana.com API Token>` section. *Ensure that the token is a `write` scope token.* Replace the `<logsUsername>` and `<logsPassword>` entries with the username and token denoted in the Cloud Stack page.
@@ -306,11 +306,11 @@ This demo can be run against Grafana Cloud by configuring the `agent/endpoints-c
 4. Profiles -  Navigate to the `Pyroscope` section of your [Grafana Cloud stack](https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/) and scroll to the `SDK or agent configuration` section. Use the `url` denoted to replace the `<profilesUrl>` value in the JSON file. You will need to generate a `write` scope token for Pyroscope specifically, do this by selecting the `Generate now` link in the `Password` block of the `SDK or agent configuration` section. *Ensure that the token is a `write` scope token.* Replace the `<profileUsername>` and `<profilePassword>` entries with the username and token denoted in the Cloud Stack page.
 5. Run `docker compose -f docker-compose-cloud.yml` up
 
-The Grafana Agent will send all the signals to the Grafana Cloud stack specified in the `agent/endpoints-cloud.json` file.
+The Grafana Alloy will send all the signals to the Grafana Cloud stack specified in the `alloy/endpoints-cloud.json` file.
 
 ## Using the OpenTelemetry Collector
 
-You can also use an alternative environment that uses the OpenTelemetry Collector in place of Grafana Agent.
+You can also use an alternative environment that uses the OpenTelemetry Collector in place of Grafana Alloy.
 Note that this only works for the local version of the repository, and *not* Grafana Cloud.
 
 ### Running the Demonstration Environment with OpenTelemetry Collector
@@ -343,17 +343,17 @@ To execute the environment and login:
 
 The OpenTelemetry Collector is defined as the `opentelemetry-collector` service in the [`docker-compose-otel.yml`](docker-compose-otel.yml) manifest.
 
-A basic configuration that mimics that of the Grafana Agent configuration can be found in the [`otel/otel.yml`](otel/otel.yml) configuration file.
+A basic configuration that mimics that of the Grafana Alloy configuration can be found in the [`otel/otel.yml`](otel/otel.yml) configuration file.
 
-In much the same way that the Grafana Agent configuration operates, this scrapes several targets to retrieve Prometheus metrics before batching them and remote writing them to the local Mimir service.
+In much the same way that the Grafana Alloy configuration operates, this scrapes several targets to retrieve Prometheus metrics before batching them and remote writing them to the local Mimir service.
 
 Additionally, the OpenTelemetry Collector receives traces via OTLP gRPC, batches them, and then remote writes them to the local Tempo instance.
 
 ## Span and service graph metrics generation
-Span metrics and service metrics are also available, but have not been attached to the trace receiver defined in the Agent configuration file as generation is handled in Tempo by default. You may switch to Agent-based metrics generation by following the directions in the [`agent/config.river`](agent/config.river) file in the the `otlp_receiver` tracing configuration section. There are comments showing you which lines to uncomment to add both metrics generator collectors to add to the graph. You will also need to comment out the metrics generation in [`tempo/tempo.yaml`](tempo/tempo.yaml) to generate metrics from the Agent rather than in Tempo (the same holds true for the OpenTelemetry metrics generation configuration sections). You can do the equivalent metrics generation in the OpenTelemetry Collector by following the relevant instructions on uncommenting/commenting `processors`, `exporters` and `receivers` sections in [`otel/otel.yaml`](otel/otel.yaml).
+Span metrics and service metrics are also available, but have not been attached to the trace receiver defined in the Alloy configuration file as generation is handled in Tempo by default. You may switch to Alloy-based metrics generation by following the directions in the [`alloy/config.alloy`](alloy/config.alloy) file in the the `otlp_receiver` tracing configuration section. There are comments showing you which lines to uncomment to add both metrics generator collectors to add to the graph. You will also need to comment out the metrics generation in [`tempo/tempo.yaml`](tempo/tempo.yaml) to generate metrics from the Alloy rather than in Tempo (the same holds true for the OpenTelemetry metrics generation configuration sections). You can do the equivalent metrics generation in the OpenTelemetry Collector by following the relevant instructions on uncommenting/commenting `processors`, `exporters` and `receivers` sections in [`otel/otel.yaml`](otel/otel.yaml).
 
 There are occassionally good reasons to use local span metrics and service graph generation instead of relying on the Tempo backend to do so. Cases include an oversight of your entire application metrics, which could potentially be obscured should you enable tail sampling (as the Tempo metrics generator will only generate metrics for trace spans that it ingests). Because tail sampling can be configured in the pipeline at a later stage to that of metrics generation, this ensures that all traces spans can be used to generate a complete metrics view regardless if those traces are discarded later in the pipeline.
 
 >**Note:**
-* The naming scheme in Grafana Agent and OpenTelemetry collector is different to that of Tempo. The newer [spanmetrics connector](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/connector/spanmetricsconnector/README.md#span-to-metrics-processor-to-span-to-metrics-connector) details the changes, but in the provided dashboards, any reference to the metrics prefix `traces_spanmetrics_latency_` should be altered to `traces_spanmetrics_duration_milliseconds_`, should you choose to use Grafana Agent/OpenTelemetry generated metrics.
-* Metrics generation adds a significant load to the Grafana Agent/OpenTelemetry Collector. You may find that on machines with smaller resources that removing the k6 service (by commenting it out in the relevant Docker Compose manifests, or removing it entirely) will prevent unexpected resource use and/or container failures due to limited CPU and memory resources.
+* The naming scheme in Grafana Alloy and OpenTelemetry collector is different to that of Tempo. The newer [spanmetrics connector](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/connector/spanmetricsconnector/README.md#span-to-metrics-processor-to-span-to-metrics-connector) details the changes, but in the provided dashboards, any reference to the metrics prefix `traces_spanmetrics_latency_` should be altered to `traces_spanmetrics_duration_milliseconds_`, should you choose to use Grafana Alloy/OpenTelemetry generated metrics.
+* Metrics generation adds a significant load to the Grafana Alloy/OpenTelemetry Collector. You may find that on machines with smaller resources that removing the k6 service (by commenting it out in the relevant Docker Compose manifests, or removing it entirely) will prevent unexpected resource use and/or container failures due to limited CPU and memory resources.
