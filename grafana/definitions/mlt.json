@@ -743,7 +743,7 @@
         "prettifyLogMessage": false,
         "showCommonLabels": false,
         "showLabels": false,
-        "showTime": false,
+        "showTime": true,
         "sortOrder": "Descending",
         "wrapLogMessage": false
       },
@@ -753,7 +753,7 @@
             "type": "loki",
             "uid": "loki"
           },
-          "expr": "{job=\"agent\"} | logfmt | status=\"Error\"",
+          "expr": "{job=\"alloy\"} | logfmt | status=\"Error\"",
           "refId": "A"
         }
       ],
