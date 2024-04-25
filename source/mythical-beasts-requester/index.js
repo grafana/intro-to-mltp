@@ -1,7 +1,7 @@
 const tracingUtils = require('./tracing')('requester', 'mythical-requester');
 const Pyroscope = require('@pyroscope/nodejs');
 const { expressMiddleware } = require('@pyroscope/nodejs');
-const request = require('request-promise-native');
+const axios = require('axios');
 const { uniqueNamesGenerator, names, colors, animals } = require('unique-names-generator');
 const logUtils = require('./logging')('mythical-requester', 'requester');
 const express = require('express');
@@ -78,11 +78,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
         if (type === 'GET') {
             let names;
             try {
-                const result = await request({
-                    method: 'GET',
-                    uri: `http://${serverHostPort}/${endpoint}`,
-                    headers
-                });
+                const result = await axios.get(`http://${serverHostPort}/${endpoint}`, { headers });
                 sendMessage(`GET /${endpoint}`);
                 logEntry({
                     level: 'info',
@@ -92,19 +88,14 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     endpoint,
                     message: `traceID=${traceId} http.method=GET endpoint=${endpoint} status=SUCCESS`,
                 });
-                names = JSON.parse(result);
+                names = result.data;
 
                 // Deletion probabilty is based on the array index.
                 let delProb = (index / nameSet.length) * 100;
                 if (Math.floor(Math.random() * 100) < delProb) {
                     if (names.length > 0) {
-                        await request({
-                            method: 'DELETE',
-                            uri: `http://${serverHostPort}/${endpoint}`,
-                            json: true,
-                            headers,
-                            body: { name: names[0].name },
-                        });
+                        await axios.delete(`http://${serverHostPort}/${endpoint}`, { name: names[0].name },
+                            { headers });
                         sendMessage(`DELETE /${endpoint} ${names[0].name}`);
                         logEntry({
                             level: 'info',
@@ -123,7 +114,8 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} name=${(names) ? names[0].name : 'unknown'} status=FAILURE error="${err}"`,
+                    message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} ` +
+                        `name=${(names) ? names[0].name : 'unknown'} status=FAILURE error="${err}"`,
                 });
                 error = true;
             }
@@ -131,15 +123,8 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
             // Generate new name
             const randomName = uniqueNamesGenerator({ dictionaries: [colors, names, animals] });
             const body = { name : randomName };
-
             try {
-                await request({
-                    method: 'POST',
-                    uri: `http://${serverHostPort}/${endpoint}`,
-                    json: true,
-                    headers,
-                    body,
-                });
+                await axios.post(`http://${serverHostPort}/${endpoint}`, body, { headers });
                 sendMessage(`POST /${endpoint} ${JSON.stringify(body)}`);
                 logEntry({
                     level: 'info',
@@ -150,13 +135,17 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     message: `traceID=${traceId} http.method=POST endpoint=${endpoint} status=SUCCESS`,
                 });
             } catch (err) {
+                // The error condition is a little different here to using request. Axios throws a more generic error
+                // which means that it's not obvious from the logs went wrong. You need to look at the mythical-server
+                // logs to do so. This is a better example of drilldown and triage to previously.
                 logEntry({
                     level: 'error',
                     namespace: process.env.NAMESPACE,
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=POST endpoint=${endpoint} name=${randomName} status=FAILURE error="${err}"`,
+                    message: `traceID=${traceId} http.method=POST endpoint=${endpoint} name=${randomName}` +
+                        ` status=FAILURE error="${err}"`,
                 });
                 error = true;
             }
@@ -192,10 +181,10 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     var nextReqIn;
     if (counter < 2000) {
         // Choose low values in the first minute of every 5-minute interval
-        nextReqIn =  Math.floor(Math.random() * 50); 
+        nextReqIn =  Math.floor(Math.random() * 50);
       } else {
         // Choose high values for the next 4 minutes
-        nextReqIn = Math.floor(Math.random() * 1000) + 100; 
+        nextReqIn = Math.floor(Math.random() * 1000) + 100;
       }
 
     // Sometime in the next two seconds, but larger than 100ms
