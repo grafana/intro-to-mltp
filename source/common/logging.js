@@ -1,4 +1,4 @@
-const request = require('request-promise-native');
+const axios = require('axios');
 
 module.exports = (serviceName, context) => {
     return async (tracingObj) => {
@@ -19,26 +19,16 @@ module.exports = (serviceName, context) => {
             }
 
             try {
-                await request(
-                    {
-                        uri: process.env.LOGS_TARGET,
-                        method: 'POST',
-                        headers: {
-                            'Content-type': 'application/json'
-                        },
-                        json: true,
-                        body: {
-                            'streams': [
-                                {
-                                    stream,
-                                    'values': [
-                                        [ `${Date.now() * 1000000}`, message ]
-                                    ]
-                                }
+                await axios.post(process.env.LOGS_TARGET, {
+                    streams: [
+                        {
+                            stream,
+                            'values': [
+                                [ `${Date.now() * 1000000}`, message ]
                             ]
                         }
-                    },
-                );
+                    ]
+                });
             } catch (err) {
                 console.log(`Logging error: ${err}`);
                 error = true;

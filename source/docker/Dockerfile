@@ -1,14 +1,16 @@
 # Multistage build - allows for smaller final images post Python build
-FROM node:17-alpine3.14 as builder
+FROM node:20-alpine3.19 as builder
 ARG SERVICE
 
 WORKDIR /usr/src/app
 
 # Install Python3 - Needed for the pprof NPM module
 ENV PYTHONUNBUFFERED=1
-RUN apk add --update --no-cache python3 alpine-sdk && ln -sf python3 /usr/bin/python && \
-    python3 -m ensurepip && \
-    pip3 install --no-cache --upgrade pip setuptools
+RUN apk add --update --no-cache python3 alpine-sdk && ln -sf python3 /usr/bin/python
+## && \
+##    python3 -m ensurepip
+#     && \
+#    pip3 install --no-cache --upgrade pip setuptools
 
 COPY ${SERVICE}/package.json /usr/src/app/
 
