@@ -1,0 +1,182 @@
+version: "2.1"
+volumes:
+  grafana:
+  postgres:
+services:
+  # Grafana Alloy batches and processes traces sent to it, generating
+  # auto-logs from those traces.
+  # Includes Metrics, Logs, Traces and Profiles.
+  alloy:
+    image: grafana/alloy:v1.0.0
+    ports:
+      - "12347:12345"
+      - "12348:12348"
+      - "6832:6832"
+      - "55679:55679"
+    volumes:
+      - "./alloy/config.alloy:/etc/alloy/config.alloy"
+      - "./alloy/endpoints.json:/etc/alloy/endpoints.json"
+    command: [
+      "run",
+      "--server.http.listen-addr=0.0.0.0:12345",
+      "--stability.level=public-preview",
+      "/etc/alloy/config.alloy",
+    ]
+
+  # The Grafana dashboarding server.
+  grafana:
+    image: grafana/grafana:10.4.1
+    volumes:
+      - "./grafana/definitions:/var/lib/grafana/dashboards"
+      - "./grafana/provisioning:/etc/grafana/provisioning"
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles datatrails
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+
+  # A RabbitMQ queue used to send message between the requester and the server microservices.
+  mythical-queue:
+    image: rabbitmq:management
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_running
+      interval: 5s
+      timeout: 30s
+      retries: 10
+
+  # A postgres DB used to store data by the API server microservice.
+  mythical-database:
+    image: postgres:14.5
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: "mythical"
+    volumes:
+      - "postgres:/var/lib/postgresql/data"
+    ports:
+      - "5432:5432"
+
+  # A microservice that makes requests to the API server microservice. Requests are also pushed onto the mythical-queue.
+  mythical-requester:
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-requester
+    image: grafana/intro-to-mltp:mythical-beasts-requester-latest
+    restart: always
+    depends_on:
+      mythical-queue:
+        condition: service_healthy
+      mythical-server:
+        condition: service_started
+    ports:
+      - "4001:4001"
+    environment:
+      - NAMESPACE=production
+      - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
+      - TRACING_COLLECTOR_HOST=alloy
+      - TRACING_COLLECTOR_PORT=4317
+      - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
+      - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
+
+  # The API server microservice.
+  # It writes logs directly to the Loki service, exposes metrics for the Prometheus
+  # service and sends traces to the Grafana Alloy instance.
+  mythical-server:
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-server
+    image: grafana/intro-to-mltp:mythical-beasts-server-latest
+    restart: always
+    ports:
+      - "4000:4000"
+      - "80:80"
+    depends_on:
+      - mythical-database
+    environment:
+      - NAMESPACE=production
+      - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
+      - TRACING_COLLECTOR_HOST=alloy
+      - TRACING_COLLECTOR_PORT=4317
+      - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
+      - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
+
+  # A microservice that consumes requests from the mythical-queue
+  mythical-recorder:
+    #build:
+    #  context: ./source
+    #  dockerfile: docker/Dockerfile
+    #  args:
+    #    SERVICE: mythical-beasts-recorder
+    image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
+    restart: always
+    depends_on:
+      mythical-queue:
+        condition: service_healthy
+    ports:
+      - "4002:4002"
+    environment:
+      - NAMESPACE=production
+      - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
+      - TRACING_COLLECTOR_HOST=alloy
+      - TRACING_COLLECTOR_PORT=4317
+      - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
+      - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
+
+  # The Tempo service stores traces send to it by Grafana Alloy, and takes
+  # queries from Grafana to visualise those traces.
+  tempo:
+    image: grafana/tempo:2.4.1
+    ports:
+      - "3200:3200"
+      - "4317:4317"
+      - "4318:4318"
+      - "9411:9411"
+      - "55680:55680"
+      - "55681:55681"
+      - "14250:14250"
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - "./tempo/tempo.yaml:/etc/tempo.yaml"
+
+  # The Loki service stores logs sent to it, and takes queries from Grafana
+  # to visualise those logs.
+  loki:
+    image: grafana/loki:3.0.0
+    ports:
+      - "3100:3100"
+
+  mimir:
+    image: grafana/mimir:2.12.0
+    command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
+    ports:
+      - "9009:9009"
+    volumes:
+      - "./mimir/mimir.yaml:/etc/mimir.yaml"
+
+  k6:
+    image: grafana/k6
+    volumes:
+      - "./k6:/scripts"
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://mimir:9009/api/v1/push
+      - K6_DURATION=3600s
+      - K6_VUS=4
+      - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
+    restart: always
+    command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
+
+  pyroscope:
+    image: grafana/pyroscope:1.5.0
+    ports:
+      - "4040:4040"
+    command: ["server"]
+
