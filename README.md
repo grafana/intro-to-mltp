@@ -177,9 +177,9 @@ Traces are instrumented using the OpenTelemetry SDK, more details on which can b
 
 Pyroscope is a continuous profiling backend store.
 
-The Pyroscope service is described in the `pyroscope` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
+The Pyroscope service is embedded in Grafana Alloy.
 
-Pyroscope uses a configuration file ([`pyroscope/pyroscope.yaml`](pyroscope/pyroscope.yaml)) that is configured to scrape [pprof](https://github.com/google/pprof) based profiles from the Mythical microservices. It uses the [Pyroscope NodeJS](https://github.com/grafana/pyroscope-nodejs) bindings in source instrumentation.
+Pyroscope scrape [pprof](https://github.com/google/pprof) based profiles from the Mythical microservices. It uses the [Pyroscope NodeJS](https://github.com/grafana/pyroscope-nodejs) bindings in source instrumentation.
 
 Samples are scraped directly from the application on the `/debug/pprof/profile` and `/debug/pprof/heap` endpoints.
 
