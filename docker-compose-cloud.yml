@@ -7,7 +7,7 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:v1.0.0
+    image: grafana/alloy:v1.1.0
     ports:
       - "12347:12345"
       - "12348:12348"
