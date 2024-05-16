@@ -23,6 +23,7 @@ This readme has the following sections:
       - [Metrics Generation](#metrics-generation)
       - [Flow and River Configuration](#flow-and-river-configuration)
   - [Microservice Source](#microservice-source)
+  - ["NoQL" Exploration](#noql-exploration)
   - [Grafana Cloud](#grafana-cloud)
   - [Using the OpenTelemetry Collector](#using-the-opentelemetry-collector)
     - [Running the Demonstration Environment with OpenTelemetry Collector](#running-the-demonstration-environment-with-opentelemetry-collector)
@@ -30,7 +31,7 @@ This readme has the following sections:
 
 ## History
 
-This was originally the  companion repository to a series of presentations over the [three pillars of
+This was originally the companion repository to a series of presentations over the [three pillars of
 observability within Grafana](https://grafana.com/blog/2022/04/01/get-started-with-metrics-logs-and-traces-in-our-new-grafana-labs-asia-pacific-webinar-series/). Whilst that series is now over a year old, we have kept this repository up-to-date with the latest versions of our products and added more functionality as our products have grown.
 
 It is presented as a self-enclosed Docker sandbox that includes all of the components required to run on a local machine and experiment with the products provided.
@@ -287,6 +288,13 @@ The [`requester`](source/mythical-beasts-requester/index.js) service makes 'rand
 All three services use common code to deal with the [`queue`](source/common/queue.js), [`logging`](source/common/logging.js) and [`tracing`](source/common/tracing.js) requirements they have. The latter is an example of a simple shim API library for utilising the OpenTelemetry SDK in an application.
 
 There is a common [`Dockerfile`](source/docker/Dockerfile) that is used to build all three services.
+
+## "NoQL" Exploration
+
+From Grafana 11, Grafana Labs is introducing query-less experiences for exploring supported signals. This sandbox supports query-less metrics and logs investigations via the `Explore->Metrics` and `Explore->Logs` menu options.
+These apps allow you to use specify relevant data sources and then use the Grafana interface to drilldown into the relevant signals based on associated label and attributes. This allows a user to quickly find anomalous signals and determine their root cause without having to craft a relevant PromQL or LogQL query.
+
+**Note:** Both Explore Metrics and Explore Logs are currently in public preview and may change before finally being made generally available.
 
 ## Grafana Cloud
 

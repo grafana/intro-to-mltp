@@ -1,6 +1,7 @@
 # For more information on this configuration, see the complete reference guide at
 # https://grafana.com/docs/tempo/latest/configuration/
 
+# Enables result streaming from Tempo (to Grafana) via HTTP.
 stream_over_http_enabled: true
 
 # Configure the server block.
