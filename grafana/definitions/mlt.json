@@ -831,7 +831,7 @@
           "type": 1
         },
         "refresh": 2,
-        "regex": "/^(\\/beholder|\\/unicorn|\\/manticore|\\/illithid|\\/owlbear).*/",
+        "regex": "/^(\beholder|\unicorn|\manticore|\illithid|\owlbear).*/",
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
