@@ -312,7 +312,7 @@ This demo can be run against Grafana Cloud by configuring the `alloy/endpoints-c
    ```
    where `<username>` is the Tempo username and `<token>` is the token you generated with the `write` scope. Copy the output from running the command and use it to replace the value of `<tracesBase64AuthToken>` in the JSON file.
 4. Profiles -  Navigate to the `Pyroscope` section of your [Grafana Cloud stack](https://grafana.com/docs/grafana-cloud/account-management/cloud-portal/) and scroll to the `SDK or agent configuration` section. Use the `url` denoted to replace the `<profilesUrl>` value in the JSON file. You will need to generate a `write` scope token for Pyroscope specifically, do this by selecting the `Generate now` link in the `Password` block of the `SDK or agent configuration` section. *Ensure that the token is a `write` scope token.* Replace the `<profileUsername>` and `<profilePassword>` entries with the username and token denoted in the Cloud Stack page.
-5. Run `docker compose -f docker-compose-cloud.yml` up
+5. Run `docker compose -f docker-compose-cloud.yml up`
 
 The Grafana Alloy will send all the signals to the Grafana Cloud stack specified in the `alloy/endpoints-cloud.json` file.
 
