@@ -25,18 +25,17 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:11.0.0
+    image: grafana/grafana-oss:main
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
+      - "./grafana/data:/var/lib/grafana"
     ports:
       - "3000:3000"
     environment:
-      - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles datatrails
+      - GF_FEATURE_TOGGLES_ENABLE=GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles datatrails dashboardScene nestedFolders canvasPanelPanZoom logsExploreTableVisualisation aiGeneratedDashboardChanges idForwarding
       - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
+
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
   mythical-queue:
@@ -160,7 +159,7 @@ services:
 
   mimir:
     image: grafana/mimir:2.12.0
-    command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
+    command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml", "-target=all,alertmanager"]
     ports:
       - "9009:9009"
     volumes:
