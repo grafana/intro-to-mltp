@@ -66,7 +66,7 @@ prometheus.scrape "beyla_infra" {
 }
 
 // Scrape the local Alloy itself.
-prometheus.scrape "agent" {
+prometheus.scrape "alloy" {
     // Only one target, the Alloy, it's part of the 'infrastructure' group.
     targets = [{"__address__" = "localhost:12345", group = "infrastructure", service = "alloy"}]
     // Send the metrics to the prometheus remote write receiver for exporting to Mimir.
@@ -258,7 +258,7 @@ loki.process "autologging" {
 // The Loki writer receives a processed Loki log and then writes it to a Loki instance.
 loki.write "autologging" {
     // Add the `alloy` value to the `job` label, so we can identify it as having been generated
-    // by Grafana Agent when querying.
+    // by Grafana Alloy when querying.
     external_labels = {
         job = "alloy",
     }
