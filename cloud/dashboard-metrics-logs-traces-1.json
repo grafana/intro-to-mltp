@@ -804,7 +804,7 @@
             "type": "loki",
             "uid": "${DS_GRAFANACLOUD-EXAMPLE1-LOGS}"
           },
-          "expr": "{job=\"agent\"} | logfmt | status=\"STATUS_CODE_ERROR\"",
+          "expr": "{job=\"alloy\"} | logfmt | status=\"Error\"",
           "refId": "A"
         }
       ],
