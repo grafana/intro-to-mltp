@@ -290,7 +290,7 @@ otelcol.processor.tail_sampling "errors" {
     policy {
         // The name of the policy can be used for logging purposes.
         name = "sample-erroring-traces"
-        // The type must match the type of policy to be used, in this case examing the status code
+        // The type must match the type of policy to be used, in this case examining the status code
         // of every span in the trace.
         type = "status_code"
         // This block determines the error codes that should match in order to keep the trace,
