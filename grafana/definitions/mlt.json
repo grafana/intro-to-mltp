@@ -818,7 +818,7 @@
           "uid": "tempo"
         },
         "definition": "",
-        "description": "HTTP Endpont",
+        "description": "HTTP Endpoint",
         "hide": 0,
         "includeAll": true,
         "label": "HTTP Endpoint",

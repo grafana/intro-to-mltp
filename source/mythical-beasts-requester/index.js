@@ -90,7 +90,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                 });
                 names = result.data;
 
-                // Deletion probabilty is based on the array index.
+                // Deletion probability is based on the array index.
                 let delProb = (index / nameSet.length) * 100;
                 if (Math.floor(Math.random() * 100) < delProb) {
                     if (names.length > 0) {
