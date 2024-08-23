@@ -1,4 +1,4 @@
-version: "2.1"
+name: grafana-intro-to-mltp
 volumes:
   grafana:
   postgres:
@@ -7,7 +7,7 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:v1.1.0
+    image: grafana/alloy:v1.3.1
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -25,7 +25,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:11.0.0
+    image: grafana/grafana:11.1.4
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -85,6 +85,9 @@ services:
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
+      # Uncomment this line to enable timeshift example in the mythical-requester service, which will use timestamps
+      # in the log lines themselves to rewrite the default timestamp to the time specified in the logline.
+      #- TIMESHIFT=true
 
   # The API server microservice.
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
@@ -135,7 +138,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Alloy, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.4.1
+    image: grafana/tempo:2.5.0
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -151,7 +154,7 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:3.0.0
+    image: grafana/loki:3.1.1
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
@@ -159,7 +162,7 @@ services:
       - "./loki/loki.yaml:/etc/loki/loki.yaml"
 
   mimir:
-    image: grafana/mimir:2.12.0
+    image: grafana/mimir:2.13.0
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
@@ -179,13 +182,13 @@ services:
     command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
 
   pyroscope:
-    image: grafana/pyroscope:1.5.0
+    image: grafana/pyroscope:1.7.1
     ports:
       - "4040:4040"
     command: ["server"]
 
   beyla-requester:
-    image: grafana/beyla:1.5.3
+    image: grafana/beyla:1.7.0
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
@@ -222,7 +225,7 @@ services:
         condition: service_started
 
   beyla-server:
-    image: grafana/beyla:1.5.3
+    image: grafana/beyla:1.7.0
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
@@ -259,7 +262,7 @@ services:
         condition: service_started
 
   beyla-recorder:
-    image: grafana/beyla:1.5.3
+    image: grafana/beyla:1.7.0
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.

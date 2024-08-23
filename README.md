@@ -218,7 +218,7 @@ Once the Docker Compose project is running, you can see examples of traces that 
 
 ### Grafana Alloy
 
-**Note:** We have now moved to a default of a Flow/River configuration, due to parity with static mode (as well as more advanced functionality).
+**Note:** We have now moved to a default of an Alloy configuration and removed the prior static config.
 
 Grafana Alloy is a Grafana distribution of the OpenTelemetry collector, receiving metrics, logs and traces and forwarding them to relevant database stores. For more details about Grafana Alloy, read the [documentation](https://grafana.com/docs/alloy/latest/).
 
@@ -241,15 +241,15 @@ In this example environment, Grafana Alloy:
 * Sends metric, log and trace data onwards to the Mimir, Loki and Tempo services, respectively.
 * Has optional (unused by default) configurations for metrics generation and trace tail sampling.
 
-Grafana Alloy implements a graph-based configuration via it's Flow architecture, using a programmatic language, River, to define Grafana Alloy functionality.
+Grafana Alloy implements a graph-based configuration via a programatic language, to define the functionality required.
 
-Once running, you can observe the Flow configuration running on the Grafana Alloy itself by navigating to [http://localhost:12347](http://localhost:12347). This webpage will allow you to view all of the current components being used for receiving MLT signals, as well as graphs denoting source and target relationships between components.
+Once running, you can observe the configuration running on the Grafana Alloy itself by navigating to [http://localhost:12347](http://localhost:12347). This webpage will allow you to view all of the current components being used for receiving MLT signals, as well as graphs denoting source and target relationships between components.
 
-The full configuration for Grafana Alloy can be found [here](alloy/config.river).
+The full configuration for Grafana Alloy can be found [here](alloy/config.alloy).
 
 Read the [Debugging](https://grafana.com/docs/alloy/latest/flow/monitoring/debugging/) documentation for Grafana Alloy for more details.
 
-The [tutorial](https://grafana.com/docs/alloy/latest/flow/tutorials/) guide to working with Flow and River is a great first starting point, whilst the full [reference guide](https://grafana.com/docs/alloy/latest/flow/reference/) for Flow shows the currently supported components and configuration blocks.
+The [tutorial](https://grafana.com/docs/alloy/latest/get-started/configuration-syntax/) guide to working with Alloy's configuration language is a great first starting point, whilst the full [reference guide](https://grafana.com/docs/alloy/latest/reference/) for shows the currently supported components and configuration blocks.
 
 Note that as Grafana Alloy scrapes metrics for every service defined in the [`docker-compose.yml`](docker-compose.yml) that a significant number of metric [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/) are produced (approximately 11,000 at time of writing).
 
@@ -288,6 +288,8 @@ The [`requester`](source/mythical-beasts-requester/index.js) service makes 'rand
 All three services use common code to deal with the [`queue`](source/common/queue.js), [`logging`](source/common/logging.js) and [`tracing`](source/common/tracing.js) requirements they have. The latter is an example of a simple shim API library for utilising the OpenTelemetry SDK in an application.
 
 There is a common [`Dockerfile`](source/docker/Dockerfile) that is used to build all three services.
+
+An example pipeline stage in Alloy to rewrite timestamps can be enabled by uncommenting the `TIMESHIFT` environment variable for the `mythical-requester` service. See details in the [Alloy configuration file](alloy/config.alloy).
 
 ## "NoQL" Exploration
 
