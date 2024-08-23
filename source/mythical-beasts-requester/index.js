@@ -48,6 +48,12 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     let headers = {};
     let error = false;
 
+    // This method is used to generate a time 40 minutes in the past for the logs.
+    let timeshift = () => {
+        var date = (process.env.TIMESHIFT) ? new Date(Date.now() - (1000 * 60 * 40)) : new Date(Date.now());
+        return date.toISOString();
+    }
+
     // Create a new span, link to previous request to show how linking between traces works.
     const requestSpan = tracer.startSpan('requester', {
         kind: api.SpanKind.CLIENT,
@@ -86,7 +92,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=GET endpoint=${endpoint} status=SUCCESS`,
+                    message: `traceID=${traceId} http.method=GET endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
                 });
                 names = result.data;
 
@@ -103,7 +109,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                             job: `${servicePrefix}-requester`,
                             endpointLabel: spanTag,
                             endpoint,
-                            message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} status=SUCCESS`,
+                            message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
                         });
                     }
                 }
@@ -115,7 +121,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     endpointLabel: spanTag,
                     endpoint,
                     message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} ` +
-                        `name=${(names) ? names[0].name : 'unknown'} status=FAILURE error="${err}"`,
+                        `name=${(names) ? names[0].name : 'unknown'} status=FAILURE loggedtime=${timeshift()}`,
                 });
                 error = true;
             }
@@ -132,7 +138,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=POST endpoint=${endpoint} status=SUCCESS`,
+                    message: `traceID=${traceId} http.method=POST endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
                 });
             } catch (err) {
                 // The error condition is a little different here to using request. Axios throws a more generic error
@@ -145,7 +151,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     endpointLabel: spanTag,
                     endpoint,
                     message: `traceID=${traceId} http.method=POST endpoint=${endpoint} name=${randomName}` +
-                        ` status=FAILURE error="${err}"`,
+                        ` loggedtime=${timeshift()} status=FAILURE`,
                 });
                 error = true;
             }
@@ -157,7 +163,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
             job: `${servicePrefix}-requester`,
             endpointLabel: spanTag,
             endpoint,
-            message: `traceID=${traceId} http.method=${type} endpoint=${endpoint} duration=${Date.now() - start}ms`,
+            message: `traceID=${traceId} http.method=${type} endpoint=${endpoint} duration=${Date.now() - start}ms loggedtime=${timeshift()}`,
         });
 
         // Set the status code as OK and end the span

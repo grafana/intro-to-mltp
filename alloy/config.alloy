@@ -107,12 +107,41 @@ prometheus.remote_write "mimir" {
 ///////////////////////////////////////////////////////////////////////////////
 // Logging
 
+// The Loki receiver is used to ingest logs from the mythical application via Loki's HTTP REST API.
 loki.source.api "mythical" {
+    // Listen for Loki data on port 3100.
     http {
         listen_address = "0.0.0.0"
         listen_port = "3100"
     }
 
+    // Forward all received data to the Loki processor component.
+    forward_to = [loki.process.mythical.receiver]
+}
+
+// The Loki processor allows us to accept a correctly formatted Loki log and to run a series of pipeline stages on it.
+// This particular example shows how to parse timestamp data within a logline and use it as the timestamp for the logline.
+// It essentially does nothing if the `TIMESHIFT` variable for the `mythical-requester` service is not set to `true` in
+// the relevant Docker Compose manifest.
+loki.process "mythical" {
+    // There are other stages that could easily extract the value from the logline (such as the logfmt stage), but this
+    // showcases a more complex manual regexp to extract the value into the map.
+    stage.regex {
+        expression=`^.*?loggedtime=(?P<loggedtime>\S+)`
+    }
+
+    // Use the timestamp stage to take the extracted value, now in the map, and use it as the timestamp for the logline.
+    // By doing so, you can ensure that logs that have reached Alloy at a later time than originally emitted are
+    // corrected to use the correct time, instead of the time they were received by Alloy.
+    // This stage shows an example of a user-defined timestamp format (note that the specific time the format is
+    // declared in is important for Alloy to understand the format correctly). We could also have used the RFC3339
+    // identifier in this case.
+    stage.timestamp {
+        source = "loggedtime"
+        format = "2006-01-02T15:04:05.000Z07:00"
+    }
+
+    // Forward to the Loki writer for output.
     forward_to = [loki.write.mythical.receiver]
 }
 
