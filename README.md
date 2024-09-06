@@ -133,7 +133,7 @@ Mimir is a backend store for metrics data from various sources. For more details
 
 The Mimir service is described in the `mimir` section of the [`docker-compose.yml`](docker-compose.yml) manifest.
 
-The configuration file ([`mimir/mimir.yml`](mimir/mimir.yml)):
+The configuration file ([`mimir/mimir.yaml`](mimir/mimir.yaml)):
 * Configures a single service container acting as all relevant microservices.
 * Stores the metrics data in-container (this will be lost on container deletion).
 
