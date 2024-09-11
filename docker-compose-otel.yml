@@ -14,6 +14,8 @@ services:
     volumes:
       - ./otel/otel.yml:/etc/otel-collector-config.yml
     command: ["--config=/etc/otel-collector-config.yml"]
+    networks:
+      - app_network
 
   # The Grafana dashboarding server.
   grafana:
@@ -21,27 +23,30 @@ services:
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
-    ports:
-      - "3000:3000"
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch correlations traceQLStreaming metricsSummary traceqlEditor traceToMetrics traceToProfiles datatrails
       - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-
+    labels: 
+      traefik.enable: true
+      traefik.http.routers.grafana.entrypoints: websecure 
+      traefik.http.routers.grafana.rule: Host(`grafana.shubham.one`)
+      traefik.http.services.grafana.loadbalancer.server.port: 3000
+    networks:
+      - app_network
   # A RabbitMQ queue used to send message between the requester and the server microservices.
   mythical-queue:
     image: rabbitmq:management
     restart: always
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
     healthcheck:
       test: rabbitmq-diagnostics check_running
       interval: 5s
       timeout: 30s
       retries: 10
+    networks:
+      - app_network
 
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
@@ -51,8 +56,10 @@ services:
       POSTGRES_PASSWORD: "mythical"
     volumes:
       - "postgres:/var/lib/postgresql/data"
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"
+    networks:
+      - app_network
 
   # A microservice that makes requests to the API server microservice. Requests are also pushed onto the mythical-queue.
   mythical-requester:
@@ -68,8 +75,8 @@ services:
         condition: service_healthy
       mythical-server:
         condition: service_started
-    ports:
-      - "4001:4001"
+    # ports:
+    #   - "4001:4001"
     environment:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
@@ -77,6 +84,8 @@ services:
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
+    networks:
+      - app_network
 
   # The API server microservice.
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
@@ -89,9 +98,9 @@ services:
     #    SERVICE: mythical-beasts-server
     image: grafana/intro-to-mltp:mythical-beasts-server-latest
     restart: always
-    ports:
-      - "4000:4000"
-      - "80:80"
+    # ports:
+    #   - "4000:4000"
+    #   - "80:80"
     depends_on:
       - mythical-database
     environment:
@@ -101,6 +110,8 @@ services:
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
+    networks:
+      - app_network
 
   # A microservice that consumes requests from the mythical-queue
   mythical-recorder:
@@ -114,8 +125,8 @@ services:
     depends_on:
       mythical-queue:
         condition: service_healthy
-    ports:
-      - "4002:4002"
+    # ports:
+    #   - "4002:4002"
     environment:
       - NAMESPACE=production
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
@@ -123,38 +134,46 @@ services:
       - TRACING_COLLECTOR_PORT=4317
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
+    networks:
+      - app_network
 
   # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
     image: grafana/tempo:2.5.0
-    ports:
-      - "3200:3200"
-      - "4317:4317"
-      - "55680:55680"
-      - "55681:55681"
-      - "14250:14250"
+    # ports:
+    #   - "3200:3200"
+    #   - "4317:4317"
+    #   - "55680:55680"
+    #   - "55681:55681"
+    #   - "14250:14250"
     command: [ "-config.file=/etc/tempo.yaml" ]
     volumes:
       - "./tempo/tempo.yaml:/etc/tempo.yaml"
+    networks:
+      - app_network
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
     image: grafana/loki:3.1.1
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
-    ports:
-      - "3100:3100"
+    # ports:
+    #   - "3100:3100"
     volumes:
       - "./loki/loki.yaml:/etc/loki/loki.yaml"
+    networks:
+      - app_network
 
   mimir:
     image: grafana/mimir:2.13.0
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
-    ports:
-      - "9009:9009"
+    # ports:
+    #   - "9009:9009"
     volumes:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
+    networks:
+      - app_network
 
   k6:
     image: grafana/k6
@@ -167,6 +186,8 @@ services:
       - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
     restart: always
     command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
+    networks:
+      - app_network
 
   beyla-requester:
     image: grafana/beyla:1.7.0
@@ -205,6 +226,8 @@ services:
     depends_on:
       mythical-requester:
         condition: service_started
+    networks:
+      - app_network
 
   beyla-server:
     image: grafana/beyla:1.7.0
@@ -243,6 +266,8 @@ services:
     depends_on:
       mythical-server:
         condition: service_started
+    networks:
+      - app_network
 
   beyla-recorder:
     image: grafana/beyla:1.7.0
@@ -281,3 +306,9 @@ services:
     depends_on:
       mythical-recorder:
         condition: service_started
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    name: app_network
