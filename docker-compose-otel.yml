@@ -1,7 +1,4 @@
 name: grafana-intro-to-mltp-otel
-volumes:
-  grafana:
-  postgres:
 services:
   # The opentelemetry-collector batches and processes traces sent to it.
   opentelemetry-collector:
@@ -55,7 +52,7 @@ services:
     environment:
       POSTGRES_PASSWORD: "mythical"
     volumes:
-      - "postgres:/var/lib/postgresql/data"
+      - "./data/postgres:/var/lib/postgresql/data"
     # ports:
     #   - "5432:5432"
     networks:
