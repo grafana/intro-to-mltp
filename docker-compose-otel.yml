@@ -15,9 +15,10 @@ services:
       - app_network
     labels:
       traefik.enable: true
-      traefik.http.routers.otel.rule: HostSNI(`*`)
+      traefik.http.routers.otel.rule: PathPrefix(`/`)
       traefik.http.routers.otel.entrypoints: grpc
       traefik.http.services.otel.loadbalancer.server.port: 4317
+      traefik.http.services.otel.loadbalancer.server.scheme: h2c
   # The Grafana dashboarding server.
   grafana:
     image: grafana/grafana:11.1.4
