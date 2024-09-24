@@ -13,7 +13,11 @@ services:
     command: ["--config=/etc/otel-collector-config.yml"]
     networks:
       - app_network
-
+    labels:
+      - traefik.enable: true
+      - traefik.http.routers.otel.rule: Host(`ingest.shubham.one`)
+      - traefik.http.routers.otel.entrypoints: grpc
+      - traefik.http.services.otel.loadbalancer.server.port: 4317
   # The Grafana dashboarding server.
   grafana:
     image: grafana/grafana:11.1.4
