@@ -15,7 +15,7 @@ services:
       - app_network
     labels:
       traefik.enable: true
-      traefik.http.routers.otel.rule: Host(`ingest.shubham.one`)
+      traefik.http.routers.otel.rule: HostSNI(`*`)
       traefik.http.routers.otel.entrypoints: grpc
       traefik.http.services.otel.loadbalancer.server.port: 4317
   # The Grafana dashboarding server.
@@ -30,7 +30,7 @@ services:
     labels: 
       traefik.enable: true
       traefik.http.routers.grafana.entrypoints: websecure 
-      traefik.http.routers.grafana.rule: Host(`grafana.shubham.one`)
+      traefik.http.routers.grafana.rule: Host(`grafana.shubham.one`) || Host(`ingest.shubham.one`)
       traefik.http.services.grafana.loadbalancer.server.port: 3000
     networks:
       - app_network
