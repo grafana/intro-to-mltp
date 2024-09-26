@@ -195,9 +195,9 @@ otelcol.receiver.otlp "otlp_receiver" {
 // The OpenTelemetry batch processor collects trace spans until a batch size or timeout is met, before sending those
 // spans onto another target. This processor is labeled 'default'.
 otelcol.processor.batch "default" {
-    // Wait until we've received 16K of data.
-    send_batch_size = 16384
-    send_batch_max_size = 16384
+    // Wait until we've received 1000 samples, up to a maximum of 2000.
+    send_batch_size = 1000
+    send_batch_max_size = 2000
     // Or until 2 seconds have elapsed.
     timeout = "2s"
     // When the Alloy has enough batched data, send it to the OpenTelemetry exporter named 'tempo'.

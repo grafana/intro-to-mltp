@@ -25,7 +25,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:11.1.4
+    image: grafana/grafana:11.2.0
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -33,7 +33,7 @@ services:
       - "3000:3000"
     environment:
       - GF_FEATURE_TOGGLES_ENABLE=flameGraph traceqlSearch traceQLStreaming correlations metricsSummary traceqlEditor traceToMetrics traceToProfiles datatrails
-      - GF_INSTALL_PLUGINS=https://storage.googleapis.com/integration-artifacts/grafana-lokiexplore-app/grafana-lokiexplore-app-latest.zip;grafana-lokiexplore-app
+      - GF_INSTALL_PLUGINS=grafana-lokiexplore-app,grafana-exploretraces-app,grafana-pyroscope-app
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -138,7 +138,7 @@ services:
   # The Tempo service stores traces send to it by Grafana Alloy, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.5.0
+    image: grafana/tempo:2.6.0
     ports:
       - "3200:3200"
       - "4317:4317"
@@ -154,7 +154,7 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:3.1.1
+    image: grafana/loki:3.2.0
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
@@ -170,7 +170,7 @@ services:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
   k6:
-    image: grafana/k6
+    image: grafana/k6:0.53.0
     volumes:
       - "./k6:/scripts"
     environment:
@@ -182,22 +182,29 @@ services:
     command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
 
   pyroscope:
-    image: grafana/pyroscope:1.7.1
+    image: grafana/pyroscope:1.8.0
     ports:
       - "4040:4040"
     command: ["server"]
 
   beyla-requester:
-    image: grafana/beyla:1.7.0
+    image: grafana/beyla:1.8.4
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
     pid: "service:mythical-requester"
-    # Beyla requires the SYS_ADMIN capability to run, to add hooks to the underlying kernel.
+    # Beyla requires the several system capabilities to run, to add hooks to the underlying kernel.
     # Note that you should *always* be aware of the security implications of adding capabilities
     # before you do so.
     cap_add:
       - SYS_ADMIN
+      - SYS_RESOURCE
+      - NET_RAW
+      - DAC_READ_SEARCH
+      - SYS_PTRACE
+      - PERFMON
+      - BPF
+      - CHECKPOINT_RESTORE
     # If using the above capability fails to instrument your service, remove it and uncomment the
     # line below. Beware that this will allow Beyla to run with full privileges, which may be
     # undesirable.
@@ -216,25 +223,32 @@ services:
       BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
       OTEL_SERVICE_NAME: "beyla-mythical-requester"             # The service name to use for OpenTelemetry traces.
-      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                 # Whether to use an insecure connection to Grafana Alloy.
+      OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                # Whether to use an insecure connection to Grafana Alloy.
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Alloy.
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://alloy:4317/"  # The endpoint to send traces to.
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://alloy:4317"   # The endpoint to send traces to.
     # The `depends_on` block below ensures that the mythical-requester service is started before Beyla.
     depends_on:
       mythical-requester:
         condition: service_started
 
   beyla-server:
-    image: grafana/beyla:1.7.0
+    image: grafana/beyla:1.8.4
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
     pid: "service:mythical-server"
-    # Beyla requires the SYS_ADMIN capability to run, to add hooks to the underlying kernel.
+    # Beyla requires the several system capabilities to run, to add hooks to the underlying kernel.
     # Note that you should *always* be aware of the security implications of adding capabilities
     # before you do so.
     cap_add:
       - SYS_ADMIN
+      - SYS_RESOURCE
+      - NET_RAW
+      - DAC_READ_SEARCH
+      - SYS_PTRACE
+      - PERFMON
+      - BPF
+      - CHECKPOINT_RESTORE
     # If using the above capability fails to instrument your service, remove it and uncomment the
     # line below. Beware that this will allow Beyla to run with full privileges, which may be
     # undesirable.
@@ -248,30 +262,37 @@ services:
     # https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/configure/options/ for more details on the
     # options set below.
     environment:
-      BEYLA_OPEN_PORT: "4000"                                   # Instrument any service listening on port 4001.
+      BEYLA_OPEN_PORT: "4000"                                   # Instrument any service listening on port 4000.
       BEYLA_SERVICE_NAMESPACE: "mythical"                       # The namespace for the service.
       BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
       OTEL_SERVICE_NAME: "beyla-mythical-server"                # The service name to use for OpenTelemetry traces.
       OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                # Whether to use an insecure connection to Grafana Alloy.
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Alloy.
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://alloy:4317/"  # The endpoint to send traces to.
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://alloy:4317"   # The endpoint to send traces to.
     # The `depends_on` block below ensures that the mythical-server service is started before Beyla.
     depends_on:
       mythical-server:
         condition: service_started
 
   beyla-recorder:
-    image: grafana/beyla:1.7.0
+    image: grafana/beyla:1.8.4
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
     pid: "service:mythical-recorder"
-    # Beyla requires the SYS_ADMIN capability to run, to add hooks to the underlying kernel.
+    # Beyla requires the several system capabilities to run, to add hooks to the underlying kernel.
     # Note that you should *always* be aware of the security implications of adding capabilities
     # before you do so.
     cap_add:
       - SYS_ADMIN
+      - SYS_RESOURCE
+      - NET_RAW
+      - DAC_READ_SEARCH
+      - SYS_PTRACE
+      - PERFMON
+      - BPF
+      - CHECKPOINT_RESTORE
     # If using the above capability fails to instrument your service, remove it and uncomment the
     # line below. Beware that this will allow Beyla to run with full privileges, which may be
     # undesirable.
@@ -285,14 +306,14 @@ services:
     # https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/configure/options/ for more details on the
     # options set below.
     environment:
-      BEYLA_OPEN_PORT: "4002"                                   # Instrument any service listening on port 4001.
+      BEYLA_OPEN_PORT: "4002"                                   # Instrument any service listening on port 4002.
       BEYLA_SERVICE_NAMESPACE: "mythical"                       # The namespace for the service.
       BEYLA_PROMETHEUS_PORT: "9090"                             # The port to expose Prometheus metrics on.
       #BEYLA_BPF_TRACK_REQUEST_HEADERS: "true"
       OTEL_SERVICE_NAME: "beyla-mythical-recorder"              # The service name to use for OpenTelemetry traces.
       OTEL_EXPORTER_OTLP_TRACES_INSECURE: "true"                # Whether to use an insecure connection to Grafana Alloy.
       OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"                       # The protocol to use to send traces to Grafana Alloy.
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://alloy:4317/"  # The endpoint to send traces to.
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://alloy:4317"   # The endpoint to send traces to.
     # The `depends_on` block below ensures that the mythical-recorder service is started before Beyla.
     depends_on:
       mythical-recorder:
