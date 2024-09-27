@@ -293,10 +293,11 @@ An example pipeline stage in Alloy to rewrite timestamps can be enabled by uncom
 
 ## "NoQL" Exploration
 
-From Grafana 11, Grafana Labs is introducing query-less experiences for exploring supported signals. This sandbox supports query-less metrics and logs investigations via the `Explore->Metrics` and `Explore->Logs` menu options.
-These apps allow you to use specify relevant data sources and then use the Grafana interface to drilldown into the relevant signals based on associated label and attributes. This allows a user to quickly find anomalous signals and determine their root cause without having to craft a relevant PromQL or LogQL query.
+From Grafana 11, Grafana Labs introduced query-less experiences for exploring supported signals. This sandbox supports query-less metrics, logs, traces and profile investigations via the `Explore-><Signal>` menu options.
 
-**Note:** Both Explore Metrics and Explore Logs are currently in public preview and may change before finally being made generally available.
+These apps allow you to use specify relevant data sources and then use the Grafana interface to drilldown into the relevant signals based on associated labels and attributes. This allows a user to quickly find anomalous signals and determine their root cause without having to craft a relevant PromQL, LogQL or TraceQL query.
+
+**Note:** Both Explore Traces and Explore Profiles are currently in public preview and may change before finally being made generally available.
 
 ## Grafana Cloud
 
