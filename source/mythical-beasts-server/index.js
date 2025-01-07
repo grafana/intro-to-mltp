@@ -424,24 +424,6 @@ const logUtils = require('./logging')('mythical-server', 'server');
     const startServer = async () => {
         const requestSpan = tracer.startSpan('server');
 
-        let databaseHost = "mythical-database"
-        let databaseHostPort = 5432
-        let databaseUser = "postgres"
-        let databasePassword = "mythical"
-        // check env var for overrides
-        if (process.env.MYTHICAL_DATABASE_HOST) {
-            databaseHost = process.env.MYTHICAL_DATABASE_HOST
-        }
-        if (process.env.MYTHICAL_DATABASE_HOST_PORT) {
-            databaseHostPort = process.env.MYTHICAL_DATABASE_HOST_PORT
-        }
-        if (process.env.MYTHICAL_DATABASE_USER) {
-            databaseUser = process.env.MYTHICAL_DATABASE_USER
-        }
-        if (process.env.MYTHICAL_DATABASE_PASSWORD) {
-            databasePassword = process.env.MYTHICAL_DATABASE_PASSWORD
-        }
-
         // Create a new context for this request
         await api.context.with(api.trace.setSpan(api.context.active(), requestSpan), async () => {
             try {
@@ -452,10 +434,10 @@ const logUtils = require('./logging')('mythical-server', 'server');
                     message: 'Installing postgres client...',
                 });
                 pgClient = new Client({
-                    host: databaseHost,
-                    port: Number(databaseHostPort),
-                    user: databaseUser,
-                    password: databasePassword,
+                    host: process.env.MYTHICAL_DATABASE_HOST ?? 'mythical-database',
+                    port: Number(process.env.MYTHICAL_DATABASE_HOST_PORT) ?? 5432,
+                    user: process.env.MYTHICAL_DATABASE_USER ?? 'postgres',
+                    password: process.env.MYTHICAL_DATABASE_PASSWORD ?? 'mythical',
                 });
 
                 await pgClient.connect();
