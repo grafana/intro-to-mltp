@@ -21,7 +21,7 @@
     "@opentelemetry/sdk-trace-node": "^1.23.0",
     "@opentelemetry/semantic-conventions": "^1.15.0",
     "@pyroscope/nodejs": "0.3.3",
-    "amqplib": "^0.10.4",
+    "amqplib": "^0.10.5",
     "axios": "^1.6.8",
     "express": "^4.19.2",
     "prom-client": "github:voltbit/prom-client#add-openmetrics-support",
