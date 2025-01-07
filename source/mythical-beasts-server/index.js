@@ -429,7 +429,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
         let databaseUser = "postgres"
         let databasePassword = "mythical"
         // check env var for overrides
-        if (process.env.MYTHICAL_DATABASE_HOST_) {
+        if (process.env.MYTHICAL_DATABASE_HOST) {
             databaseHost = process.env.MYTHICAL_DATABASE_HOST
         }
         if (process.env.MYTHICAL_DATABASE_HOST_PORT) {
