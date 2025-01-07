@@ -19,7 +19,7 @@
     "@opentelemetry/resources": "^1.15.0",
     "@opentelemetry/sdk-trace-base": "^1.15.0",
     "@opentelemetry/sdk-trace-node": "^1.23.0",
-    "@opentelemetry/semantic-conventions": "^1.15.0",
+    "@opentelemetry/semantic-conventions": "^1.28.0",
     "@pyroscope/nodejs": "0.3.3",
     "amqplib": "^0.10.4",
     "axios": "^1.6.8",
