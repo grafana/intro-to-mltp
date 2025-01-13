@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@opentelemetry/api": "^1.8.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.44.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.55.2",
     "@opentelemetry/core": "^1.15.0",
     "@opentelemetry/exporter-jaeger": "^1.23.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.50.0",
