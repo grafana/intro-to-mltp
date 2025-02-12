@@ -423,6 +423,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
     // Create the DB and connect to it
     const startServer = async () => {
         const requestSpan = tracer.startSpan('server');
+
         // Create a new context for this request
         await api.context.with(api.trace.setSpan(api.context.active(), requestSpan), async () => {
             try {
@@ -433,10 +434,10 @@ const logUtils = require('./logging')('mythical-server', 'server');
                     message: 'Installing postgres client...',
                 });
                 pgClient = new Client({
-                    host: 'mythical-database',
-                    port: 5432,
-                    user: 'postgres',
-                    password: 'mythical',
+                    host: process.env.MYTHICAL_DATABASE_HOST ?? 'mythical-database',
+                    port: Number(process.env.MYTHICAL_DATABASE_HOST_PORT) ?? 5432,
+                    user: process.env.MYTHICAL_DATABASE_USER ?? 'postgres',
+                    password: process.env.MYTHICAL_DATABASE_PASSWORD ?? 'mythical',
                 });
 
                 await pgClient.connect();
