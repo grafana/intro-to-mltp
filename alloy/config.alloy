@@ -438,6 +438,17 @@ pyroscope.scrape "mythical" {
             path = "/debug/pprof/heap"
             delta = false
         }
+        // These profile scrapers are enabled by default, but the app has no endpoints for them to scrape.  This results in a bunch of 404 errors in the Alloy logs which makes troubleshooting more difficult.
+        // By disabling these scrapers, the Alloy logs are more readable.
+        profile.goroutine {
+            enabled = false
+        }
+        profile.block {
+            enabled = false
+        }
+        profile.mutex {
+            enabled = false
+        }
     }
 
     // Forward all scraped data to the Pyroscope exporter.
