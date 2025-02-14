@@ -20,7 +20,13 @@ const logUtils = require('./logging')('mythical-server', 'server');
     register.setContentType(promClient.Registry.OPENMETRICS_CONTENT_TYPE);
 
     // Database full teardown timeout
-    const teardownTimeout = 24 * 60 * 60 * 1000; // Default is every 24 hours
+    let teardownTimeoutValue = 24 * 60 * 60 * 1000; // Default is every 24 hours (86400000)
+    if (process.env.MYTHICAL_SERVER_DATABASE_TEARDOWN_TIMEOUT) {
+        if (Number(process.env.MYTHICAL_SERVER_DATABASE_TEARDOWN_TIMEOUT) > 1 && Number(process.env.MYTHICAL_SERVER_DATABASE_TEARDOWN_TIMEOUT) <= 86400000) {
+            teardownTimeoutValue = Number(process.env.MYTHICAL_SERVER_DATABASE_TEARDOWN_TIMEOUT)
+        }
+    }
+    const teardownTimeout = teardownTimeoutValue
     let teardownInProgress = false;
 
     // Use JSON parsing in the request body
