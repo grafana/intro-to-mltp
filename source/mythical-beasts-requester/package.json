@@ -24,7 +24,7 @@
     "amqplib": "^0.10.4",
     "axios": "^1.6.8",
     "express": "^4.19.2",
-    "package.json": "^0.0.0",
+    "package.json": "^2.0.1",
     "prom-client": "github:voltbit/prom-client#add-openmetrics-support",
     "unique-names-generator": "^4.7.1"
   }
