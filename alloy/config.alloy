@@ -167,9 +167,12 @@ loki.write "mythical" {
 otelcol.receiver.otlp "otlp_receiver" {
     // We don't technically need this, but it shows how to change listen address and incoming port.
     // In this case, the Alloy is listening on all available bindable addresses on port 4317 (which is the
-    // default OTLP gRPC port) for the OTLP protocol.
+    // default OTLP gRPC port) and port 4318 (which is the OTLP HTTP port) for the OTLP protocol.
     grpc {
         endpoint = "0.0.0.0:4317"
+    }
+    http {
+        endpoint = "0.0.0.0:4318"
     }
 
     // We define where to send the output of all ingested traces. In this case, to the OpenTelemetry batch processor
@@ -189,6 +192,10 @@ otelcol.receiver.otlp "otlp_receiver" {
             otelcol.processor.batch.default.input,
             otelcol.connector.spanlogs.autologging.input,
         ]
+        // Route any incoming OTLP metrics directly to the batch processor.
+        metrics = [
+            otelcol.processor.batch.default.input,
+        ]
     }
 }
 
@@ -200,9 +207,11 @@ otelcol.processor.batch "default" {
     send_batch_max_size = 2000
     // Or until 2 seconds have elapsed.
     timeout = "2s"
-    // When the Alloy has enough batched data, send it to the OpenTelemetry exporter named 'tempo'.
+    // When the Alloy has enough batched data, send it to the OpenTelemetry exporter named 'tempo' for traces,
+    // or the Prometheus exporter for metrics.
     output {
         traces = [otelcol.exporter.otlp.tempo.input]
+        metrics = [otelcol.exporter.prometheus.tracemetrics.input]
     }
 }
 

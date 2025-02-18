@@ -1,11 +1,13 @@
 # Define the protocols to receive data for.
 # See https://opentelemetry.io/docs/collector/configuration/#receivers
 receivers:
-  # Configure receiving OTLP data via gRPC on port 4317.
+  # Configure receiving OTLP data via gRPC on port 4317 and HTTP on port 4318.
   otlp:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
 
   # Defines a Prometheus configuration set.
   prometheus:
@@ -187,10 +189,10 @@ service:
     # Define the metrics pipeline.
     metrics:
       # Receive metrics from the `prometheus` receiver.
-      receivers: [prometheus]
+      receivers: [otlp, prometheus]
       # Comment out other `receivers` definitions and uncomment the line below to import spanmetrics as well
       # as prometheus metrics.
-      #receivers: [prometheus, spanmetrics]
+      #receivers: [otlp, prometheus, spanmetrics]
       # Use the `batch` processor to process received metrics.
       processors: [batch]
       # Export to the `prometheusremtotewrite` exporter.

@@ -13,6 +13,8 @@ services:
       - "12348:12348"
       - "6832:6832"
       - "55679:55679"
+      - "4317:4317"
+      - "4318:4318"
     volumes:
       - "./alloy/config.alloy:/etc/alloy/config.alloy"
       - "./alloy/endpoints-cloud.json:/etc/alloy/endpoints.json"
