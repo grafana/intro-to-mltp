@@ -16,13 +16,15 @@ distributor:
       protocols:         # be found there: https://github.com/open-telemetry/opentelemetry-collector/tree/main/receiver
         thrift_http:     #
         grpc:            # For a production deployment you should only enable the receivers you need!
-        thrift_binary:   #
+        thrift_binary:   # Note that from Tempo 2.7.0, if an endpoint if not specified, it will listen only on localhost.
         thrift_compact:
     otlp:
       protocols:
         http:
-        grpc:            # This example repository only utilises the OTLP gRPC receiver on port 4317.
-    zipkin:              # Receive trace data in any supported Zipkin format.
+          endpoint: "0.0.0.0:4318"  # Listen to OTLP HTTP on port 4318, on all interfaces.
+        grpc:
+          endpoint: "0.0.0.0:4317"  # This example repository only utilises the OTLP gRPC receiver on port 4317, on all interfaces.
+    zipkin:                         # Receive trace data in any supported Zipkin format.
 
 # The ingester receives data from the distributor and processes it into indices and blocks.
 ingester:
@@ -99,4 +101,7 @@ metrics_generator:
 
 # Global override configuration.
 overrides:
-  metrics_generator_processors: ['service-graphs', 'span-metrics','local-blocks'] # The types of metrics generation to enable for each tenant.
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics, local-blocks] # enables metrics generator
+      generate_native_histograms: both
