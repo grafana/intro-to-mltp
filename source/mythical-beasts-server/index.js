@@ -1,6 +1,5 @@
 const traceUtils = require('./tracing')('server', 'mythical-server');
 const Pyroscope = require('@pyroscope/nodejs');
-const { expressMiddleware } = require('@pyroscope/nodejs');
 const logUtils = require('./logging')('mythical-server', 'server');
 
 (async () => {
@@ -120,9 +119,10 @@ const logUtils = require('./logging')('mythical-server', 'server');
 
     // Initialise the Pyroscope library to send pprof data.
     Pyroscope.init({
-        appName: 'mythical-beasts-server',
+        serverAddress: `http://${process.env.PROFILE_COLLECTOR_HOST}:${process.env.PROFILE_COLLECTOR_PORT}`,
+        appName: 'mythical-server',
     });
-    app.use(expressMiddleware());
+    Pyroscope.start();
 
     // Generic GET endpoint
     app.get('/:endpoint', async (req, res) => {
