@@ -1,5 +1,5 @@
 # Multistage build - allows for smaller final images post Python build
-FROM node:20-alpine3.19 as builder
+FROM node:23-alpine3.20 as builder
 ARG SERVICE
 
 WORKDIR /usr/src/app
@@ -22,7 +22,7 @@ RUN npm install --production \
     && rm -rf /tmp/*
 
 # Create a slimmer image using the built node_modules
-FROM node:17-alpine3.14
+FROM node:23-alpine3.20
 ARG SERVICE
 
 WORKDIR /usr/src/app

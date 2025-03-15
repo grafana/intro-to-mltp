@@ -3,7 +3,6 @@ const express = require('express');
 const promClient = require('prom-client');
 const queueUtils = require('./queue')();
 const Pyroscope = require('@pyroscope/nodejs');
-const { expressMiddleware } = require('@pyroscope/nodejs');
 
 // Prometheus client registration
 const app = express();
@@ -24,9 +23,10 @@ app.get('/metrics', async (req, res) => {
 
 // Initialise the Pyroscope library to send pprof data.
 Pyroscope.init({
-    appName: 'mythical-beasts-recorder',
+    serverAddress: `http://${process.env.PROFILE_COLLECTOR_HOST}:${process.env.PROFILE_COLLECTOR_PORT}`,
+    appName: 'mythical-recorder',
 });
-app.use(expressMiddleware());
+Pyroscope.start();
 
 const startQueueConsumer = async () => {
     const tracingObj = await tracingUtils();

@@ -426,7 +426,21 @@ otelcol.exporter.prometheus "tracemetrics" {
 ///////////////////////////////////////////////////////////////////////////////
 // Profiling
 
+// The Pyroscope receive HTTP component is used to receive profiling data from the mythical application services.
+pyroscope.receive_http "mythical" {
+    // Denotes the listening address and port for the Pyroscope receive HTTP component.
+    http {
+        listen_address = "0.0.0.0"
+        listen_port = "4040"
+    }
+
+    // Forward all received profiling data to the Pyroscope exporter.
+    forward_to = [pyroscope.write.mythical.receiver]
+}
+
+
 // Scrape the Mythical application services for profiling data.
+// This is deprecated for later versions of Grafana Pyroscope, but kept here for reference.
 pyroscope.scrape "mythical" {
     // Denotes the targets to be scraped, in this case the mythical server, requester and recorder.
     targets = [
