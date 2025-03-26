@@ -121,6 +121,9 @@ const logUtils = require('./logging')('mythical-server', 'server');
     Pyroscope.init({
         serverAddress: `http://${process.env.PROFILE_COLLECTOR_HOST}:${process.env.PROFILE_COLLECTOR_PORT}`,
         appName: 'mythical-server',
+        tags: {
+            namespace: `${process.env.NAMESPACE ?? 'mythical'}`
+        },
     });
     Pyroscope.start();
 
