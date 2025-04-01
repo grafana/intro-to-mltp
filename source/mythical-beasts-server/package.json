@@ -24,7 +24,7 @@
     "body-parser": "^1.20.3",
     "express": "^4.21.2",
     "influx": "^5.10.0",
-    "pg": "^8.14.0",
+    "pg": "^8.14.1",
     "prom-client": "github:voltbit/prom-client#add-openmetrics-support",
     "random": "^5.3.0"
   }
