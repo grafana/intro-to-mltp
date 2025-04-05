@@ -167,9 +167,12 @@ loki.write "mythical" {
 otelcol.receiver.otlp "otlp_receiver" {
     // We don't technically need this, but it shows how to change listen address and incoming port.
     // In this case, the Alloy is listening on all available bindable addresses on port 4317 (which is the
-    // default OTLP gRPC port) for the OTLP protocol.
+    // default OTLP gRPC port) and port 4318 (which is the OTLP HTTP port) for the OTLP protocol.
     grpc {
         endpoint = "0.0.0.0:4317"
+    }
+    http {
+        endpoint = "0.0.0.0:4318"
     }
 
     // We define where to send the output of all ingested traces. In this case, to the OpenTelemetry batch processor
@@ -189,20 +192,26 @@ otelcol.receiver.otlp "otlp_receiver" {
             otelcol.processor.batch.default.input,
             otelcol.connector.spanlogs.autologging.input,
         ]
+        // Route any incoming OTLP metrics directly to the batch processor.
+        metrics = [
+            otelcol.processor.batch.default.input,
+        ]
     }
 }
 
 // The OpenTelemetry batch processor collects trace spans until a batch size or timeout is met, before sending those
 // spans onto another target. This processor is labeled 'default'.
 otelcol.processor.batch "default" {
-    // Wait until we've received 16K of data.
-    send_batch_size = 16384
-    send_batch_max_size = 16384
+    // Wait until we've received 1000 samples, up to a maximum of 2000.
+    send_batch_size = 1000
+    send_batch_max_size = 2000
     // Or until 2 seconds have elapsed.
     timeout = "2s"
-    // When the Alloy has enough batched data, send it to the OpenTelemetry exporter named 'tempo'.
+    // When the Alloy has enough batched data, send it to the OpenTelemetry exporter named 'tempo' for traces,
+    // or the Prometheus exporter for metrics.
     output {
         traces = [otelcol.exporter.otlp.tempo.input]
+        metrics = [otelcol.exporter.prometheus.tracemetrics.input]
     }
 }
 
@@ -417,7 +426,21 @@ otelcol.exporter.prometheus "tracemetrics" {
 ///////////////////////////////////////////////////////////////////////////////
 // Profiling
 
+// The Pyroscope receive HTTP component is used to receive profiling data from the mythical application services.
+pyroscope.receive_http "mythical" {
+    // Denotes the listening address and port for the Pyroscope receive HTTP component.
+    http {
+        listen_address = "0.0.0.0"
+        listen_port = "4040"
+    }
+
+    // Forward all received profiling data to the Pyroscope exporter.
+    forward_to = [pyroscope.write.mythical.receiver]
+}
+
+
 // Scrape the Mythical application services for profiling data.
+// This is deprecated for later versions of Grafana Pyroscope, but kept here for reference.
 pyroscope.scrape "mythical" {
     // Denotes the targets to be scraped, in this case the mythical server, requester and recorder.
     targets = [
@@ -437,6 +460,17 @@ pyroscope.scrape "mythical" {
             enabled = true
             path = "/debug/pprof/heap"
             delta = false
+        }
+        // These profile scrapers are enabled by default, but the app has no endpoints for them to scrape.  This results in a bunch of 404 errors in the Alloy logs which makes troubleshooting more difficult.
+        // By disabling these scrapers, the Alloy logs are more readable.
+        profile.goroutine {
+            enabled = false
+        }
+        profile.block {
+            enabled = false
+        }
+        profile.mutex {
+            enabled = false
         }
     }
 
