@@ -7,6 +7,7 @@ This readme has the following sections:
 - [Introduction to Metrics, Logs, Traces and Profiles in Grafana](#introduction-to-metrics-logs-traces-and-profiles-in-grafana)
   - [History](#history)
   - [Prerequisites](#prerequisites)
+  - [Quick Start](#quick-start)
   - [Overview](#overview)
   - [Running the Demonstration Environment](#running-the-demonstration-environment)
     - [Using Grafana Cloud for Observability (Optional)](#using-grafana-cloud-for-observability-optional)
@@ -45,6 +46,28 @@ You can also send data from the example microservice application to Grafana Clou
 The following demonstration environment requires:
 * [Docker](https://www.docker.com/products/docker-desktop/)
 * [Docker Compose (if not using a version of Docker that has it inbuilt)](https://docs.docker.com/compose/install/)
+
+## Quick Start
+
+1. Start the local Grafana stack with:
+```bash
+docker-compose -f docker-compose-local-grafana.yml up
+```
+
+2. Run the k6 load test with:
+```bash
+K6_PROMETHEUS_RW_SERVER_URL=http://localhost:9009/api/v1/push K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true k6 run --out experimental-prometheus-rw k6/mythical-test.js
+```
+
+This will:
+- Start Grafana, Mimir, and other required services
+- Send k6 metrics directly to Mimir on port 9009
+- Use native histograms for better metric visualization in Grafana
+
+You can then access:
+- Grafana at http://localhost:3000
+- View your k6 test results in real-time
+- Monitor API performance metrics
 
 ## Overview
 The demos from this series were based on the application and code in this repository, which includes:
@@ -257,7 +280,7 @@ Note that as Grafana Alloy scrapes metrics for every service defined in the [`do
 
 It should be noted that since [v1.4.0](https://github.com/grafana/tempo/blob/main/CHANGELOG.md#v140--2022-04-28), Tempo has included the ability to generate [RED (Rate, Error, Duration)](https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/) [span](https://grafana.com/docs/tempo/latest/metrics-generator/span_metrics/) and [service graph](https://grafana.com/docs/tempo/latest/metrics-generator/service_graphs/) metrics.
 
-As such, the Grafana Alloy configuration now includes a commented section where those metrics used to be generated; this is now handled directly in Tempo via server-side metrics generation.
+As such, the Grafana Alloy configuration now includes a commented section where those metrics used to be generated; this is now handled directly in Tempo via server-side metrics generation.
 
 Whilst this is convenient for many users, you may prefer to generate metrics locally via Grafana Alloy rather than Tempo server-side. These include environments where tail-based sampling may be utilized to discard certain traces.
 
@@ -302,7 +325,7 @@ These apps allow you to use specify relevant data sources and then use the Grafa
 
 >**Note**: By default, as mentioned in the Grafana Alloy section, metrics, logs, traces and profiles are scraped by default from every service. If sending metrics to Grafana Cloud, check the number of signals (for example, for metrics, the number of [active series](https://grafana.com/docs/grafana-cloud/billing-and-usage/active-series-and-dpm/)) that you can store without additional cost.
 
-In the following configuration instructions, you can generate a general purpose `write`` scope token that will work with metrics, logs and traces, but note that the profiling token is separate and needs to be generated specifically for Pyroscope.
+In the following configuration instructions, you can generate a general purpose `write` scope token that will work with metrics, logs and traces, but note that the profiling token is separate and needs to be generated specifically for Pyroscope.
 
 This demo can be run against Grafana Cloud by configuring the `alloy/endpoints-cloud.json` file for each signal. This differs slightly for each of the signals.
 
