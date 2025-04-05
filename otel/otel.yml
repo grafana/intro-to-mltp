@@ -7,11 +7,6 @@ receivers:
       grpc:
         endpoint: 0.0.0.0:4317
 
-  # Configure receiving Prometheus Remote Write data
-  prometheusremotewrite:
-    endpoint: "0.0.0.0:12347"
-    include_target_info: true
-
   # Defines a Prometheus configuration set.
   prometheus:
     # Define a set of configurations for scraping by the OpenTelemetry Collector.
@@ -191,8 +186,8 @@ service:
 
     # Define the metrics pipeline.
     metrics:
-      # Receive metrics from both prometheus and prometheusremotewrite receivers
-      receivers: [prometheus, prometheusremotewrite]
+      # Receive metrics from the `prometheus` receiver.
+      receivers: [prometheus]
       # Comment out other `receivers` definitions and uncomment the line below to import spanmetrics as well
       # as prometheus metrics.
       #receivers: [prometheus, spanmetrics]
