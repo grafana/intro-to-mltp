@@ -65,13 +65,13 @@ const logUtils = require('./logging')('mythical-server', 'server');
         labelNames: ['method', 'table', 'instance_id',]
     })
 
-    // Generate a fixed pool of 1000 instance IDs, to be used for a high cardinality
+    // Generate a fixed pool of 500 instance IDs, to be used for a high cardinality
     // label that we will be removing in the future
     const INSTANCE_ID_POOL = (() => {
         const providers = ['aws', 'gcp', 'azure'];
         const pool = new Set();
 
-        while (pool.size < 1000) {
+        while (pool.size < 500) {
         const provider = providers[Math.floor(Math.random() * providers.length)];
         const randomId = Math.random().toString(36).substring(2, 10 + Math.floor(Math.random() * 4));
         pool.add(`${provider}-i${randomId}`);
