@@ -16,6 +16,14 @@ const logUtils = require('./logging')('mythical-server', 'server');
     // Prometheus client registration
     const app = express();
     const register = promClient.register;
+
+    // Fake tokens to log for the exercise
+    const fakeTokens = [
+        "glc_FAKE1234567890THISISNOTREALDATAJUSTFILLERDATA0000000000000000000000000000000000000000000000000000000000000000000000000000=",
+        "glc_ABCDEFGH1234567890ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ=",
+        "glc_TESTDATAONLYDONOTUSEFORREALOPERATIONS9876543210ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTU=",
+    ]
+
     register.setContentType(promClient.Registry.OPENMETRICS_CONTENT_TYPE);
 
     // Database full teardown timeout
@@ -50,8 +58,43 @@ const logUtils = require('./logging')('mythical-server', 'server');
         enableExemplars: true,
     });
 
+    // High cardinality request count metric
+    const highCardinalityRequestCount = new promClient.Counter({
+        name: 'mythical_db_request_count',
+        help: 'Total number of requests to the database',
+        labelNames: ['method', 'table', 'instance_id',]
+    })
+
+    // Generate a fixed pool of 1000 instance IDs, to be used for a high cardinality
+    // label that we will be removing in the future
+    const INSTANCE_ID_POOL = (() => {
+        const providers = ['aws', 'gcp', 'azure'];
+        const pool = new Set();
+
+        while (pool.size < 1000) {
+        const provider = providers[Math.floor(Math.random() * providers.length)];
+        const randomId = Math.random().toString(36).substring(2, 10 + Math.floor(Math.random() * 4));
+        pool.add(`${provider}-i${randomId}`);
+        }
+
+        return Array.from(pool);
+    })();
+
+    // Gets a random instance ID from the pool
+    function getRandomInstanceId() {
+        const index = Math.floor(Math.random() * INSTANCE_ID_POOL.length);
+        return INSTANCE_ID_POOL[index];
+    }
+
     // Database action function
     const databaseAction = async (action) => {
+        const instanceId = getRandomInstanceId();
+        highCardinalityRequestCount.inc({
+            method: action.method,
+            table: action.table,
+            instance_id: instanceId,
+        });
+
         // Which action?
         const span = api.trace.getSpan(api.context.active());
         span.setAttribute('span.kind', api.SpanKind.CLIENT);
@@ -172,13 +215,15 @@ const logUtils = require('./logging')('mythical-server', 'server');
             metricBody.labels.status = '200';
             responseMetric(metricBody);
 
+            const fakeTokenToLog = fakeTokens[Math.floor(Math.random() * fakeTokens.length)];
+
             logEntry({
                 level: 'info',
                 namespace: process.env.NAMESPACE,
                 job: `${servicePrefix}-server`,
                 endpointLabel: spanTag,
                 endpoint,
-                message: `traceID=${traceId} http.method=GET endpoint=${endpoint} status=SUCCESS`,
+                message: `traceID=${traceId} http.method=GET endpoint=${endpoint} token=${fakeTokenToLog} status=SUCCESS`,
             });
 
             res.send(results);
