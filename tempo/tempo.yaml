@@ -69,6 +69,7 @@ metrics_generator:
           - http.target
           - http.status_code
           - service.version
+          - service.tier
     # Service graph metrics create node and edge metrics for determinng service interactions.
     service_graphs:
         # Configure extra dimensions to add as metric labels.

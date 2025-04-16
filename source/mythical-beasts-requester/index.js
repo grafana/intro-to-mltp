@@ -62,8 +62,24 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
         kind: api.SpanKind.CLIENT,
         links: (previousReqSpanContext) ? [{ context: previousReqSpanContext }] : undefined,
     });
+
+    let tag;
+    if (endpoint === 'illithid') {
+        tag = 'servicetier'
+    } else {
+        tag = 'service_tier'
+    }
+
+    let tier;
+    if (endpoint === 'illithid') {
+        tier = 'high'
+    } else {
+        tier = 'medium'
+    }
+
     requestSpan.setAttribute(spanTag, endpoint);
     requestSpan.setAttribute(`http.target`, '/' + endpoint);
+    requestSpan.setAttribute(tag, tier);
     requestSpan.setAttribute(`http.method`, type);
     requestSpan.setAttribute('service.version', (Math.floor(Math.random() * 100)) < 50 ? '1.9.2' : '2.0.0');
     previousReqSpanContext = requestSpan.spanContext();
