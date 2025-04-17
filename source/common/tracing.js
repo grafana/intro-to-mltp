@@ -8,8 +8,8 @@ module.exports = (context, serviceName) => {
   const { NodeTracerProvider } = require("@opentelemetry/sdk-trace-node");
   const { SimpleSpanProcessor } = require("@opentelemetry/sdk-trace-base");
   const { OTLPTraceExporter } = require('@opentelemetry/exporter-trace-otlp-grpc');
-  const { envDetector, Resource } = require('@opentelemetry/resources');
-  const { SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
+  const { detectResources, resourceFromAttributes } = require('@opentelemetry/resources');
+  const { SEMRESATTRS_SERVICE_NAME } = require('@opentelemetry/semantic-conventions');
   const { registerInstrumentations } = require('@opentelemetry/instrumentation');
   const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
 
@@ -19,25 +19,26 @@ module.exports = (context, serviceName) => {
       W3CTraceContextPropagator = require("@opentelemetry/core").W3CTraceContextPropagator;
     }
 
-    const detected = await envDetector.detect();
-
-    const resources = new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
+    // Detect resources and then merge with the service name
+    const detected = await detectResources();
+    const resources = resourceFromAttributes({
+      [SEMRESATTRS_SERVICE_NAME]: serviceName,
     }).merge(detected);
-
-    // Create a tracer provider
-    const provider = new NodeTracerProvider({
-      resource: resources,
-    });
 
     // Export via OTLP gRPC
     const exporter = new OTLPTraceExporter({
       url: `${process.env.TRACING_COLLECTOR_HOST}:${process.env.TRACING_COLLECTOR_PORT}`
     });
 
-    // Use simple span (should probably use Batch)
+
+    // Use simple span processor (for production code without memory pressure, you should probably use Batch)
     const processor = new SimpleSpanProcessor(exporter);
-    provider.addSpanProcessor(processor);
+
+    // Create a tracer provider
+    const provider = new NodeTracerProvider({
+      resource: resources,
+      spanProcessors: [processor],
+    });
     provider.register();
 
     // Create a new header for propagation from a given span
