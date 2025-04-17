@@ -106,8 +106,10 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                 let delProb = (index / nameSet.length) * 100;
                 if (Math.floor(Math.random() * 100) < delProb) {
                     if (names.length > 0) {
-                        await axios.delete(`http://${serverHostPort}/${endpoint}`, { name: names[0].name },
-                            { headers });
+                        await axios.delete(`http://${serverHostPort}/${endpoint}`, {
+                            data: { name: names[0].name },
+                            headers: headers
+                        });
                         sendMessage(`DELETE /${endpoint} ${names[0].name}`);
                         logEntry({
                             level: 'info',
