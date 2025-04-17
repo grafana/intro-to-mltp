@@ -1,5 +1,5 @@
 # Multistage build - allows for smaller final images post Python build
-FROM node:23-alpine3.20 as builder
+FROM node:23-alpine3.20 AS builder
 ARG SERVICE
 
 WORKDIR /usr/src/app
