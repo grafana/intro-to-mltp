@@ -314,11 +314,11 @@ const logUtils = require('./logging')('mythical-server', 'server');
             responseMetric(metricBody);
         }
 
-        // If we're in the middle of a tearxdown, don't do anything
+        // If we're in the middle of a teardown, don't do anything
         if (teardownCheck({
                 spanContext,
                 endpoint,
-                method: 'GET',
+                method: 'DELETE',
                 res,
             }) === true) {
             return;
