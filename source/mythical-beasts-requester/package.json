@@ -22,7 +22,7 @@
     "@pyroscope/nodejs": "^0.4.5",
     "amqplib": "^0.10.5",
     "axios": "^1.8.3",
-    "express": "^4.21.2",
+    "express": "^5.1.0",
     "package.json": "^2.0.1",
     "prom-client": "github:voltbit/prom-client#add-openmetrics-support",
     "unique-names-generator": "^4.7.1"
