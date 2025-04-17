@@ -19,7 +19,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:11.5.1
+    image: grafana/grafana:11.6.0
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -77,6 +77,8 @@ services:
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=opentelemetry-collector
       - TRACING_COLLECTOR_PORT=4317
+      - PROFILE_COLLECTOR_HOST=pyroscope
+      - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
 
@@ -101,6 +103,8 @@ services:
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=opentelemetry-collector
       - TRACING_COLLECTOR_PORT=4317
+      - PROFILE_COLLECTOR_HOST=pyroscope
+      - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
 
@@ -123,13 +127,15 @@ services:
       - LOGS_TARGET=http://loki:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=opentelemetry-collector
       - TRACING_COLLECTOR_PORT=4317
+      - PROFILE_COLLECTOR_HOST=pyroscope
+      - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
 
   # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.7.0
+    image: grafana/tempo:2.7.2
     ports:
       - "3200:3200"
       - "55680:55680"
@@ -142,7 +148,7 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:3.4.1
+    image: grafana/loki:3.4.3
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
@@ -150,15 +156,21 @@ services:
       - "./loki/loki.yaml:/etc/loki/loki.yaml"
 
   mimir:
-    image: grafana/mimir:2.15.0
+    image: grafana/mimir:2.16.0
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
     volumes:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
+  pyroscope:
+    image: grafana/pyroscope:1.13.1
+    ports:
+      - "4040:4040"
+    command: ["server"]
+
   k6:
-    image: grafana/k6:0.57.0
+    image: grafana/k6:0.58.0
     volumes:
       - "./k6:/scripts"
     environment:
@@ -170,7 +182,7 @@ services:
     command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
 
   beyla-requester:
-    image: grafana/beyla:2.0.4
+    image: grafana/beyla:2.1.0
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
@@ -215,7 +227,7 @@ services:
         condition: service_started
 
   beyla-server:
-    image: grafana/beyla:2.0.4
+    image: grafana/beyla:2.1.0
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.
@@ -260,7 +272,7 @@ services:
         condition: service_started
 
   beyla-recorder:
-    image: grafana/beyla:2.0.4
+    image: grafana/beyla:2.1.0
     # Beyla requires to be run in the same process namespace as the process it's watching.
     # In Docker, we can do this by joining the namespace for the watched process with the Beyla
     # container watching it by using a specific `pid` label.

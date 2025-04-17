@@ -25,6 +25,9 @@ app.get('/metrics', async (req, res) => {
 Pyroscope.init({
     serverAddress: `http://${process.env.PROFILE_COLLECTOR_HOST}:${process.env.PROFILE_COLLECTOR_PORT}`,
     appName: 'mythical-recorder',
+    wall: {
+        collectCpuTime: true,
+    },
     tags: {
         namespace: `${process.env.NAMESPACE ?? 'mythical'}`
     },
