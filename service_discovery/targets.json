@@ -1,0 +1,35 @@
+[
+    {
+        "labels" : {
+                "__secret_token__": "R2hvc3RQcm90b2NvbCQ=",
+                "service": "mimir"
+        },
+        "targets" : [
+                "mimir:9009"
+        ]
+    },
+    {
+        "labels": {
+            "service": "loki"
+        },
+        "targets": [
+            "loki:3100"
+        ]
+    },
+    {
+        "labels": {
+            "service": "tempo"
+        },
+        "targets": [
+            "tempo:4317"
+        ]
+    },
+    {
+        "labels": {
+            "service": "pyroscope"
+        },
+        "targets": [
+            "pyroscope:4040"
+        ]
+    }
+]

@@ -168,3 +168,9 @@ services:
       - "9009:9009"
     volumes:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
+  service-discovery:
+    image: caddy:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./service_discovery:/usr/share/caddy:ro
