@@ -18,15 +18,15 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 5,
+    "id": 7,
     "links": [],
     "panels": [
       {
         "datasource": {
-          "type": "loki",
-          "uid": "loki"
+          "type": "prometheus",
+          "uid": "mimir"
         },
-        "description": "The count of log lines that have a token exposed in them. We should get this down to 0!",
+        "description": "Different orgs decided to use different attributes to indicate the tier of requests. A new initiative to consolidate these attributes to `service.tier` means we should make everything consistent. This panel shows how many requests are being counted by the spanmetrics processor, which is looking for `service.tier` attributes on spans.",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -82,7 +82,7 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 8,
+          "h": 13,
           "w": 24,
           "x": 0,
           "y": 0
@@ -105,59 +105,18 @@
         "targets": [
           {
             "datasource": {
-              "type": "loki",
-              "uid": "loki"
+              "type": "prometheus",
+              "uid": "mimir"
             },
-            "direction": "backward",
             "editorMode": "code",
-            "expr": "count(rate({service_name=\"mythical-server\"} |= `token=glc` [$__auto]))",
-            "queryType": "range",
+            "expr": "traces_spanmetrics_calls_total{service_tier=~\".+\"}",
+            "legendFormat": "__auto",
+            "range": true,
             "refId": "A"
           }
         ],
-        "title": "# Log Lines with Tokens",
+        "title": "Correctly-tiered Requests",
         "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "loki",
-          "uid": "loki"
-        },
-        "description": "Logs that have a 'token=' field in it. Our task is to redact the value of the token field.",
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 14,
-          "w": 24,
-          "x": 0,
-          "y": 8
-        },
-        "id": 2,
-        "options": {
-          "dedupStrategy": "none",
-          "enableInfiniteScrolling": false,
-          "enableLogDetails": true,
-          "prettifyLogMessage": false,
-          "showCommonLabels": false,
-          "showLabels": false,
-          "showTime": false,
-          "sortOrder": "Descending",
-          "wrapLogMessage": false
-        },
-        "pluginVersion": "11.5.1",
-        "targets": [
-          {
-            "direction": "backward",
-            "editorMode": "code",
-            "expr": "{service_name=\"mythical-server\"} |= \"token=\"",
-            "queryType": "range",
-            "refId": "A"
-          }
-        ],
-        "title": "Logs with 'token' Field",
-        "type": "logs"
       }
     ],
     "preload": false,
@@ -173,8 +132,8 @@
     },
     "timepicker": {},
     "timezone": "browser",
-    "title": "Mission: Keympossible — Secret Redaction Protocol",
-    "uid": "cej1rxgm9gl4wb",
+    "title": "Mission 3",
+    "uid": "bej1yfm6g78qoe",
     "version": 1,
     "weekStart": ""
-}
+  }
