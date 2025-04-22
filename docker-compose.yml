@@ -168,6 +168,13 @@ services:
       - "9009:9009"
     volumes:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
+
+  pyroscope:
+    image: grafana/pyroscope:1.13.1
+    ports:
+      - "4040:4040"
+    command: ["server"]
+
   service-discovery:
     image: caddy:alpine
     ports:
