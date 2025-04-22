@@ -1,11 +1,11 @@
 [
     {
         "labels" : {
-                "__meta_decryption_key__": "GhostProtocol$",
-                "service": "mimir"
+            "__meta_decryption_key__": "GhostProtocol$",
+            "service": "mimir"
         },
         "targets" : [
-                "mimir:9009"
+            "mimir:9009"
         ]
     },
     {
