@@ -1,7 +1,7 @@
 [
     {
         "labels" : {
-                "__meta_secret_token__": "R2hvc3RQcm90b2NvbCQ=",
+                "__meta_decryption_key__": "GhostProtocol$",
                 "service": "mimir"
         },
         "targets" : [
