@@ -2397,9 +2397,7 @@
     "refresh": "10s",
     "schemaVersion": 40,
     "tags": [
-      "postgres",
-      "db",
-      "stats"
+      "verification"
     ],
     "templating": {
       "list": [
@@ -2569,7 +2567,7 @@
     },
     "timepicker": {},
     "timezone": "",
-    "title": "PostgreSQL Database",
+    "title": "Section 3 Verification",
     "uid": "000000039",
     "version": 2,
     "weekStart": ""

@@ -18,7 +18,7 @@
     "editable": true,
     "fiscalYearStartMonth": 0,
     "graphTooltip": 0,
-    "id": 9,
+    "id": 16,
     "links": [],
     "panels": [
       {
@@ -26,7 +26,7 @@
           "type": "loki",
           "uid": "loki"
         },
-        "description": "The rate of log lines being sent by the Mythical services.",
+        "description": "The number of spanlogs generated per second",
         "fieldConfig": {
           "defaults": {
             "color": {
@@ -40,7 +40,7 @@
               "axisPlacement": "auto",
               "barAlignment": 0,
               "barWidthFactor": 0.6,
-              "drawStyle": "bars",
+              "drawStyle": "line",
               "fillOpacity": 0,
               "gradientMode": "none",
               "hideFrom": {
@@ -59,7 +59,7 @@
               "spanNulls": false,
               "stacking": {
                 "group": "A",
-                "mode": "normal"
+                "mode": "none"
               },
               "thresholdsStyle": {
                 "mode": "off"
@@ -78,48 +78,18 @@
                   "value": 80
                 }
               ]
-            }
-          },
-          "overrides": [
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "{level=\"error\"}"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "semi-dark-red",
-                    "mode": "fixed"
-                  }
-                }
-              ]
             },
-            {
-              "matcher": {
-                "id": "byName",
-                "options": "{level=\"info\"}"
-              },
-              "properties": [
-                {
-                  "id": "color",
-                  "value": {
-                    "fixedColor": "green",
-                    "mode": "fixed"
-                  }
-                }
-              ]
-            }
-          ]
+            "unit": "logs/sec"
+          },
+          "overrides": []
         },
         "gridPos": {
-          "h": 9,
+          "h": 11,
           "w": 24,
           "x": 0,
           "y": 0
         },
-        "id": 3,
+        "id": 1,
         "options": {
           "legend": {
             "calcs": [],
@@ -136,14 +106,18 @@
         "pluginVersion": "11.5.1",
         "targets": [
           {
+            "datasource": {
+              "type": "loki",
+              "uid": "loki"
+            },
             "direction": "backward",
             "editorMode": "code",
-            "expr": "sum by (level) (rate({service_name=~\"mythical-.*\"}[$__auto]))",
+            "expr": "sum by (target) (rate({target=~\".+\"}[$__auto]))",
             "queryType": "range",
-            "refId": "Info Logs"
+            "refId": "A"
           }
         ],
-        "title": "# Mythical Service Logs",
+        "title": "Spanlogs rate",
         "type": "timeseries"
       },
       {
@@ -156,54 +130,10 @@
           "overrides": []
         },
         "gridPos": {
-          "h": 8,
-          "w": 12,
+          "h": 11,
+          "w": 24,
           "x": 0,
-          "y": 9
-        },
-        "id": 1,
-        "options": {
-          "dedupStrategy": "none",
-          "enableInfiniteScrolling": false,
-          "enableLogDetails": true,
-          "prettifyLogMessage": false,
-          "showCommonLabels": false,
-          "showLabels": false,
-          "showTime": false,
-          "sortOrder": "Descending",
-          "wrapLogMessage": false
-        },
-        "pluginVersion": "11.5.1",
-        "targets": [
-          {
-            "datasource": {
-              "type": "loki",
-              "uid": "loki"
-            },
-            "direction": "backward",
-            "editorMode": "code",
-            "expr": "{service_name=\"mythical-requester\"}",
-            "queryType": "range",
-            "refId": "A"
-          }
-        ],
-        "title": "Requester Logs",
-        "type": "logs"
-      },
-      {
-        "datasource": {
-          "type": "loki",
-          "uid": "loki"
-        },
-        "fieldConfig": {
-          "defaults": {},
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 9
+          "y": 11
         },
         "id": 2,
         "options": {
@@ -213,7 +143,7 @@
           "prettifyLogMessage": false,
           "showCommonLabels": false,
           "showLabels": false,
-          "showTime": false,
+          "showTime": true,
           "sortOrder": "Descending",
           "wrapLogMessage": false
         },
@@ -222,19 +152,21 @@
           {
             "direction": "backward",
             "editorMode": "code",
-            "expr": "{service_name=\"mythical-server\"}",
+            "expr": "{target=~\".+\"}",
             "queryType": "range",
             "refId": "A"
           }
         ],
-        "title": "Server Logs",
+        "title": "Spanlogs",
         "type": "logs"
       }
     ],
     "preload": false,
     "refresh": "",
     "schemaVersion": 40,
-    "tags": [],
+    "tags": [
+        "verification"
+    ],
     "templating": {
       "list": []
     },
@@ -244,8 +176,8 @@
     },
     "timepicker": {},
     "timezone": "browser",
-    "title": "Mythical Service Logs",
-    "uid": "cej27bqryblkwe",
-    "version": 1,
+    "title": "Section 7 Verification",
+    "uid": "cejn7w17pjq4gb",
+    "version": 2,
     "weekStart": ""
   }
