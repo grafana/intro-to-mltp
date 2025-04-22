@@ -21,7 +21,7 @@
             "service": "tempo"
         },
         "targets": [
-            "tempo:4317"
+            "tempo:3200"
         ]
     },
     {
