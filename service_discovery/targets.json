@@ -2,6 +2,7 @@
     {
         "labels" : {
             "__meta_decryption_key__": "GhostProtocol$",
+            "group": "infrastructure",
             "service": "mimir"
         },
         "targets" : [
@@ -10,7 +11,8 @@
     },
     {
         "labels": {
-            "service": "loki"
+            "service": "loki",
+            "group": "infrastructure"
         },
         "targets": [
             "loki:3100"
@@ -18,7 +20,8 @@
     },
     {
         "labels": {
-            "service": "tempo"
+            "service": "tempo",
+            "group": "infrastructure"
         },
         "targets": [
             "tempo:3200"
@@ -26,7 +29,8 @@
     },
     {
         "labels": {
-            "service": "pyroscope"
+            "service": "pyroscope",
+            "group": "infrastructure"
         },
         "targets": [
             "pyroscope:4040"
