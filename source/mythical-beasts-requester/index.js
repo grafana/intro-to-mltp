@@ -67,7 +67,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     if (endpoint === 'illithid') {
         tag = 'servicetier'
     } else {
-        tag = 'service_tier'
+        tag = 'tier'
     }
 
     let tier;
