@@ -1,2 +1,6 @@
+livedebugging {
+  enabled = true
+}
+
 // This is the config that Alloy will use. We will be filling this out
 // in the hands-on sections and exercises
