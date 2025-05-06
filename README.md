@@ -73,8 +73,8 @@ The `arguments` and `blocks` sections list what you could do with the data. Pay 
 
 # Tactical training 
 
-## Lab environment overview
-<img width="1433" alt="image" src="https://github.com/user-attachments/assets/6fd37912-58ab-4620-a246-6babc04d8f5d" />
+## Mission environment overview
+<img width="1432" alt="image" src="https://github.com/user-attachments/assets/62196479-36e3-43e5-b9b5-6cd64b4c5885" />
 
 ## Common tasks
 We will be using the `config.alloy` file to build pipelines for Infrastructure Observability and Applications Observability. 
@@ -255,12 +255,6 @@ The color of the dotted line signifies what type of data are being transferred b
 
 <img width="910" alt="image" src="https://github.com/user-attachments/assets/95b20759-971f-410d-9598-d5db3213eef7" />
 
-The Clustering tab (green box) shows the nodes in the Alloy cluster. Clustering is used to distribute scrape targets among one or more Alloy instances that you have configured to operate in the same cluster. Clustering is only available for some components, and to keep things simple we will not be covering it in this workshop.
-
-If you’re curious, the [documentation](https://grafana.com/docs/alloy/latest/get-started/clustering/) covers more about clustering.
-
-<img width="916" alt="image" src="https://github.com/user-attachments/assets/f39f322c-d0dc-420e-b3d3-4e2777c8c326" />
-
 
 ### Section 3: Collect and transfrom metrics from Postgres DB
 
@@ -336,7 +330,7 @@ Don't forget to [reload the config](#reloading-the-config) after finishing.
 
 #### Verification
 
-Navigate to Dashboards > `Section 3 Verification` and you should see a dashboard populating with Postgres metrics. 
+Navigate to [Dashboards](http://localhost:3000/dashboards) > `Section 3 Verification` and you should see a dashboard populating with Postgres metrics. 
 You should also see an instance value of `mythical-database:5432/postgres` instead of `postgresql://mythical-database:5432/postgres`.
 
 <img width="910" alt="image" src="https://github.com/user-attachments/assets/5907b198-b732-4b7d-a0a5-65dcf47f7e4c" />
@@ -427,10 +421,10 @@ Open `config.alloy` in your editor and copy the following code into it:
 //Section 5
 otelcol.receiver.otlp "otlp_receiver" {
     grpc {
-        endpoint = "//TODO: Fill in the default value shown in the doc"
+        endpoint = "//TODO: Fill in the default value shown in the grpc block section of the otelcol.receiver.otlp doc"
     }
     http {
-        endpoint = "//TODO: Fill in the default value shown in the doc"
+        endpoint = "//TODO: Fill in the default value shown in the http block section of the otelcol.receiver.otlp doc"
     }
     output {
         traces = [
@@ -482,7 +476,7 @@ otelcol.exporter.otlp "tempo" {
 `otelcol.exporter.otlp`
 
 - Using the `client` block, write batches of spans to a local instance of Tempo
-- The Tempo url is http://tempo:4317.
+- The Tempo url is "http://tempo:4317".
 
 <img width="915" alt="image" src="https://github.com/user-attachments/assets/1e3dedbe-d69b-47b6-b7e0-ee3a2ae740e7" />
 
@@ -503,9 +497,9 @@ from Spanmetrics, so you should see data for the spans we're ingesting.
 
 #### Objectives
 
-- Ingest the logs that are being sent by the mythical services to port 3100
-- Add a `service=”mythical”` label to logs
-- Use stage.regex and stage.timestamp to extract the timestamp from the log lines and set the log’s timestamp
+- [Ingest](https://grafana.com/docs/alloy/latest/reference/components/loki/loki.source.api/) the logs that are being sent by the mythical services to port 3100
+- [Add]((https://grafana.com/docs/alloy/latest/reference/components/loki/loki.process/) a `service=”mythical”` label to logs
+- [Use]((https://grafana.com/docs/alloy/latest/reference/components/loki/loki.process/) `stage.regex` and `stage.timestamp` to extract the timestamp from the log lines and set the log’s timestamp
 
 <img width="914" alt="image" src="https://github.com/user-attachments/assets/d9c8dbc0-29ed-460b-b487-8440075cec59" />
 <img width="913" alt="image" src="https://github.com/user-attachments/assets/8b8afaa5-ade1-4c5a-9935-6ccb607af0f9" />
@@ -658,6 +652,7 @@ Navigate to Dashboards > `Section 7 Verification` and you should see a dashboard
 #### Description
 
 One of our trusted informants has stashed an encrypted file—`secret_message.txt.enc`—on a remote dead-drop.
+This filel can be found within the mission repo. 
 
 The decryption key? Hidden in plain sight, embedded in an internal label on the service discovery targets.
 Since internal labels are stripped before metrics make it to Mimir, this covert tactic kept the key out of enemy hands.
