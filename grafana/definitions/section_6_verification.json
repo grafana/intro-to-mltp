@@ -138,7 +138,7 @@
         {
           "direction": "backward",
           "editorMode": "code",
-          "expr": "sum by (level) (rate({service_name=~\"mythical-.*\"}[$__auto]))",
+          "expr": "sum by (level) (rate({service=\"mythical\"}[$__auto]))",
           "queryType": "range",
           "refId": "Info Logs"
         }
