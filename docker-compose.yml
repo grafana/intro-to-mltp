@@ -16,8 +16,7 @@ services:
       - "4317:4317"
       - "4318:4318"
     volumes:
-      - "./alloy/config.alloy:/etc/alloy/config.alloy"
-      - "./alloy/endpoints.json:/etc/alloy/endpoints.json"
+      - "./alloy:/etc/alloy"
     command: [
       "run",
       "--server.http.listen-addr=0.0.0.0:12345",
