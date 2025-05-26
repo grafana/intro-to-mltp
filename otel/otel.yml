@@ -87,7 +87,6 @@ processors:
   # Use the default values for it.
   batch:
 
-
   # The tail sampler processor will only keep traces where spans match the defined policies.
   tail_sampling:
     decision_wait: 30s    # The time to wait for a decision to be made.
@@ -109,12 +108,29 @@ processors:
       },
     ]
 
+  # The transform processor is used to rename the span metrics to match the Tempo naming convention.
+  transform:
+    # Only operate on metric statements.
+    metric_statements:
+      # Operate on the metric data.
+      - context: metric
+        statements:
+          # Rename the `traces.spanmetrics.duration` metric to `traces.spanmetrics.latency`.
+          - set(metric.name, "traces.spanmetrics.latency") where metric.name == "traces.spanmetrics.duration"
+          # Rename the `traces.spanmetrics.calls` metric to `traces.spanmetrics.calls.total` to pre-suffix name.
+          - set(metric.name, "traces.spanmetrics.calls.total") where metric.name == "traces.spanmetrics.calls"
+
+
 # Define processors to process received data.
 # See https://opentelemetry.io/docs/collector/configuration/#connectors
 connectors:
   # The spanmetrics connector is used to output span metrics based on received trace spans.
   spanmetrics:
     namespace: traces.spanmetrics   # Prefix all metrics with `traces.spanmetrics` (this becomes `traces_spanmetrics`).
+    # Explicitly flush metrics every 30 seconds. Note, this will double active series count for the `trace.spanmetrics`
+    # metric namespace.
+    metrics_flush_interval: 30s
+
     # Determine the type of histogram to use for span metrics.
     histogram:
       explicit:                     # Explicit histograms have pre-defined bucket sizes (use default here).
@@ -130,6 +146,9 @@ connectors:
 
   # The servicegraph connector is used to output service node metrics based on received trace spans.
   servicegraph:
+      # Explicitly flush metrics every 60 seconds. Note, this will double active series count for the
+      # `trace.servicegraph` metric namespace.
+      metrics_flush_interval: 60s
       # Defines which exporter the processor will write metrics to.
       metrics_exporter: prometheusremotewrite
       # Defines additional label dimensions of the metrics from trace span attributes present.
@@ -159,6 +178,10 @@ exporters:
 
   # Exporter for sending Prometheus data to Mimir.
   prometheusremotewrite:
+    # Don't add suffixes to the metrics. We've already renamed the `traces.spanmetrics.calls` metric to
+    # `traces.spanmetrics.calls.total`, and we don't want to add the `_milliseconds` suffix to the
+    # `traces.spanmetrics.latency` metric.
+    add_metric_suffixes: false
     # Send to the locally running Mimir service.
     endpoint: http://mimir:9009/api/v1/push
     # TLS is not enabled for the instance.
@@ -177,23 +200,20 @@ service:
       processors: [batch]
       # Comment out other `processor` definitions and uncomment the line below to use tail sampling.
       #processors: [tail_sampling, batch]
-      # Comment out other `processor` definitions and uncomment the line below to generate service graph metrics
-      # from within the OpenTelemetry Collector.
-      #processors: [servicegraph, batch]
       # Export to the `otlp/grafana` exporter.
-      exporters: [otlp/grafana]
+      #exporters: [otlp/grafana]
       # Comment out other `exporters` definitions and uncomment the line below to generate span metrics
       # from within the OpenTelemetry Collector as well as exporting traces to Tempo.
-      #exporters: [otlp/grafana, spanmetrics]
+      exporters: [otlp/grafana, spanmetrics, servicegraph]
 
     # Define the metrics pipeline.
     metrics:
       # Receive metrics from the `prometheus` receiver.
-      receivers: [otlp, prometheus]
+      #receivers: [otlp, prometheus]
       # Comment out other `receivers` definitions and uncomment the line below to import spanmetrics as well
       # as prometheus metrics.
-      #receivers: [otlp, prometheus, spanmetrics]
+      receivers: [otlp, prometheus, spanmetrics, servicegraph]
       # Use the `batch` processor to process received metrics.
-      processors: [batch]
+      processors: [transform, batch]
       # Export to the `prometheusremtotewrite` exporter.
       exporters: [prometheusremotewrite]
