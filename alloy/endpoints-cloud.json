@@ -27,5 +27,7 @@
             "username": "<profilesUsername>",
             "password": "<profilesPassword>"
         }
-    }
+    },
+    "add_spanmetric_suffixes" : true,
+    "spanmetrics_namespace": "traces.span.metrics"
 }

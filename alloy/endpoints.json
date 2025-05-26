@@ -27,5 +27,7 @@
             "username": "",
             "password": ""
         }
-    }
+    },
+    "add_spanmetric_suffixes" : false,
+    "spanmetrics_namespace": "traces.spanmetrics"
 }
