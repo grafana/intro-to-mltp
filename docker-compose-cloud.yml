@@ -7,7 +7,7 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:v1.6.1
+    image: grafana/alloy:v1.8.1
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -70,6 +70,8 @@ services:
       - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=alloy
       - TRACING_COLLECTOR_PORT=4317
+      - PROFILE_COLLECTOR_HOST=alloy
+      - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
 
@@ -94,6 +96,8 @@ services:
       - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=alloy
       - TRACING_COLLECTOR_PORT=4317
+      - PROFILE_COLLECTOR_HOST=alloy
+      - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
 
@@ -116,5 +120,7 @@ services:
       - LOGS_TARGET=http://alloy:3100/loki/api/v1/push
       - TRACING_COLLECTOR_HOST=alloy
       - TRACING_COLLECTOR_PORT=4317
+      - PROFILE_COLLECTOR_HOST=alloy
+      - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
