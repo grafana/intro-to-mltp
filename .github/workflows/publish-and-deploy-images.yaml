@@ -93,7 +93,7 @@ jobs:
                     [worker.oci]
                     max-parallelism = 2
 
-            - id: get-secrets
+            - name: Retrieve credentials from Vault
               uses: grafana/shared-workflows/actions/get-vault-secrets@get-vault-secrets/v1.2.1
               with:
                 common_secrets: |
