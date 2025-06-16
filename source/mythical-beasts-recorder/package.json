@@ -21,7 +21,7 @@
     "@opentelemetry/semantic-conventions": "^1.32.0",
     "@pyroscope/nodejs": "^0.4.5",
     "amqplib": "^0.10.5",
-    "axios": "^1.8.3",
+    "axios": "^1.10.0",
     "express": "^5.1.0",
     "prom-client": "github:voltbit/prom-client#add-openmetrics-support"
   }
