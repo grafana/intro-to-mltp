@@ -20,7 +20,7 @@
     "@opentelemetry/sdk-trace-node": "^2.0.0",
     "@opentelemetry/semantic-conventions": "^1.32.0",
     "@pyroscope/nodejs": "^0.4.5",
-    "axios": "^1.8.3",
+    "axios": "^1.10.0",
     "body-parser": "^2.2.0",
     "express": "^5.1.0",
     "influx": "^5.10.0",
