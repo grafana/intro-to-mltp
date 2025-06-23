@@ -19,7 +19,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:11.6.0
+    image: grafana/grafana:12.0.2
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -135,7 +135,7 @@ services:
   # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.7.2
+    image: grafana/tempo:2.8.1
     ports:
       - "3200:3200"
       - "55680:55680"
@@ -148,7 +148,7 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:3.4.3
+    image: grafana/loki:3.5.1
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
@@ -164,7 +164,7 @@ services:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
   pyroscope:
-    image: grafana/pyroscope:1.13.1
+    image: grafana/pyroscope:1.13.5
     ports:
       - "4040:4040"
     command: ["server"]
