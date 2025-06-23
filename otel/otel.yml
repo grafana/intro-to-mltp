@@ -201,19 +201,20 @@ service:
       # Comment out other `processor` definitions and uncomment the line below to use tail sampling.
       #processors: [tail_sampling, batch]
       # Export to the `otlp/grafana` exporter.
-      #exporters: [otlp/grafana]
+      exporters: [otlp/grafana]
       # Comment out other `exporters` definitions and uncomment the line below to generate span metrics
       # from within the OpenTelemetry Collector as well as exporting traces to Tempo.
-      exporters: [otlp/grafana, spanmetrics, servicegraph]
+      #exporters: [otlp/grafana, spanmetrics, servicegraph]
 
     # Define the metrics pipeline.
     metrics:
       # Receive metrics from the `prometheus` receiver.
-      #receivers: [otlp, prometheus]
+      receivers: [otlp, prometheus]
       # Comment out other `receivers` definitions and uncomment the line below to import spanmetrics as well
       # as prometheus metrics.
-      receivers: [otlp, prometheus, spanmetrics, servicegraph]
-      # Use the `batch` processor to process received metrics.
+      #receivers: [otlp, prometheus, spanmetrics, servicegraph]
+      # Use the `batch` processor to process received metrics, use the transform metric to ensure that spanmetric
+      # metrics are in the correct format for Grafana Cloud (doesn't take effect unless receivers above are used.)
       processors: [transform, batch]
       # Export to the `prometheusremtotewrite` exporter.
       exporters: [prometheusremotewrite]
