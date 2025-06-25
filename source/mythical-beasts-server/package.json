@@ -26,6 +26,6 @@
     "influx": "^5.10.0",
     "pg": "^8.14.0",
     "prom-client": "github:voltbit/prom-client#add-openmetrics-support",
-    "random": "^5.3.0"
+    "random": "^5.4.0"
   }
 }
