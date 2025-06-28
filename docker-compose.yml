@@ -9,6 +9,7 @@ services:
   alloy:
     image: grafana/alloy:v1.9.1
     ports:
+      - "12350:12350"
       - "12347:12345"
       - "12348:12348"
       - "6832:6832"
@@ -142,6 +143,24 @@ services:
       - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
+
+  # React frontend for the mythical beasts management system
+  mythical-frontend:
+    #build:
+    #  context: ./source/mythical-beasts-frontend
+    #  dockerfile: Dockerfile
+    #  args:
+    #    - REACT_APP_API_URL=/api
+    #    - REACT_APP_ALLOY_ENDPOINT=http://localhost:12350/collect
+    image: grafana/intro-to-mltp:mythical-beasts-frontend-latest
+    restart: always
+    depends_on:
+      mythical-server:
+        condition: service_started
+      alloy:
+        condition: service_started
+    ports:
+      - "3001:80"
 
   # The Tempo service stores traces send to it by Grafana Alloy, and takes
   # queries from Grafana to visualise those traces.

@@ -18,6 +18,7 @@ This readme has the following sections:
     - [Tempo](#tempo)
     - [Pyroscope](#pyroscope)
     - [k6](#k6)
+    - [Faro Web SDK](#faro-web-sdk)
     - [Beyla](#beyla)
     - [Grafana Alloy](#grafana-alloy)
       - [Metrics Generation](#metrics-generation)
@@ -55,6 +56,7 @@ The demos from this series were based on the application and code in this reposi
   * A REST API server that receives requests and utilises a Database for storing/retrieving data for those requests.
   * A recorder service for storing messages to an AMQP bus.
   * A Postgres Database for storing/retrieving data from.
+  * A React-based frontend web interface for managing the REST API server.
 * k6 service running a load test against the above application.
 * Tempo service for storing and querying trace information.
 * Loki service for storing and querying log information.
@@ -89,10 +91,11 @@ To execute the environment and login:
    ```
    - "3123:3000"
    ```
-3. Navigate to the [MLT dashboard](http://localhost:3000/d/ed4f4709-4d3b-48fd-a311-a036b85dbd5b/mlt-dashboard?orgId=1&refresh=5s).
-4. Explore the data sources using the [Grafana Explorer](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22Mimir%22,%22queries%22:%5B%7B%22refId%22:%22A%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
+3. Access the service frontend at http://localhost:3001/ to interact with the data management interface. This will produce Faro session telemetry.
+4. Navigate to the [MLT dashboard](http://localhost:3000/d/ed4f4709-4d3b-48fd-a311-a036b85dbd5b/mlt-dashboard?orgId=1&refresh=5s).
+5. Explore the data sources using the [Grafana Explorer](http://localhost:3000/explore?orgId=1&left=%7B%22datasource%22:%22Mimir%22,%22queries%22:%5B%7B%22refId%22:%22A%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D).
 
-The [pre-provisioned dashboard](grafana/definitions/mlt.json) demonstrates a [RED (Rate, Error, Duration)](https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/) overview of the microservice application, where almost all metrics are being generated via trace spans. The dashboard also provides an example of logging.
+The [pre-provisioned dashboards](grafana/definitions/mlt.json) demonstrates a [RED (Rate, Error, Duration)](https://grafana.com/blog/2018/08/02/the-red-method-how-to-instrument-your-services/) overview of the microservice application, where almost all metrics are being generated via trace spans. The dashboard also provides an example of logging.
 
 [Data links](https://grafana.com/docs/grafana/latest/panels-visualizations/configure-data-links/), [exemplars](https://grafana.com/docs/grafana-cloud/data-configuration/traces/exemplars/), and logs are utilized to allow jumping from the dashboard to a Grafana Explore page to observe traces, metrics, and logs in more detail.
 
@@ -198,6 +201,15 @@ k6 can run one of more VU (Virtual Users) concurrently, to simulate parallel loa
 **Note:** The higher the number of VUs executing, the higher the load on the machine running the Docker Compose sandbox, as this will transfer a significant amount of data. You may find tests being throttled if you ramp this number up without enough resource/bandwidth.
 
 k6 will generate [metrics](https://k6.io/docs/using-k6/metrics/) about the tests that it carries out, and will send these to the running Mimir instance. These metrics can then be used to determine the latencies of endpoints, number of errors occurring, etc. The official Grafana dashboard for k6 is included, and once the sandbox is running, may be found [here](http://localhost:3000/d/01npcT44k/official-k6-test-result?orgId=1&refresh=10s).
+
+### Faro Web SDK
+
+The Faro Web SDK is a Grafana component that collects observability telemetry from within a web application and emits it to a relevant collector. This can be the likes of Grafana Alloy or directly to Grafana Cloud's Frontend endpoint. For more details about Faro Web SDK, read the [documentation](https://github.com/grafana/faro-web-sdk).
+
+In the Intro to MLTP repository, Faro instruments the frontend service described in the `mythical-frontend` section of the [`docker-compose.yml`](docker-compose.yml) manifest, with source in the [`source/mythical-beasts-frontend`](source/mythical-beasts-frontend) directory.
+Note that this service is optional, and is only currently available in the local Alloy-based Docker Compose manifest. The OpenTelemetry Collector does not receive Faro telemetry.
+
+Faro is designed to continue to propagate data across frontend sessions to backend server infrastructure, and as such includes the ability to send relevant state information in headers. For traces, this is based open the OpenTelemetry Tracing Specification, and utilises the `tracestate` and `traceparent` headers to propagate data. In the case of this example, this will show traces starting in the `mythical-frontend` service.
 
 ### Beyla
 

@@ -10,6 +10,7 @@ const logUtils = require('./logging')('mythical-server', 'server');
     const promClient = require('prom-client');
     const express = require('express');
     const bodyParser = require('body-parser');
+    const cors = require('cors');
     const { Client } = require('pg');
     const { nameSet, servicePrefix, spanTag } = require('./endpoints')();
 
@@ -30,6 +31,20 @@ const logUtils = require('./logging')('mythical-server', 'server');
 
     // Use JSON parsing in the request body
     app.use(bodyParser.json());
+
+    // Enable CORS for frontend access
+    app.use(cors({
+        origin: [
+            'http://localhost:3000',  // Development React server
+            'http://localhost:3001',  // Production frontend container
+            //'http://127.0.0.1:3000',
+            //'http://127.0.0.1:3001'
+        ],
+        credentials: true,
+        methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization']
+    }));
+
     let pgClient;
 
     // Database actions

@@ -1,0 +1,275 @@
+.beast-manager {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.beast-manager h2 {
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.beast-manager.server-disconnected {
+  text-align: center;
+  padding: 2rem;
+}
+
+.add-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px solid #e9ecef;
+}
+
+.add-form {
+  width: 100%;
+}
+
+.input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.name-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.name-input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
+}
+
+.name-input:disabled {
+  background-color: #f8f9fa;
+  color: #6c757d;
+}
+
+.random-button {
+  padding: 0.75rem;
+  border: 2px solid #6c757d;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  min-width: 48px;
+}
+
+.random-button:hover:not(:disabled) {
+  background: #f8f9fa;
+  transform: scale(1.05);
+}
+
+.random-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.add-button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.add-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.error-message {
+  background: #ffe6e6;
+  border: 2px solid #ff9999;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  color: #cc0000;
+}
+
+.error-message p {
+  margin: 0;
+}
+
+.names-section {
+  margin-top: 2rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.section-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #495057;
+}
+
+.refresh-button {
+  padding: 0.5rem;
+  border: 2px solid #6c757d;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  min-width: 40px;
+}
+
+.refresh-button:hover:not(:disabled) {
+  background: #f8f9fa;
+  transform: rotate(180deg);
+}
+
+.refresh-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #4ecdc4;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+  background: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #dee2e6;
+}
+
+.empty-state p {
+  margin: 0.5rem 0;
+}
+
+.names-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.name-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.name-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.name-text {
+  font-weight: 500;
+  color: #495057;
+  flex: 1;
+  margin-right: 0.5rem;
+  word-break: break-word;
+}
+
+.delete-button {
+  padding: 0.25rem 0.5rem;
+  border: 2px solid #dc3545;
+  border-radius: 4px;
+  background: white;
+  color: #dc3545;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  min-width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #dc3545;
+  color: white;
+  transform: scale(1.1);
+}
+
+.delete-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .beast-manager {
+    padding: 0;
+  }
+
+  .input-group {
+    flex-direction: column;
+  }
+
+  .name-input {
+    margin-bottom: 0.5rem;
+  }
+
+  .random-button, .add-button {
+    width: 100%;
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .names-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .name-card {
+    padding: 0.75rem;
+  }
+}
