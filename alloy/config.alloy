@@ -150,6 +150,7 @@ loki.process "mythical" {
     forward_to = [loki.write.mythical.receiver]
 }
 
+// Write out to the appropriate Loki instance.
 loki.write "mythical" {
     // Output the Loki log to the local Loki instance.
     endpoint {
@@ -162,6 +163,35 @@ loki.write "mythical" {
         }
     }
 }
+
+// The Loki processor for Faro frontend logs
+loki.process "faro" {
+    // Add labels to identify frontend logs
+    stage.static_labels {
+        values = {
+            job = "mythical-frontend",
+            group = "mythical",
+            service_name = "mythical-frontend",
+        }
+    }
+
+    // Forward to the Faro Loki writer for output
+    forward_to = [loki.write.mythical.receiver]
+}
+
+
+/*loki.write "faro" {
+    // Output the Faro logs to the local Loki instance
+    endpoint {
+        url = json_path(local.file.endpoints.content, ".logs.url")[0]
+
+        // The basic auth credentials for the Loki instance
+        basic_auth {
+            username = json_path(local.file.endpoints.content, ".logs.basicAuth.username")[0]
+            password = json_path(local.file.endpoints.content, ".logs.basicAuth.password")[0]
+        }
+    }
+}*/
 
 ///////////////////////////////////////////////////////////////////////////////
 // Tracing
@@ -203,6 +233,26 @@ otelcol.receiver.otlp "otlp_receiver" {
         metrics = [
             otelcol.processor.batch.default.input,
         ]
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Faro (Frontend Observability)
+
+// The Faro receiver is used to ingest frontend telemetry data from Grafana Faro SDK.
+// This includes traces, logs, measurements, and web vitals from browser applications.
+faro.receiver "frontend" {
+    // Listen for Faro data on port 12350 (custom port to avoid conflicts)
+    server {
+        listen_address = "0.0.0.0"
+        listen_port = 12350
+        cors_allowed_origins = ["*"]
+    }
+
+    // Forward all received data to the appropriate processors
+    output {
+        logs = [loki.process.faro.receiver]
+        traces = [otelcol.processor.batch.default.input]
     }
 }
 

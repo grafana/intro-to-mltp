@@ -39,6 +39,11 @@ jobs:
                       context: source
                       service: mythical-beasts-recorder
                       setup-qemu: true
+                    - file: source/mythical-beasts-frontend/Dockerfile
+                      tag_suffix: mythical-beasts-frontend
+                      context: source/mythical-beasts-frontend
+                      service: mythical-beasts-frontend
+                      setup-qemu: true
 
         steps:
             - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
