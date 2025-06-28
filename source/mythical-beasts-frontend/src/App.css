@@ -1,0 +1,178 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-bottom: 2rem;
+}
+
+.App-header h1 {
+  margin: 0;
+  font-size: 3rem;
+  font-weight: 700;
+}
+
+.App-header p {
+  margin: 0.5rem 0;
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.server-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.connected {
+  background-color: #4caf50;
+}
+
+.status-indicator.disconnected {
+  background-color: #f44336;
+}
+
+.status-indicator.checking {
+  background-color: #ff9800;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.App-main {
+  flex: 1;
+  padding: 0 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.beast-selector {
+  margin-bottom: 3rem;
+}
+
+.beast-selector h2 {
+  color: white;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.beast-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.beast-button {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 3px solid transparent;
+  border-radius: 15px;
+  padding: 1rem 1.5rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.beast-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.beast-button.active {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: currentColor;
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.beast-emoji {
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
+}
+
+.beast-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.beast-manager-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.App-footer {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 1rem;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  margin-top: auto;
+}
+
+.App-footer p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .App-header h1 {
+    font-size: 2rem;
+  }
+
+  .App-header p {
+    font-size: 1rem;
+  }
+
+  .beast-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .beast-button {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .App-main {
+    padding: 0 1rem;
+  }
+
+  .beast-manager-container {
+    padding: 1rem;
+  }
+}
