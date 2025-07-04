@@ -211,6 +211,14 @@ Note that this service is optional, and is only currently available in the local
 
 Faro is designed to continue to propagate data across frontend sessions to backend server infrastructure, and as such includes the ability to send relevant state information in headers. For traces, this is based open the OpenTelemetry Tracing Specification, and utilises the `tracestate` and `traceparent` headers to propagate data. In the case of this example, this will show traces starting in the `mythical-frontend` service.
 
+The default setup is to send Faro data to the local Alloy instance, which will count it as a propagated trace that will include the `mythical-server` service as part of the trace.
+
+For Grafana Cloud, using the [`docker-compose-cloud.yml`](docker-compose-cloud.yml) manifest, you can instead use Grafana Frontend to show session data, as well as statistics on user browser data such as time to first byte, etc. To do so, change the following environment variables in  the `mythical-server` configuration:
+* `FARO_ENDPOINT` to the URL specified in an initialised Grafana Frontend application project, notably the `url` field in the `Settings -> Web SDK Config` section.
+* `USE_GRAFANA_CLOUD` to `true`.
+This will allow you to send Faro data to Grafana Cloud, and see linked traces and logs as part of Grafana Frontend.
+
+
 ### Beyla
 
 Beyla is an eBPF-based tool for generating metrics and trace data without the need for application instrumentation. For more details about Beyla, read the [documentation](https://grafana.com/docs/grafana-cloud/monitor-applications/beyla/).
@@ -332,6 +340,8 @@ This demo can be run against Grafana Cloud by configuring the `alloy/endpoints-c
 5. Run `docker compose -f docker-compose-cloud.yml up`
 
 The Grafana Alloy will send all the signals to the Grafana Cloud stack specified in the `alloy/endpoints-cloud.json` file.
+
+*Note:* See the [`Faro Web SDK`](#faro-web-sdk) for instructions on how to configure the right URL endpoint to send Faro data to Grafana Frontend. It is *vital* to note that you must configure your browser to disable the same-origin policies to allow the local running of a web-server that will send to Grafana Frontend (and to include `localhost` in your allowed domains). For example, in Chrome you can achieve this with the `--disable-web-security` flag.
 
 ## Using the OpenTelemetry Collector
 
