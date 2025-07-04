@@ -126,6 +126,24 @@ const logUtils = require('./logging')('mythical-server', 'server');
         });
     };
 
+    // Configuration endpoint for frontend settings.
+    // This retrieves the correct endpoint to use for Faro data.
+    app.get('/config', async (req, res) => {
+        try {
+            const config = {
+                faroUrl: process.env.FARO_ENDPOINT || 'http://localhost:12350/collect',
+                useGrafanaCloud: process.env.USE_GRAFANA_CLOUD === 'true',
+                environment: process.env.NODE_ENV || 'development',
+                version: '1.0.0',
+                appName: 'mythical-frontend'
+            };
+
+            res.json(config);
+        } catch (error) {
+            res.status(500).json({ error: 'Failed to get configuration' });
+        }
+    });
+
     // Metrics endpoint handler (for Prometheus scraping)
     app.get('/metrics', async (req, res) => {
         res.set('Content-Type', register.contentType);

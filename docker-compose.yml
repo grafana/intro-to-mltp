@@ -119,6 +119,11 @@ services:
       - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
+      # Faro configuration for the frontend, sends to the local Alloy instance.
+      # You can change this to send to Grafana Cloud, but see the `docker-compose-cloud.yml` compose file instead
+      # to send all data to Grafana Cloud.
+      - FARO_ENDPOINT=http://localhost:12350/collect
+      - USE_GRAFANA_CLOUD=false
 
   # A microservice that consumes requests from the mythical-queue
   mythical-recorder:
@@ -151,7 +156,6 @@ services:
     #  dockerfile: Dockerfile
     #  args:
     #    - REACT_APP_API_URL=/api
-    #    - REACT_APP_ALLOY_ENDPOINT=http://localhost:12350/collect
     image: grafana/intro-to-mltp:mythical-beasts-frontend-latest
     restart: always
     depends_on:
