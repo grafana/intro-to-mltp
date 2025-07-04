@@ -2,50 +2,94 @@ import { getWebInstrumentations, initializeFaro } from '@grafana/faro-web-sdk';
 import { TracingInstrumentation } from '@grafana/faro-web-tracing';
 
 let faro = null;
+let configPromise = null;
 
-export const initFaro = () => {
+// Fetch configuration from backend API
+const fetchFaroConfig = async () => {
+  try {
+    // Use the same API base URL logic as the rest of the app
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isDockerizedFrontend = window.location.hostname === 'localhost' && window.location.port === '3001';
+
+    let baseUrl;
+    if (isProduction && isDockerizedFrontend) {
+      baseUrl = '/api'; // Use nginx proxy
+    } else {
+      baseUrl = 'http://localhost:4000'; // Direct API access
+    }
+
+    const response = await fetch(`${baseUrl}/config`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const config = await response.json();
+    console.log('🔧 Fetched Faro config from backend:', config);
+    return config;
+  } catch (error) {
+    console.warn('⚠️ Failed to fetch Faro config from backend, using defaults:', error);
+    // Return default configuration if API call fails
+    return {
+      faroUrl: 'http://localhost:12350/collect',
+      useGrafanaCloud: false,
+      environment: 'development',
+      version: '1.0.0',
+      appName: 'mythical-frontend'
+    };
+  }
+};
+
+export const initFaro = async () => {
   // Return early if already initialized
   if (faro) {
     return faro;
   }
 
+  // Use cached config promise if available
+  if (!configPromise) {
+    configPromise = fetchFaroConfig();
+  }
+
   try {
-    // Get the Alloy endpoint from environment
-    const alloyEndpoint = process.env.REACT_APP_ALLOY_ENDPOINT || 'http://localhost:12350/collect';
+    // Wait for configuration from backend
+    const config = await configPromise;
 
-    console.log('🔍 Initializing Faro with endpoint:', alloyEndpoint);
+    console.log('🔍 Faro URL:', config.faroUrl);
+    console.log('🔍 Using Grafana Cloud:', config.useGrafanaCloud);
+    console.log('🔍 CORS Proxy:', config.useGrafanaCloud ? 'Enabled (via localhost:8080)' : 'Not needed');
 
-    // Initialisation with a average configuration.
+    // Standard Faro initialization
     faro = initializeFaro({
-      // This is the endpoint to send telemetry to. In this case, we're sending to Alloy.
-      url: alloyEndpoint,
+      url: config.faroUrl,
+
       // The application details will set relevant resources attributes.
       app: {
-        name: 'mythical-frontend',
-        version: '1.0.0',
-        environment: 'development',
+        name: config.appName,
+        version: config.version,
+        environment: config.environment,
       },
 
-      // Basic session tracking
+      // Enhanced session tracking for Grafana Cloud
       sessionTracking: {
         enabled: true,
-        persistent: false, // Simplified to avoid storage issues
+        persistent: config.useGrafanaCloud, // Use persistent sessions for cloud
       },
 
-      // Configure batching with longer timeouts to be a bit more forgiving on slower machines.
+      // Configure batching with appropriate timeouts
       batching: {
         enabled: true,
-        sendTimeout: 5000, // Longer timeout to prevent connection issues
+        sendTimeout: config.useGrafanaCloud ? 10000 : 5000, // Longer timeout for cloud
+        itemLimit: config.useGrafanaCloud ? 50 : 25, // More items per batch for cloud
       },
 
-      // Basic instrumentation.
+      // Enhanced instrumentation for better observability
       instrumentations: [
         ...getWebInstrumentations({
-          captureConsole: false, // Disable console capture to reduce noisey output. Set to true to capture:
-          captureConsoleDisabledLevels: ['debug', 'log'],
+          captureConsole: true,
+          captureConsoleDisabledLevels: ['debug'], // Capture more for cloud
         }),
 
-        // Add tracing instrumentation with simple configuration.
+        // Add tracing instrumentation
         new TracingInstrumentation({
           instrumentationOptions: {
             // Only trace API calls to our backend
@@ -59,7 +103,6 @@ export const initFaro = () => {
 
       // Some basic error handling.
       beforeSend: (event) => {
-        // Simple pass-through with error handling
         try {
           return event;
         } catch (error) {
@@ -74,9 +117,14 @@ export const initFaro = () => {
     // Send a simple test event
     setTimeout(() => {
       try {
-        faro.api.pushLog(['Faro SDK test log'], {
+        faro.api.pushLog(['Faro SDK initialized successfully'], {
           level: 'info',
-          context: { source: 'faro-init' }
+          context: {
+            source: 'faro-init',
+            endpoint: config.faroUrl,
+            useGrafanaCloud: config.useGrafanaCloud,
+            corsProxy: config.useGrafanaCloud ? 'localhost:8080' : 'none'
+          }
         });
       } catch (error) {
         console.warn('Failed to send test log:', error);
@@ -94,13 +142,13 @@ export const initFaro = () => {
         pushLog: () => {},
         pushError: () => {},
         pushMeasurement: (measurement, operation) => {
-          // If there's an operation function, just call it directly
           if (typeof operation === 'function') {
             return operation();
           }
           return Promise.resolve();
         },
         getTraceContext: () => null,
+        getOTEL: () => null,
       }
     };
 

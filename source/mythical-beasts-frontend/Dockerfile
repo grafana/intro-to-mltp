@@ -1,13 +1,11 @@
 # Build stage
 FROM node:18-alpine AS build
 
-# Accept build arguments
+# Accept build arguments (only keep API URL for build-time configuration)
 ARG REACT_APP_API_URL
-ARG REACT_APP_ALLOY_ENDPOINT
 
 # Set as environment variables for the build process
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
-ENV REACT_APP_ALLOY_ENDPOINT=$REACT_APP_ALLOY_ENDPOINT
 
 WORKDIR /app
 

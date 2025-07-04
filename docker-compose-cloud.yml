@@ -11,6 +11,7 @@ services:
     ports:
       - "12347:12345"
       - "12348:12348"
+      - "12350:12350"
       - "6832:6832"
       - "55679:55679"
       - "4317:4317"
@@ -75,6 +76,25 @@ services:
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.4
 
+  # React frontend for the mythical beasts management system
+  mythical-frontend:
+    #build:
+    #  context: ./source/mythical-beasts-frontend
+    #  dockerfile: Dockerfile
+    #  args:
+    #    - REACT_APP_API_URL=/api
+    # By default, this will try and send to Alloy instead of Grafana Cloud Frontend.
+    image: grafana/intro-to-mltp:mythical-beasts-frontend-latest
+    restart: always
+    depends_on:
+      mythical-server:
+        condition: service_started
+      alloy:
+        condition: service_started
+    ports:
+      - "3001:80"
+
+
   # The API server microservice.
   # It writes logs directly to the Loki service, exposes metrics for the Prometheus
   # service and sends traces to the Grafana Alloy instance.
@@ -100,6 +120,11 @@ services:
       - PROFILE_COLLECTOR_PORT=4040
       - OTEL_EXPORTER_OTLP_TRACES_INSECURE=true
       - OTEL_RESOURCE_ATTRIBUTES=ip=1.2.3.5
+      # By default, this will try and send Faro data to the local Alloy instance.
+      # For Grafana Cloud, set FARO_ENDPOINT to your Grafana Cloud Frontend endpoint, and set
+      # USE_GRAFANA_CLOUD to true.
+      - FARO_ENDPOINT=http://localhost:12350/collect
+      - USE_GRAFANA_CLOUD=false
 
   # A microservice that consumes requests from the mythical-queue
   mythical-recorder:

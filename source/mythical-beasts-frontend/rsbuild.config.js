@@ -34,7 +34,6 @@ export default defineConfig({
       source: {
         define: {
           'process.env.REACT_APP_API_URL': JSON.stringify(process.env.REACT_APP_API_URL || '/api'),
-          'process.env.REACT_APP_ALLOY_ENDPOINT': JSON.stringify(process.env.REACT_APP_ALLOY_ENDPOINT || 'http://localhost:12350/collect'),
           'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
         },
       },

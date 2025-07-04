@@ -108,7 +108,7 @@
             "uid": "mimir"
           },
           "editorMode": "code",
-          "expr": "sum by (http_method)(rate(traces_spanmetrics_calls_total{service_name=\"mythical-server\",http_method=~\"${httpMethod}\"}[1m]))",
+          "expr": "sum by (http_method)(rate(traces_spanmetrics_calls_total{service=\"mythical-server\",http_method=~\"${httpMethod}\"}[1m]))",
           "legendFormat": "",
           "range": true,
           "refId": "A"
