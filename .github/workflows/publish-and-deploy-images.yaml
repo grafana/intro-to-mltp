@@ -106,7 +106,7 @@ jobs:
                   DOCKERHUB_PASSWORD=dockerhub:password
 
             - name: Login to Docker Hub
-              uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
+              uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef
               with:
                 username: ${{ env.DOCKERHUB_USERNAME }}
                 password: ${{ env.DOCKERHUB_PASSWORD }}
