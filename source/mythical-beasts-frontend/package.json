@@ -4,17 +4,17 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "@grafana/faro-web-sdk": "^1.4.2",
-    "@grafana/faro-web-tracing": "^1.4.2",
-    "axios": "^1.10.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "@grafana/faro-web-sdk": "^1.19.0",
+    "@grafana/faro-web-tracing": "^1.19.0",
+    "axios": "^1.13.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@rsbuild/core": "^1.0.0",
-    "@rsbuild/plugin-react": "^1.0.0",
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0"
+    "@rsbuild/core": "^1.7.1",
+    "@rsbuild/plugin-react": "^1.4.2",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3"
   },
   "scripts": {
     "dev": "rsbuild dev",
