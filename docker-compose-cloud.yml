@@ -7,7 +7,7 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:v1.12.1
+    image: grafana/alloy:v1.12.1@sha256:c311595156fca7b1131683d383dae1acfd29e8879d347161d2a6f714ebac0c0b
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -28,7 +28,7 @@ services:
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
   mythical-queue:
-    image: rabbitmq:management
+    image: rabbitmq:management@sha256:d60859c4cd928865145637ed230bcc8c70e36b8e445465f75383185c6f0b28dd
     restart: always
     ports:
       - "5672:5672"
@@ -41,7 +41,7 @@ services:
 
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
-    image: postgres:14.5
+    image: postgres:14.5@sha256:135c62a8134dcef829a1e4f5568bfae44bcfa2c75659ff948f43c71964366aa4
     restart: always
     environment:
       POSTGRES_PASSWORD: "mythical"
@@ -57,7 +57,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-requester
-    image: grafana/intro-to-mltp:mythical-beasts-requester-latest
+    image: grafana/intro-to-mltp:mythical-beasts-requester-latest@sha256:dda1ba3347f2d117a3f70686ddf9dc4198b78ce568cfa630a1634fa717850e7e
     restart: always
     depends_on:
       mythical-queue:
@@ -84,7 +84,7 @@ services:
     #  args:
     #    - REACT_APP_API_URL=/api
     # By default, this will try and send to Alloy instead of Grafana Cloud Frontend.
-    image: grafana/intro-to-mltp:mythical-beasts-frontend-latest
+    image: grafana/intro-to-mltp:mythical-beasts-frontend-latest@sha256:ae14df367d471b4437b709e8f9bc857c77280b514c986acd69f163d03a0e44eb
     restart: always
     depends_on:
       mythical-server:
@@ -104,7 +104,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-server
-    image: grafana/intro-to-mltp:mythical-beasts-server-latest
+    image: grafana/intro-to-mltp:mythical-beasts-server-latest@sha256:90f92b40d2dfed8a647b3834ae5c8257ad7d2c08cf94d0689e98e4ad7f9c7717
     restart: always
     ports:
       - "4000:4000"
@@ -133,7 +133,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-recorder
-    image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
+    image: grafana/intro-to-mltp:mythical-beasts-recorder-latest@sha256:dae10980a1f422d659d0862275f77dca42a735681c4c65a27d78eb719190e13d
     restart: always
     depends_on:
       mythical-queue:
