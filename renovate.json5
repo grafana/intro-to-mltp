@@ -1,0 +1,34 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+
+  "schedule": "* * 1 * *",
+
+  // double PR and branch limits
+  prConcurrentLimit: 10,
+  branchConcurrentLimit: 10,
+  labels: ['dependencies'],
+
+  // put by default dependency update all in one group
+  groupName: "config-no-service",
+
+  "assigneesFromCodeOwners": true,
+
+  "packageRules": [
+    {
+      "matchFileNames": ["source/mythical-beasts-frontend/**"],
+      "groupName": "frontend",
+    },
+    {
+      "matchFileNames": ["source/mythical-beasts-requester/**"],
+      "groupName": "requester",
+    },
+    {
+      "matchFileNames": ["source/mythical-beasts-server/**"],
+      "groupName": "server",
+    },
+    {
+      "matchFileNames": ["source/mythical-beasts-recorder/**"],
+      "groupName": "recorder",
+    },
+  ]
+}
