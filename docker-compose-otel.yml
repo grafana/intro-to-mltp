@@ -46,13 +46,17 @@ services:
       retries: 10
 
   # A postgres DB used to store data by the API server microservice.
+  # Configured for Grafana Database Observability (pg_stat_statements, db-o11y user).
   mythical-database:
     image: postgres:14.5
     restart: always
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements", "-c", "track_activity_query_size=4096"]
     environment:
       POSTGRES_PASSWORD: "mythical"
+      DB_O11Y_PASSWORD: "${DB_O11Y_PASSWORD:-db-o11y-dev}"
     volumes:
       - "postgres:/var/lib/postgresql/data"
+      - "./postgres-init/01-db-o11y-setup.sh:/docker-entrypoint-initdb.d/01-db-o11y-setup.sh"
     ports:
       - "5432:5432"
 
