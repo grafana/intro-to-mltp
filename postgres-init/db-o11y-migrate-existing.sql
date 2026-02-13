@@ -13,7 +13,7 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = "db-o11y") THEN
-    CREATE USER "db-o11y" WITH PASSWORD "db-o11y-dev";
+    CREATE USER "db-o11y" WITH PASSWORD "<DB_O11Y_PASSWORD>";
   END IF;
 END
 $$;
