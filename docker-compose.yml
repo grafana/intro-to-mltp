@@ -7,6 +7,9 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
+    depends_on:
+      mythical-database:
+        condition: service_healthy
     image: grafana/alloy:v1.12.1
     ports:
       - "12350:12350"
@@ -19,6 +22,7 @@ services:
     volumes:
       - "./alloy/config.alloy:/etc/alloy/config.alloy"
       - "./alloy/endpoints.json:/etc/alloy/endpoints.json"
+      - "./alloy/postgres_secret_postgres:/etc/alloy/postgres_secret_postgres"
     command: [
       "run",
       "--server.http.listen-addr=0.0.0.0:12345",
@@ -68,6 +72,12 @@ services:
       - "./postgres-init/01-db-o11y-setup.sh:/docker-entrypoint-initdb.d/01-db-o11y-setup.sh"
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   # A microservice that makes requests to the API server microservice. Requests are also pushed onto the mythical-queue.
   mythical-requester:
