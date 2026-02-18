@@ -1,5 +1,6 @@
 **/node_modules/
 agent/config-cloud-configured.yaml
+alloy/postgres_secret_postgres
 docker-compose-cloud-configured.yml
 unconfigure.sh
 .idea/

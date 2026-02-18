@@ -11,6 +11,7 @@ This readme has the following sections:
   - [Running the Demonstration Environment](#running-the-demonstration-environment)
     - [Using Grafana Cloud for Observability (Optional)](#using-grafana-cloud-for-observability-optional)
     - [OpenTelemetry Collector (Optional)](#opentelemetry-collector-optional)
+    - [PostgreSQL and Grafana Database Observability](#postgresql-and-grafana-database-observability)
   - [Services](#services)
     - [Grafana](#grafana)
     - [Mimir](#mimir)
@@ -112,6 +113,16 @@ Read the [Using Grafana Cloud Hosted Observability](#Grafana-Cloud) section belo
 You can swap out the Grafana Alloy for the OpenTelemetry collector using an alternative configuration.
 
 Read the [Using the OpenTelemetry Collector](#Using-the-OpenTelemetry-Collector) section below to use this environment instead.
+
+### PostgreSQL and Grafana Database Observability
+
+The Postgres service (`mythical-database`) is configured for [Grafana Database Observability](https://grafana.com/docs/grafana-cloud/monitor-applications/database-observability/get-started/postgres/postgres/): `pg_stat_statements` is enabled, `track_activity_query_size` is set to 4096, and a monitoring user `db-o11y` is created on first run (when the data volume is empty). The password is set via the `DB_O11Y_PASSWORD` environment variable (default `db-o11y-dev` for local dev). If the volume already existed before this setup, use the one-off script [`postgres-init/db-o11y-migrate-existing.sql`](postgres-init/db-o11y-migrate-existing.sql) and replace `<DB_O11Y_PASSWORD>` before running it per database.
+
+**Verification (run against the running Postgres container):**
+
+* Extension: `SELECT * FROM pg_extension WHERE extname = 'pg_stat_statements';` — should return one row.
+* Setting: `SHOW track_activity_query_size;` — expected `4096` (or 4kB).
+* User and privileges: connect as `db-o11y` (e.g. `psql -h localhost -p 5432 -U db-o11y -d postgres`) and run `SELECT * FROM pg_stat_statements LIMIT 1;` — should succeed.
 
 ## Services
 ### Grafana

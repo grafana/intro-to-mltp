@@ -110,6 +110,64 @@ prometheus.remote_write "mimir" {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Database Observability (PostgreSQL)
+// Collects metrics and logs from PostgreSQL for Grafana Database Observability.
+// Requires Alloy to run with --stability.level=public-preview.
+// See: https://grafana.com/docs/grafana-cloud/monitor-applications/database-observability/get-started/postgres/postgres/#add-the-postgresql-configuration-blocks
+
+local.file "postgres_secret_postgres" {
+    filename  = "/etc/alloy/postgres_secret_postgres"
+    is_secret = true
+}
+
+prometheus.exporter.postgres "postgres_postgres" {
+    data_source_names  = [local.file.postgres_secret_postgres.content]
+    enabled_collectors = ["stat_statements"]
+
+    autodiscovery {
+        enabled = true
+        // If running on AWS RDS, exclude the `rdsadmin` database.
+        database_denylist = ["rdsadmin"]
+    }
+}
+
+database_observability.postgres "postgres_postgres" {
+    data_source_name   = local.file.postgres_secret_postgres.content
+    forward_to        = [loki.relabel.database_observability_postgres_postgres.receiver]
+    targets           = prometheus.exporter.postgres.postgres_postgres.targets
+    enable_collectors = ["query_details", "query_samples", "schema_details"]
+    disable_collectors = ["explain_plans"]
+}
+
+loki.relabel "database_observability_postgres_postgres" {
+    forward_to = [loki.write.mythical.receiver]
+
+    rule {
+        target_label = "instance"
+        replacement  = "mythical-postgres"
+    }
+}
+
+discovery.relabel "database_observability_postgres_postgres" {
+    targets = database_observability.postgres.postgres_postgres.targets
+
+    rule {
+        target_label = "job"
+        replacement  = "integrations/db-o11y"
+    }
+
+    rule {
+        target_label = "instance"
+        replacement  = "mythical-postgres"
+    }
+}
+
+prometheus.scrape "database_observability_postgres_postgres" {
+    targets    = discovery.relabel.database_observability_postgres_postgres.output
+    forward_to = [prometheus.remote_write.mimir.receiver]
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Logging
 
 // The Loki receiver is used to ingest logs from the mythical application via Loki's HTTP REST API.
