@@ -5,7 +5,7 @@ volumes:
 services:
   # The opentelemetry-collector batches and processes traces sent to it.
   opentelemetry-collector:
-    image: otel/opentelemetry-collector-contrib
+    image: otel/opentelemetry-collector-contrib@sha256:f6e429c1052ab50f85a7afa5f7e32f25931697751622b0e1f453d10f79a1df3c
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -19,7 +19,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:12.3.1
+    image: grafana/grafana:12.3.1@sha256:2175aaa91c96733d86d31cf270d5310b278654b03f5718c59de12a865380a31f
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -34,7 +34,7 @@ services:
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
   mythical-queue:
-    image: rabbitmq:management
+    image: rabbitmq:management@sha256:ae4a4628f132397d1290c9be38bec1eb4befd262cc9b4cee51d5706cce6c4314
     restart: always
     ports:
       - "5672:5672"
@@ -47,7 +47,7 @@ services:
 
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
-    image: postgres:14.5
+    image: postgres:14.5@sha256:135c62a8134dcef829a1e4f5568bfae44bcfa2c75659ff948f43c71964366aa4
     restart: always
     environment:
       POSTGRES_PASSWORD: "mythical"
@@ -63,7 +63,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-requester
-    image: grafana/intro-to-mltp:mythical-beasts-requester-latest
+    image: grafana/intro-to-mltp:mythical-beasts-requester-latest@sha256:198a390f5011e6fb134c3fc55f4ab1c4b0bfdb8fcc7486508190c52a0772f3dd
     restart: always
     depends_on:
       mythical-queue:
@@ -91,7 +91,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-server
-    image: grafana/intro-to-mltp:mythical-beasts-server-latest
+    image: grafana/intro-to-mltp:mythical-beasts-server-latest@sha256:5150d90e3643aeaa2abae1a08a1e4c6a9d5728b231fa0b5ef7228491a8b20e13
     restart: always
     ports:
       - "4000:4000"
@@ -115,7 +115,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-recorder
-    image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
+    image: grafana/intro-to-mltp:mythical-beasts-recorder-latest@sha256:82cd1496fd5bdf346bcab547d977e036873a963ea2944292322f54c2d9911b3f
     restart: always
     depends_on:
       mythical-queue:
@@ -135,7 +135,7 @@ services:
   # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.9.0
+    image: grafana/tempo:2.9.0@sha256:65a5789759435f1ef696f1953258b9bbdb18eb571d5ce711ff812d2e128288a4
     ports:
       - "3200:3200"
       - "55680:55680"
@@ -148,7 +148,7 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:3.6.3
+    image: grafana/loki:3.6.3@sha256:cd6e176883a90c21755f0315688668991634143423f75bdedfef41441b0fdc3c
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
@@ -156,7 +156,7 @@ services:
       - "./loki/loki.yaml:/etc/loki/loki.yaml"
 
   mimir:
-    image: grafana/mimir:2.17.4
+    image: grafana/mimir:2.17.4@sha256:7bfe8be67bbd6c09dc2deadbfc64b782624759e573d4bd6f086aab22fe7fbf7c
     command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
@@ -164,13 +164,13 @@ services:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
   pyroscope:
-    image: grafana/pyroscope:1.16.2
+    image: grafana/pyroscope:1.16.2@sha256:2c048fedb4a099177222b45b19f1e87b13680714e05d2f92584494c36b1f1ab0
     ports:
       - "4040:4040"
     command: ["server"]
 
   k6:
-    image: grafana/k6:1.5.0
+    image: grafana/k6:1.5.0@sha256:2072ea9eafa596532d9aee0cc0e0a50cfb0e7fb703981a46179af5f4f22c5ea4
     volumes:
       - "./k6:/scripts"
     environment:
