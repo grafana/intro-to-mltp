@@ -1,12 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-// Database Observability (PostgreSQL) — loaded only when using Grafana Cloud.
-// Collects metrics and logs from PostgreSQL for Grafana Database Observability.
+// Database Observability (PostgreSQL)
+// Collects metrics and logs from PostgreSQL for Database Observability in Grafana Cloud.
 // Requires Alloy to run with --stability.level=public-preview.
 // See: https://grafana.com/docs/grafana-cloud/monitor-applications/database-observability/get-started/postgres/postgres/#add-the-postgresql-configuration-blocks
-//
-// This file is loaded only by docker-compose-cloud.yml (Grafana Cloud). The local
-// stack (docker-compose.yml) uses config.alloy only, so database observability
-// is not enabled when sending data locally.
 
 local.file "postgres_secret_postgres" {
     filename  = "/etc/alloy/postgres_secret_postgres"

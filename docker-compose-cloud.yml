@@ -45,7 +45,7 @@ services:
       retries: 10
 
   # A postgres DB used to store data by the API server microservice.
-  # Configured for Grafana Database Observability (pg_stat_statements, db-o11y user).
+  # Configured for Grafana Cloud Database Observability
   mythical-database:
     image: postgres:14.5
     restart: always

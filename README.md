@@ -10,8 +10,8 @@ This readme has the following sections:
   - [Overview](#overview)
   - [Running the Demonstration Environment](#running-the-demonstration-environment)
     - [Using Grafana Cloud for Observability (Optional)](#using-grafana-cloud-for-observability-optional)
+    - [Grafana Cloud Database Observability](#grafana-cloud-database-observability)
     - [OpenTelemetry Collector (Optional)](#opentelemetry-collector-optional)
-    - [PostgreSQL and Grafana Database Observability](#postgresql-and-grafana-database-observability)
   - [Services](#services)
     - [Grafana](#grafana)
     - [Mimir](#mimir)
@@ -108,15 +108,15 @@ You can swap out the local Observability Stack and instead use Grafana Cloud.
 
 Read the [Using Grafana Cloud Hosted Observability](#Grafana-Cloud) section below to use this environment instead.
 
+### Grafana Cloud Database Observability
+
+Database Observability is enabled **only when using Grafana Cloud** ([`docker-compose-cloud.yml`](docker-compose-cloud.yml)); the local stack ([`docker-compose.yml`](docker-compose.yml)) does not enable it. When using the Cloud stack, the Postgres service (`mythical-database`) is configured for [Grafana Cloud Database Observability](https://grafana.com/docs/grafana-cloud/monitor-applications/database-observability/): `pg_stat_statements` is enabled, `track_activity_query_size` is set to 4096, and a monitoring user `db-o11y` is created on first run (when the data volume is empty). The password is set via the `DB_O11Y_PASSWORD` environment variable (default `db-o11y-dev` for local dev). If the volume already existed before this setup, use the one-off script [`postgres-init/db-o11y-migrate-existing.sql`](postgres-init/db-o11y-migrate-existing.sql) and replace `<DB_O11Y_PASSWORD>` before running it per database.
+
 ### OpenTelemetry Collector (Optional)
 
 You can swap out the Grafana Alloy for the OpenTelemetry collector using an alternative configuration.
 
 Read the [Using the OpenTelemetry Collector](#Using-the-OpenTelemetry-Collector) section below to use this environment instead.
-
-### PostgreSQL and Grafana Database Observability
-
-Database observability is enabled **only when using Grafana Cloud** ([`docker-compose-cloud.yml`](docker-compose-cloud.yml)); the local stack ([`docker-compose.yml`](docker-compose.yml)) does not enable it. When using the cloud stack, the Postgres service (`mythical-database`) is configured for [Grafana Database Observability](https://grafana.com/docs/grafana-cloud/monitor-applications/database-observability/get-started/postgres/postgres/): `pg_stat_statements` is enabled, `track_activity_query_size` is set to 4096, and a monitoring user `db-o11y` is created on first run (when the data volume is empty). The password is set via the `DB_O11Y_PASSWORD` environment variable (default `db-o11y-dev` for local dev). If the volume already existed before this setup, use the one-off script [`postgres-init/db-o11y-migrate-existing.sql`](postgres-init/db-o11y-migrate-existing.sql) and replace `<DB_O11Y_PASSWORD>` before running it per database.
 
 **Verification (run against the running Postgres container):**
 

@@ -110,10 +110,6 @@ prometheus.remote_write "mimir" {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Database Observability (PostgreSQL) is enabled only when using Grafana Cloud.
-// See alloy/config-db-o11y.alloy — loaded only by docker-compose-cloud.yml.
-
-///////////////////////////////////////////////////////////////////////////////
 // Logging
 
 // The Loki receiver is used to ingest logs from the mythical application via Loki's HTTP REST API.

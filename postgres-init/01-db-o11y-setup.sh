@@ -1,5 +1,6 @@
 #!/bin/bash
-# Grafana Database Observability: create pg_stat_statements extension, db-o11y user, and grants.
+# Setup for Grafana Cloud Database Observability (PostgreSQL)
+# See more here: https://grafana.com/docs/grafana-cloud/monitor-applications/database-observability/get-started/postgres/postgres/#set-up-the-postgresql-database
 # Runs once when the Postgres data directory is first created (docker-entrypoint-initdb.d).
 set -e
 
