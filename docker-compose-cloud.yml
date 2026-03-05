@@ -21,13 +21,14 @@ services:
       - "4318:4318"
     volumes:
       - "./alloy/config.alloy:/etc/alloy/config.alloy"
+      - "./alloy/config-db-o11y.alloy:/etc/alloy/config-db-o11y.alloy"
       - "./alloy/endpoints-cloud.json:/etc/alloy/endpoints.json"
       - "./alloy/postgres_secret_postgres:/etc/alloy/postgres_secret_postgres"
     command: [
       "run",
       "--server.http.listen-addr=0.0.0.0:12345",
       "--stability.level=public-preview",
-      "/etc/alloy/config.alloy",
+      "/etc/alloy",
     ]
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
