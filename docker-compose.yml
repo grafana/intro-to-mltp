@@ -55,6 +55,8 @@ services:
       retries: 10
 
   # A postgres DB used to store data by the API server microservice.
+  # If upgrading from PostgreSQL 14, run `docker compose down -v` once first
+  # to recreate the volume with PostgreSQL 18.
   mythical-database:
     image: postgres:18.3@sha256:69e8582b781cb44fa4557b98ed586fe68361e320d9b12f9707494335634f4f3d
     restart: always
