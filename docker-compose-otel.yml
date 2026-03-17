@@ -52,7 +52,7 @@ services:
     environment:
       POSTGRES_PASSWORD: "mythical"
     volumes:
-      - "postgres:/var/lib/postgresql/data"
+      - "postgres:/var/lib/postgresql"
     ports:
       - "5432:5432"
 
