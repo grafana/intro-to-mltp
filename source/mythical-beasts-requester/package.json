@@ -20,7 +20,7 @@
     "@opentelemetry/sdk-trace-node": "^2.2.0",
     "@opentelemetry/semantic-conventions": "^1.38.0",
     "@pyroscope/nodejs": "^0.4.8",
-    "amqplib": "^1.0.0",
+    "amqplib": "^0.10.9",
     "axios": "^1.13.2",
     "express": "^5.2.1",
     "package.json": "^2.0.0",
