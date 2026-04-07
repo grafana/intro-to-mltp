@@ -47,7 +47,7 @@ services:
 
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
-    image: postgres:14.21@sha256:b964c3211689ffe50cc65235ea338717520954dcf6ecd4d76bf887eba3cbc91f
+    image: postgres:14.22@sha256:8c106fde572fb799217dcacb01b6f869af693322069bc134dbd6341d0c175abd
     restart: always
     environment:
       POSTGRES_PASSWORD: "mythical"
