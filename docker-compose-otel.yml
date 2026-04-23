@@ -167,7 +167,6 @@ services:
     image: grafana/pyroscope:2.0.0@sha256:fe9a196d9c1198fce10232780b1d8169eb28860a22cd36fa1c7b0bf8320ec3c0
     ports:
       - "4040:4040"
-    command: ["server"]
 
   k6:
     image: grafana/k6:1.5.0
