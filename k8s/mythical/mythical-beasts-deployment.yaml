@@ -240,7 +240,7 @@ spec:
           value: mythical
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
-        image: postgres:14.5
+        image: postgres:14.21
         imagePullPolicy: Always
         name: mythical-requester
         ports:
