@@ -179,4 +179,4 @@ services:
       - K6_VUS=4
       - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
     restart: always
-    command: ["run", "-o", "experimental-prometheus-rw", "/scripts/mythical-loadtest.js"]
+    command: ["run", "-o", "prometheus-rw", "/scripts/mythical-loadtest.js"]
