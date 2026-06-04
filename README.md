@@ -41,6 +41,11 @@ Since the original series, this repository has seen its use grow. Whilst we stil
 
 You can also send data from the example microservice application to Grafana Cloud products.
 
+> [!NOTE]
+> This repository ships a full demo: a sample microservice application (the "Mythical Beasts" services) and a load generator, alongside the complete observability stack, so you can explore metrics, logs, traces and profiles with data flowing out of the box.
+>
+> If you only need an observability backend to send your own application's OpenTelemetry data to, use [`grafana/docker-otel-lgtm`](https://github.com/grafana/docker-otel-lgtm) instead. It bundles the OpenTelemetry Collector, Prometheus, Tempo, Loki, Pyroscope and Grafana into a single container, with no sample application. Reach for it when you have an instrumented app of your own and just want a quick local backend; use this repository when you want a ready-made end-to-end demo.
+
 ## Prerequisites
 
 The following demonstration environment requires:
@@ -69,7 +74,7 @@ The demos from this series were based on the application and code in this reposi
 
 ## Running the Demonstration Environment
 
-Docker Compose will download the required Docker images, before starting the demonstration environment.
+Docker Compose will download the required Docker images, before starting the demonstration environment. The pre-built microservice images are pulled from the GitHub Container Registry (`ghcr.io/grafana/intro-to-mltp`); see [Microservice Source](#microservice-source) for details. These images are no longer published to Docker Hub.
 
 In the following examples, the in-built `compose` command is used with a latest version of Docker (for example, `docker compose up`). If using an older version of Docker with a separate Docker Compose binary, ensure that `docker compose` is replaced with `docker-compose`.
 
@@ -310,6 +315,14 @@ The [`requester`](source/mythical-beasts-requester/index.js) service makes 'rand
 All three services use common code to deal with the [`queue`](source/common/queue.js), [`logging`](source/common/logging.js) and [`tracing`](source/common/tracing.js) requirements they have. The latter is an example of a simple shim API library for utilising the OpenTelemetry SDK in an application.
 
 There is a common [`Dockerfile`](source/docker/Dockerfile) that is used to build all three services.
+
+Pre-built images for the microservice application are published to the GitHub Container Registry (GHCR) under [`ghcr.io/grafana/intro-to-mltp`](https://github.com/grafana/intro-to-mltp/pkgs/container/intro-to-mltp):
+* [`ghcr.io/grafana/intro-to-mltp:mythical-beasts-requester-latest`](https://github.com/grafana/intro-to-mltp/pkgs/container/intro-to-mltp)
+* [`ghcr.io/grafana/intro-to-mltp:mythical-beasts-server-latest`](https://github.com/grafana/intro-to-mltp/pkgs/container/intro-to-mltp)
+* [`ghcr.io/grafana/intro-to-mltp:mythical-beasts-recorder-latest`](https://github.com/grafana/intro-to-mltp/pkgs/container/intro-to-mltp)
+* [`ghcr.io/grafana/intro-to-mltp:mythical-beasts-frontend-latest`](https://github.com/grafana/intro-to-mltp/pkgs/container/intro-to-mltp)
+
+These are the images referenced by the Docker Compose and Kubernetes manifests in this repository. **Note:** New images are no longer published to Docker Hub; the [`docker.io/grafana/intro-to-mltp`](https://hub.docker.com/r/grafana/intro-to-mltp) images are deprecated and will not receive updates. Use the GHCR images above instead. Older tags remain available at [https://hub.docker.com/r/grafana/intro-to-mltp/tags](https://hub.docker.com/r/grafana/intro-to-mltp/tags).
 
 An example pipeline stage in Alloy to rewrite timestamps can be enabled by uncommenting the `TIMESHIFT` environment variable for the `mythical-requester` service. See details in the [Alloy configuration file](alloy/config.alloy).
 
