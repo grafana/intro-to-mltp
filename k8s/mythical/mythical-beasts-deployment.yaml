@@ -47,7 +47,7 @@ spec:
               fieldPath: status.podIP
         - name: OTEL_RESOURCE_ATTRIBUTES
           value: ip=$(POD_IP)
-        image: grafana/intro-to-mltp:mythical-beasts-requester-latest
+        image: ghcr.io/grafana/intro-to-mltp:mythical-beasts-requester-latest
         imagePullPolicy: Always
         name: mythical-requester
         resources: {}
@@ -105,7 +105,7 @@ spec:
               fieldPath: status.podIP
         - name: OTEL_RESOURCE_ATTRIBUTES
           value: ip=$(POD_IP)
-        image: grafana/intro-to-mltp:mythical-beasts-server-latest
+        image: ghcr.io/grafana/intro-to-mltp:mythical-beasts-server-latest
         imagePullPolicy: Always
         name: mythical-server
         ports:
@@ -164,7 +164,7 @@ spec:
               fieldPath: status.podIP
         - name: OTEL_RESOURCE_ATTRIBUTES
           value: ip=$(POD_IP)
-        image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
+        image: ghcr.io/grafana/intro-to-mltp:mythical-beasts-recorder-latest
         imagePullPolicy: Always
         name: mythical-recorder
         resources: {}

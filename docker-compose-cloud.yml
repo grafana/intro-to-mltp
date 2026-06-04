@@ -57,7 +57,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-requester
-    image: grafana/intro-to-mltp:mythical-beasts-requester-latest
+    image: ghcr.io/grafana/intro-to-mltp:mythical-beasts-requester-latest
     restart: always
     depends_on:
       mythical-queue:
@@ -84,7 +84,7 @@ services:
     #  args:
     #    - REACT_APP_API_URL=/api
     # By default, this will try and send to Alloy instead of Grafana Cloud Frontend.
-    image: grafana/intro-to-mltp:mythical-beasts-frontend-latest
+    image: ghcr.io/grafana/intro-to-mltp:mythical-beasts-frontend-latest
     restart: always
     depends_on:
       mythical-server:
@@ -104,7 +104,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-server
-    image: grafana/intro-to-mltp:mythical-beasts-server-latest
+    image: ghcr.io/grafana/intro-to-mltp:mythical-beasts-server-latest
     restart: always
     ports:
       - "4000:4000"
@@ -133,7 +133,7 @@ services:
     #  dockerfile: docker/Dockerfile
     #  args:
     #    SERVICE: mythical-beasts-recorder
-    image: grafana/intro-to-mltp:mythical-beasts-recorder-latest
+    image: ghcr.io/grafana/intro-to-mltp:mythical-beasts-recorder-latest
     restart: always
     depends_on:
       mythical-queue:
