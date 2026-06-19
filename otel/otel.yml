@@ -144,24 +144,22 @@ connectors:
     exemplars:
       enabled: true
 
-  # The servicegraph connector is used to output service node metrics based on received trace spans.
-  servicegraph:
-      # Explicitly flush metrics every 60 seconds. Note, this will double active series count for the
-      # `trace.servicegraph` metric namespace.
-      metrics_flush_interval: 60s
-      # Defines which exporter the processor will write metrics to.
-      metrics_exporter: prometheusremotewrite
-      # Defines additional label dimensions of the metrics from trace span attributes present.
-      store:                      # Configuration for the in-memory store.
-        ttl: 2s                   # Time to wait for an edge to be completed.
-        max_items: 200            # Number of edges that will be stored in the storeMap.
-      cache_loop: 2m              # The timeout used to clean the cache periodically.
-      store_expiration_loop: 10s  # The timeout used to expire old entries from the store periodically.
-      # Virtual node peer attributes allow server nodes to be generated where instrumentation isn't present (eg. where
-      # service client calls remotely to a service that does not include instrumentation).
-      # Service nodes/edges will be generated for any attribute defined.
-      virtual_node_peer_attributes:
-        - db.name
+  # The service graph connector builds service graph metrics (edges and nodes) from incoming trace spans.
+  # Routing to exporters is configured in `service.pipelines` below (not via metrics_exporter).
+  service_graph:
+    # Explicitly flush metrics every 60 seconds. Note, this will double active series count for the
+    # `traces_service_graph` metric namespace.
+    metrics_flush_interval: 60s
+    store:                      # Configuration for the in-memory store.
+      ttl: 2s                   # Time to wait for an edge to be completed.
+      max_items: 200            # Number of edges that will be stored in the storeMap.
+    cache_loop: 2m              # The timeout used to clean the cache periodically.
+    store_expiration_loop: 10s  # The timeout used to expire old entries from the store periodically.
+    # Virtual node peer attributes allow server nodes to be generated where instrumentation isn't present (eg. where
+    # service client calls remotely to a service that does not include instrumentation).
+    # Service nodes/edges will be generated for any attribute defined.
+    virtual_node_peer_attributes:
+      - db.name
 
 
 # Define exporters to data stores.
@@ -204,7 +202,7 @@ service:
       exporters: [otlp/grafana]
       # Comment out other `exporters` definitions and uncomment the line below to generate span metrics
       # from within the OpenTelemetry Collector as well as exporting traces to Tempo.
-      #exporters: [otlp/grafana, spanmetrics, servicegraph]
+      #exporters: [otlp/grafana, spanmetrics, service_graph]
 
     # Define the metrics pipeline.
     metrics:
@@ -212,9 +210,9 @@ service:
       receivers: [otlp, prometheus]
       # Comment out other `receivers` definitions and uncomment the line below to import spanmetrics as well
       # as prometheus metrics.
-      #receivers: [otlp, prometheus, spanmetrics, servicegraph]
+      #receivers: [otlp, prometheus, spanmetrics, service_graph]
       # Use the `batch` processor to process received metrics, use the transform metric to ensure that spanmetric
       # metrics are in the correct format for Grafana Cloud (doesn't take effect unless receivers above are used.)
       processors: [transform, batch]
-      # Export to the `prometheusremtotewrite` exporter.
+      # Export to the `prometheusremotewrite` exporter.
       exporters: [prometheusremotewrite]
