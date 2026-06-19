@@ -7,7 +7,7 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:v1.12.1
+    image: grafana/alloy:v1.17.0
     ports:
       - "12350:12350"
       - "12347:12345"
@@ -28,7 +28,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:12.3.1
+    image: grafana/grafana:13.0.2
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
@@ -169,21 +169,21 @@ services:
   # The Tempo service stores traces send to it by Grafana Alloy, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:2.9.0
+    image: grafana/tempo:3.0.2
     ports:
       - "3200:3200"
       - "9411:9411"
       - "55680:55680"
       - "55681:55681"
       - "14250:14250"
-    command: [ "-config.file=/etc/tempo.yaml" ]
+    command: [ "-target=all", "-config.file=/etc/tempo.yaml" ]
     volumes:
       - "./tempo/tempo.yaml:/etc/tempo.yaml"
 
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:3.6.3
+    image: grafana/loki:3.7.2
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
@@ -191,21 +191,21 @@ services:
       - "./loki/loki.yaml:/etc/loki/loki.yaml"
 
   mimir:
-    image: grafana/mimir:2.17.4
-    command: ["-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
+    image: grafana/mimir:3.1.0
+    command: ["-target=all", "-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
     volumes:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
   pyroscope:
-    image: grafana/pyroscope:1.16.2
+    image: grafana/pyroscope:2.1.0
     ports:
       - "4040:4040"
     command: ["server"]
 
   k6:
-    image: grafana/k6:1.5.0
+    image: grafana/k6:1.7.1
     volumes:
       - "./k6:/scripts"
     environment:

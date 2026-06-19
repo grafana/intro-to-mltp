@@ -1,5 +1,10 @@
 # For more information on this configuration, see the complete reference guide at
 # https://grafana.com/docs/tempo/latest/configuration/
+#
+# This repository runs Tempo 3.0 in monolithic mode (`-target=all`). Tempo 3.0 replaces the
+# legacy ingester/compactor architecture with a live-store write path and backend scheduler
+# compaction. See the migration guide:
+# https://grafana.com/docs/tempo/latest/set-up-for-tracing/setup-tempo/migrate-to-3/
 
 # Enables result streaming from Tempo (to Grafana) via HTTP.
 stream_over_http_enabled: true
@@ -26,19 +31,27 @@ distributor:
           endpoint: "0.0.0.0:4317"  # This example repository only utilises the OTLP gRPC receiver on port 4317, on all interfaces.
     zipkin:                         # Receive trace data in any supported Zipkin format.
 
-# The ingester receives data from the distributor and processes it into indices and blocks.
-ingester:
-  trace_idle_period: 10s       # The length of time after a trace has not received spans to consider it complete and flush it.
-  max_block_bytes: 1_000_000   # Cut the head block when it hits this size or
-  max_block_duration: 5m       # this much time passes
+# Tempo 3.0 removed the legacy `ingester` block. In monolithic mode, the live-store holds recent
+# trace data and flushes completed blocks to storage.
+live_store:
+  # The length of time after a trace has not received spans to consider it complete and flush it.
+  # Previously: ingester.trace_idle_period
+  max_trace_idle: 10s
+  # Cut the head block when this much time passes. Previously: ingester.max_block_duration
+  max_block_duration: 5m
+  # Cut the head block when it hits this size. Previously: ingester.max_block_bytes
+  max_block_bytes: 1_000_000
 
-# The compactor block configures the compactor responsible for compacting TSDB blocks.
-compactor:
-  compaction:
-    compaction_window: 1h              # Blocks in this time window will be compacted together.
-    max_block_bytes: 100_000_000       # Maximum size of a compacted block.
-    block_retention: 1h                # How long to keep blocks. Default is 14 days, this demo system is short-lived.
-    compacted_block_retention: 10m     # How long to keep compacted blocks stored elsewhere.
+# Tempo 3.0 replaced the standalone `compactor` block with backend scheduler compaction jobs
+# executed by backend workers.
+backend_scheduler:
+  provider:
+    compaction:
+      compaction:
+        compaction_window: 1h              # Blocks in this time window will be compacted together.
+        max_block_bytes: 100_000_000       # Maximum size of a compacted block.
+        block_retention: 1h                # How long to keep blocks. Default is 14 days, this demo system is short-lived.
+        compacted_block_retention: 10m     # How long to keep compacted blocks stored elsewhere.
 
 # Configuration block to determine where to store TSDB blocks.
 storage:
@@ -63,24 +76,23 @@ metrics_generator:
   processor:
     # Span metrics create metrics based on span type, duration, name and service.
     span_metrics:
-        # Configure extra dimensions to add as metric labels.
-        dimensions:
-          - http.method
-          - http.target
-          - http.status_code
-          - service.version
+      # Configure extra dimensions to add as metric labels.
+      dimensions:
+        - http.method
+        - http.target
+        - http.status_code
+        - service.version
     # Service graph metrics create node and edge metrics for determinng service interactions.
     service_graphs:
-        # Configure extra dimensions to add as metric labels.
-        dimensions:
-          - http.method
-          - http.target
-          - http.status_code
-          - service.version
-    # Configure the local blocks processor.
-    local_blocks:
-        # Ensure that metrics blocks are flushed to storage so TraceQL metrics queries against historical data.
-        flush_to_storage: true
+      # Configure extra dimensions to add as metric labels.
+      dimensions:
+        - http.method
+        - http.target
+        - http.status_code
+        - service.version
+    # Tempo 3.0 removed the `local-blocks` processor. TraceQL metrics on recent trace data are
+    # served by the live-store; historical TraceQL metrics are read from object storage.
+    # The former `traces_storage` path was only required by local-blocks and is no longer needed.
   # The registry configuration determines how to process metrics.
   registry:
     collection_interval: 5s                 # Create new metrics every 5s.
@@ -96,12 +108,18 @@ metrics_generator:
     remote_write:
       - url: http://mimir:9009/api/v1/push  # URL of locally running Mimir instance.
         send_exemplars: true # Send exemplars along with their metrics.
-  traces_storage:
-    path: /tmp/tempo/generator/traces
 
 # Global override configuration.
 overrides:
   defaults:
+    # Per-tenant compaction overrides. Values of 0 defer to the backend_scheduler compaction settings above.
+    compaction:
+      block_retention: 1h
+      compaction_window: 1h
     metrics_generator:
-      processors: [service-graphs, span-metrics, local-blocks] # enables metrics generator
+      processors: [service-graphs, span-metrics] # enables metrics generator (local-blocks removed in Tempo 3.0)
       generate_native_histograms: both
+
+# Disable usage statistics reporting to Grafana Labs.
+usage_report:
+  reporting_enabled: false
