@@ -78,17 +78,17 @@ metrics_generator:
     span_metrics:
       # Configure extra dimensions to add as metric labels.
       dimensions:
-        - http.method
-        - http.target
-        - http.status_code
+        - http.request.method
+        - url.path
+        - http.response.status_code
         - service.version
     # Service graph metrics create node and edge metrics for determinng service interactions.
     service_graphs:
       # Configure extra dimensions to add as metric labels.
       dimensions:
-        - http.method
-        - http.target
-        - http.status_code
+        - http.request.method
+        - url.path
+        - http.response.status_code
         - service.version
     # Tempo 3.0 removed the `local-blocks` processor. TraceQL metrics on recent trace data are
     # served by the live-store; historical TraceQL metrics are read from object storage.
