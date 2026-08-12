@@ -60,14 +60,22 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
         return date.toISOString();
     }
 
+    let serverHostPort = "mythical-server:4000"
+    // check env var for override
+    if (process.env.MYTHICAL_SERVER_HOST_PORT) {
+        serverHostPort = process.env.MYTHICAL_SERVER_HOST_PORT
+    }
+
     // Create a new span, link to previous request to show how linking between traces works.
     const requestSpan = tracer.startSpan('requester', {
         kind: api.SpanKind.CLIENT,
         links: (previousReqSpanContext) ? [{ context: previousReqSpanContext }] : undefined,
     });
+
     requestSpan.setAttribute(spanTag, endpoint);
-    requestSpan.setAttribute(`http.target`, '/' + endpoint);
-    requestSpan.setAttribute(`http.method`, type);
+    requestSpan.setAttribute(`url.full`, `http://${serverHostPort}/${endpoint}`);
+    requestSpan.setAttribute(`url.path`, '/' + endpoint);
+    requestSpan.setAttribute(`http.request.method`, type);
     requestSpan.setAttribute('service.version', (Math.floor(Math.random() * 100)) < 50 ? '1.9.2' : '2.0.0');
     previousReqSpanContext = requestSpan.spanContext();
     const { traceId } = requestSpan.spanContext();
@@ -75,11 +83,6 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
     // Increment the danger level on the gauge
     dangerGauge.inc(dangerLevel);
 
-    let serverHostPort = "mythical-server:4000"
-    // check env var for override
-    if (process.env.MYTHICAL_SERVER_HOST_PORT) {
-        serverHostPort = process.env.MYTHICAL_SERVER_HOST_PORT
-    }
 
     // Create a new context for this request
     api.context.with(api.trace.setSpan(api.context.active(), requestSpan), async () => {
@@ -98,7 +101,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=GET endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
+                    message: `traceID=${traceId} http.request.method=GET endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
                 });
                 names = result.data;
 
@@ -117,7 +120,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                             job: `${servicePrefix}-requester`,
                             endpointLabel: spanTag,
                             endpoint,
-                            message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
+                            message: `traceID=${traceId} http.request.method=DELETE endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
                         });
                     }
                 }
@@ -128,7 +131,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=DELETE endpoint=${endpoint} ` +
+                    message: `traceID=${traceId} http.request.method=DELETE endpoint=${endpoint} ` +
                         `name=${(names) ? names[0].name : 'unknown'} status=FAILURE loggedtime=${timeshift()}`,
                 });
                 error = true;
@@ -146,7 +149,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=POST endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
+                    message: `traceID=${traceId} http.request.method=POST endpoint=${endpoint} loggedtime=${timeshift()} status=SUCCESS`,
                 });
             } catch (err) {
                 // The error condition is a little different here to using request. Axios throws a more generic error
@@ -158,12 +161,11 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
                     job: `${servicePrefix}-requester`,
                     endpointLabel: spanTag,
                     endpoint,
-                    message: `traceID=${traceId} http.method=POST endpoint=${endpoint} name=${randomName}` +
+                    message: `traceID=${traceId} http.request.method=POST endpoint=${endpoint} name=${randomName}` +
                         ` loggedtime=${timeshift()} status=FAILURE`,
                 });
                 error = true;
             }
-
         }
         logEntry({
             level: 'info',
@@ -171,7 +173,7 @@ const makeRequest = async (tracingObj, sendMessage, logEntry) => {
             job: `${servicePrefix}-requester`,
             endpointLabel: spanTag,
             endpoint,
-            message: `traceID=${traceId} http.method=${type} endpoint=${endpoint} duration=${Date.now() - start}ms loggedtime=${timeshift()}`,
+            message: `traceID=${traceId} http.request.method=${type} endpoint=${endpoint} duration=${Date.now() - start}ms loggedtime=${timeshift()}`,
         });
 
         // Set the status code as OK and end the span

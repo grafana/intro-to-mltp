@@ -1,349 +1,468 @@
 {
-    "annotations": {
-      "list": [
-        {
-          "builtIn": 1,
-          "datasource": {
-            "type": "grafana",
-            "uid": "-- Grafana --"
+  "kind": "Dashboard",
+  "apiVersion": "dashboard.grafana.app/v2",
+  "metadata": {
+    "name": "9UKWKDqVy"
+  },
+  "spec": {
+    "annotations": [
+      {
+        "kind": "AnnotationQuery",
+        "spec": {
+          "query": {
+            "kind": "DataQuery",
+            "group": "grafana",
+            "version": "v0",
+            "datasource": {
+              "name": "-- Grafana --"
+            },
+            "spec": {
+              "limit": 100,
+              "matchAny": false,
+              "tags": [],
+              "type": "dashboard"
+            }
           },
           "enable": true,
           "hide": true,
           "iconColor": "rgba(0, 211, 255, 1)",
           "name": "Annotations & Alerts",
-          "target": {
-            "limit": 100,
-            "matchAny": false,
-            "tags": [],
+          "builtIn": true,
+          "legacyOptions": {
             "type": "dashboard"
-          },
-          "type": "dashboard"
+          }
         }
-      ]
-    },
+      }
+    ],
+    "cursorSync": "Off",
     "editable": true,
-    "fiscalYearStartMonth": 0,
-    "graphTooltip": 0,
-    "id": 3,
+    "elements": {
+      "panel-1": {
+        "kind": "Panel",
+        "spec": {
+          "id": 1,
+          "title": "Root Cause: Errors",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "tempo",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "tempo"
+                      },
+                      "spec": {
+                        "key": "Q-f807f3aa-fde3-4f3d-96e1-ebff01a76cb9-0",
+                        "limit": 20,
+                        "query": "{ span.url.path =~ \"$endpoint\" && kind = server} >> { status = error } | select(span.db.name, span.db.statement)",
+                        "queryType": "traceql"
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "table",
+            "version": "9.4.7",
+            "spec": {
+              "options": {
+                "footer": {
+                  "countRows": false,
+                  "fields": "",
+                  "reducer": [
+                    "sum"
+                  ],
+                  "show": false
+                },
+                "showHeader": true
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "custom": {
+                    "align": "auto",
+                    "cellOptions": {
+                      "type": "auto"
+                    },
+                    "inspect": false
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-3": {
+        "kind": "Panel",
+        "spec": {
+          "id": 3,
+          "title": "Error rates",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "mimir"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "exemplar": true,
+                        "expr": "sum(rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",url_path!~\"/debug/pprof.*\",status_code=\"STATUS_CODE_ERROR\",url_path=~\"$endpoint\"}[1m])) by (url_path)",
+                        "legendFormat": "__auto",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      },
+      "panel-4": {
+        "kind": "Panel",
+        "spec": {
+          "id": 4,
+          "title": "p99",
+          "description": "",
+          "links": [],
+          "data": {
+            "kind": "QueryGroup",
+            "spec": {
+              "queries": [
+                {
+                  "kind": "PanelQuery",
+                  "spec": {
+                    "query": {
+                      "kind": "DataQuery",
+                      "group": "prometheus",
+                      "version": "v0",
+                      "datasource": {
+                        "name": "mimir"
+                      },
+                      "spec": {
+                        "editorMode": "code",
+                        "exemplar": true,
+                        "expr": "histogram_quantile(.99, sum(rate(traces_spanmetrics_latency_bucket{span_kind=\"SPAN_KIND_SERVER\",url_path!~\"/debug/pprof.*\",status_code=\"STATUS_CODE_ERROR\",url_path=~\"$endpoint\"}[1m])) by (url_path, le))",
+                        "legendFormat": "__auto",
+                        "range": true
+                      }
+                    },
+                    "refId": "A",
+                    "hidden": false
+                  }
+                }
+              ],
+              "transformations": [],
+              "queryOptions": {}
+            }
+          },
+          "vizConfig": {
+            "kind": "VizConfig",
+            "group": "timeseries",
+            "version": "",
+            "spec": {
+              "options": {
+                "legend": {
+                  "calcs": [],
+                  "displayMode": "list",
+                  "placement": "bottom",
+                  "showLegend": true
+                },
+                "tooltip": {
+                  "mode": "single",
+                  "sort": "none"
+                }
+              },
+              "fieldConfig": {
+                "defaults": {
+                  "thresholds": {
+                    "mode": "absolute",
+                    "steps": [
+                      {
+                        "value": null,
+                        "color": "green"
+                      },
+                      {
+                        "value": 80,
+                        "color": "red"
+                      }
+                    ]
+                  },
+                  "color": {
+                    "mode": "palette-classic"
+                  },
+                  "custom": {
+                    "axisCenteredZero": false,
+                    "axisColorMode": "text",
+                    "axisLabel": "",
+                    "axisPlacement": "auto",
+                    "barAlignment": 0,
+                    "drawStyle": "line",
+                    "fillOpacity": 0,
+                    "gradientMode": "none",
+                    "hideFrom": {
+                      "legend": false,
+                      "tooltip": false,
+                      "viz": false
+                    },
+                    "lineInterpolation": "linear",
+                    "lineWidth": 1,
+                    "pointSize": 5,
+                    "scaleDistribution": {
+                      "type": "linear"
+                    },
+                    "showPoints": "auto",
+                    "spanNulls": false,
+                    "stacking": {
+                      "group": "A",
+                      "mode": "none"
+                    },
+                    "thresholdsStyle": {
+                      "mode": "off"
+                    }
+                  }
+                },
+                "overrides": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "layout": {
+      "kind": "GridLayout",
+      "spec": {
+        "items": [
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 0,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-3"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 12,
+              "y": 0,
+              "width": 12,
+              "height": 8,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-4"
+              }
+            }
+          },
+          {
+            "kind": "GridLayoutItem",
+            "spec": {
+              "x": 0,
+              "y": 8,
+              "width": 24,
+              "height": 15,
+              "element": {
+                "kind": "ElementReference",
+                "name": "panel-1"
+              }
+            }
+          }
+        ]
+      }
+    },
     "links": [
       {
-        "asDropdown": true,
+        "title": "Intro to MLT Dashboards",
+        "type": "dashboards",
         "icon": "external link",
-        "includeVars": false,
-        "keepTime": false,
+        "tooltip": "",
+        "url": "",
         "tags": [
           "intro-to-mlt"
         ],
+        "asDropdown": true,
         "targetBlank": false,
-        "title": "Intro to MLT Dashboards",
-        "tooltip": "",
-        "type": "dashboards",
-        "url": ""
+        "includeVars": false,
+        "keepTime": false
       }
     ],
     "liveNow": false,
-    "panels": [
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "mimir"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 0
-        },
-        "id": 3,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "mimir"
-            },
-            "editorMode": "code",
-            "exemplar": true,
-            "expr": "sum(rate(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",http_target!~\"/debug/pprof.*\",status_code=\"STATUS_CODE_ERROR\",http_target=~\"$endpoint\"}[1m])) by (http_target)",
-            "legendFormat": "__auto",
-            "range": true,
-            "refId": "A"
-          }
-        ],
-        "title": "Error rates",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "prometheus",
-          "uid": "mimir"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {
-              "mode": "palette-classic"
-            },
-            "custom": {
-              "axisCenteredZero": false,
-              "axisColorMode": "text",
-              "axisLabel": "",
-              "axisPlacement": "auto",
-              "barAlignment": 0,
-              "drawStyle": "line",
-              "fillOpacity": 0,
-              "gradientMode": "none",
-              "hideFrom": {
-                "legend": false,
-                "tooltip": false,
-                "viz": false
-              },
-              "lineInterpolation": "linear",
-              "lineWidth": 1,
-              "pointSize": 5,
-              "scaleDistribution": {
-                "type": "linear"
-              },
-              "showPoints": "auto",
-              "spanNulls": false,
-              "stacking": {
-                "group": "A",
-                "mode": "none"
-              },
-              "thresholdsStyle": {
-                "mode": "off"
-              }
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 0
-        },
-        "id": 4,
-        "options": {
-          "legend": {
-            "calcs": [],
-            "displayMode": "list",
-            "placement": "bottom",
-            "showLegend": true
-          },
-          "tooltip": {
-            "mode": "single",
-            "sort": "none"
-          }
-        },
-        "targets": [
-          {
-            "datasource": {
-              "type": "prometheus",
-              "uid": "mimir"
-            },
-            "editorMode": "code",
-            "exemplar": true,
-            "expr": "histogram_quantile(.99, sum(rate(traces_spanmetrics_latency_bucket{span_kind=\"SPAN_KIND_SERVER\",http_target!~\"/debug/pprof.*\",status_code=\"STATUS_CODE_ERROR\",http_target=~\"$endpoint\"}[1m])) by (http_target, le))",
-            "legendFormat": "__auto",
-            "range": true,
-            "refId": "A"
-          }
-        ],
-        "title": "p99",
-        "type": "timeseries"
-      },
-      {
-        "datasource": {
-          "type": "tempo",
-          "uid": "tempo"
-        },
-        "description": "",
-        "fieldConfig": {
-          "defaults": {
-            "custom": {
-              "align": "auto",
-              "cellOptions": {
-                "type": "auto"
-              },
-              "inspect": false
-            },
-            "mappings": [],
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 80
-                }
-              ]
-            }
-          },
-          "overrides": []
-        },
-        "gridPos": {
-          "h": 15,
-          "w": 24,
-          "x": 0,
-          "y": 8
-        },
-        "id": 1,
-        "options": {
-          "footer": {
-            "countRows": false,
-            "fields": "",
-            "reducer": [
-              "sum"
-            ],
-            "show": false
-          },
-          "showHeader": true
-        },
-        "pluginVersion": "9.4.7",
-        "targets": [
-          {
-            "datasource": {
-              "type": "tempo",
-              "uid": "tempo"
-            },
-            "key": "Q-f807f3aa-fde3-4f3d-96e1-ebff01a76cb9-0",
-            "limit": 20,
-            "query": "{ span.http.target =~ \"$endpoint\" && kind = server} >> { status = error } | select(span.db.name, span.db.statement)",
-            "queryType": "traceql",
-            "refId": "A"
-          }
-        ],
-        "title": "Root Cause: Errors",
-        "type": "table"
-      }
-    ],
-    "refresh": "",
+    "preload": false,
     "revision": 1,
-    "schemaVersion": 38,
-    "style": "dark",
     "tags": [
       "intro-to-mlt",
       "mythical-beasts"
     ],
-    "templating": {
-      "list": [
-        {
-          "allValue": ".*",
+    "timeSettings": {
+      "from": "now-5m",
+      "to": "now",
+      "autoRefresh": "",
+      "autoRefreshIntervals": [
+        "5s",
+        "10s",
+        "30s",
+        "1m",
+        "5m",
+        "15m",
+        "30m",
+        "1h",
+        "2h",
+        "1d"
+      ],
+      "hideTimepicker": false,
+      "fiscalYearStartMonth": 0
+    },
+    "title": "MLT Erroring Endpoints",
+    "variables": [
+      {
+        "kind": "QueryVariable",
+        "spec": {
+          "name": "endpoint",
           "current": {
-            "selected": true,
             "text": "All",
             "value": "$__all"
           },
-          "datasource": {
-            "type": "prometheus",
-            "uid": "mimir"
-          },
-          "definition": "label_values(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",http_target!~\"/debug/pprof.*\"}, http_target)\n",
-          "hide": 0,
-          "includeAll": true,
-          "multi": false,
-          "name": "endpoint",
-          "options": [],
-          "query": {
-            "query": "label_values(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",http_target!~\"/debug/pprof.*\"}, http_target)\n",
-            "refId": "StandardVariableQuery"
-          },
-          "refresh": 1,
-          "regex": "",
+          "hide": "dontHide",
+          "refresh": "onDashboardLoad",
           "skipUrlSync": false,
-          "sort": 0,
-          "type": "query"
+          "query": {
+            "kind": "DataQuery",
+            "group": "prometheus",
+            "version": "v0",
+            "datasource": {
+              "name": "mimir"
+            },
+            "spec": {
+              "query": "label_values(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",url_path!~\"/debug/pprof.*\"}, url_path)\n",
+              "refId": "StandardVariableQuery"
+            }
+          },
+          "regex": "",
+          "sort": "disabled",
+          "definition": "label_values(traces_spanmetrics_calls_total{span_kind=\"SPAN_KIND_SERVER\",url_path!~\"/debug/pprof.*\"}, url_path)\n",
+          "options": [],
+          "multi": false,
+          "includeAll": true,
+          "allValue": ".*",
+          "allowCustomValue": true
         }
-      ]
-    },
-    "time": {
-      "from": "now-5m",
-      "to": "now"
-    },
-    "timepicker": {},
-    "timezone": "",
-    "title": "MLT Erroring Endpoints",
-    "uid": "9UKWKDqVy",
-    "version": 1,
-    "weekStart": ""
+      }
+    ]
   }
+}
