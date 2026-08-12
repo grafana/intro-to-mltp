@@ -56,12 +56,12 @@ services:
 
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
-    image: postgres:14.5
+    image: postgres:18.4
     restart: always
     environment:
       POSTGRES_PASSWORD: "mythical"
     volumes:
-      - "postgres:/var/lib/postgresql/data"
+      - "postgres:/var/lib/postgresql"
     ports:
       - "5432:5432"
 
