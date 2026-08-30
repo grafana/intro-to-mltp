@@ -5,7 +5,7 @@ volumes:
 services:
   # The opentelemetry-collector batches and processes traces sent to it.
   opentelemetry-collector:
-    image: otel/opentelemetry-collector-contrib:0.154.0
+    image: otel/opentelemetry-collector-contrib:0.159.0@sha256:1f2c54a30e713fac6b3ae77a1ec84010c2007e29ced8ec666214fc2f6739c1cc
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -47,7 +47,7 @@ services:
 
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
-    image: postgres:18.4
+    image: postgres:18.6@sha256:4ef4dbc939d61acea57712655ddb4b4ab27419c913f94cca0cd57cb3ea3c2280
     restart: always
     environment:
       POSTGRES_PASSWORD: "mythical"
@@ -135,7 +135,7 @@ services:
   # The Tempo service stores traces send to it by Grafana opentelemetry-collector, and takes
   # queries from Grafana to visualise those traces.
   tempo:
-    image: grafana/tempo:3.0.2
+    image: grafana/tempo:3.0.3@sha256:0296560ac66f8a3600d7fb3014a52c189d4d9c3549ad6ff441bf2409855d68d5
     ports:
       - "3200:3200"
       - "55680:55680"
@@ -148,7 +148,7 @@ services:
   # The Loki service stores logs sent to it, and takes queries from Grafana
   # to visualise those logs.
   loki:
-    image: grafana/loki:3.7.2
+    image: grafana/loki:3.7.7@sha256:d70e4659623f3e109af669cae76fe2a5dd5be54e2298fe8aed380d982fbc2500
     command: ["--pattern-ingester.enabled=true", "-config.file=/etc/loki/loki.yaml"]
     ports:
       - "3100:3100"
@@ -156,7 +156,7 @@ services:
       - "./loki/loki.yaml:/etc/loki/loki.yaml"
 
   mimir:
-    image: grafana/mimir:3.1.0
+    image: grafana/mimir:3.2.0@sha256:736f7459913d262444e70813565e3ca24b64dce24343da20af554ae6ee5268e8
     command: ["-target=all", "-ingester.native-histograms-ingestion-enabled=true", "-config.file=/etc/mimir.yaml"]
     ports:
       - "9009:9009"
@@ -164,13 +164,13 @@ services:
       - "./mimir/mimir.yaml:/etc/mimir.yaml"
 
   pyroscope:
-    image: grafana/pyroscope:2.1.0
+    image: grafana/pyroscope:2.3.0@sha256:881328cdbff0ef7601e23a0e7647fecb7099b4fe4c74fcdd204cb64722e2b2d0
     ports:
       - "4040:4040"
     command: ["server"]
 
   k6:
-    image: grafana/k6:1.7.1
+    image: grafana/k6:1.8.1@sha256:23f2279054c3e01535455c4d92914a625df12aeb631ea0e3ea7a43f96bcbc843
     volumes:
       - "./k6:/scripts"
     environment:
