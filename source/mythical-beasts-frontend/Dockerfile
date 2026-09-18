@@ -22,7 +22,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM nginx:alpine@sha256:62ff2089abf5a9ed33bd232895bef5e22f7bb4b200675cec49a5ebc48e3d4ac8
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
