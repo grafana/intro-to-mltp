@@ -7,7 +7,7 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:v1.17.0
+    image: grafana/alloy:v1.20.1@sha256:2aa2099af76c0098d4af7a4d6e48f86cb66dc1a000222ad927a1c67c6542d13f
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -42,7 +42,7 @@ services:
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
   mythical-database:
-    image: postgres:18.4
+    image: postgres:18.6@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722
     restart: always
     environment:
       POSTGRES_PASSWORD: "mythical"
