@@ -3,3 +3,7 @@ agent/config-cloud-configured.yaml
 docker-compose-cloud-configured.yml
 unconfigure.sh
 .idea/
+
+# Local smoke test diagnostics and Python bytecode.
+/tests/artifacts/
+/tests/**/__pycache__/

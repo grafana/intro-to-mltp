@@ -1,0 +1,80 @@
+# Merge with docker-compose.yml. Requires Docker Compose 2.24.0 or newer.
+# Use repository images/configuration, but build the application under unique tags.
+services:
+  alloy:
+    ports: !reset []
+  grafana:
+    ports: !reset []
+  mythical-queue:
+    ports: !reset []
+    restart: "no"
+  mythical-database:
+    ports: !reset []
+    restart: "no"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+  mythical-server:
+    image: ${COMPOSE_PROJECT_NAME}-server:smoke
+    build:
+      context: ./source
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE: mythical-beasts-server
+    ports: !reset []
+    restart: "no"
+    depends_on:
+      mythical-database:
+        condition: service_healthy
+    # The demo deliberately fails 10% of POSTs. Test the real CRUD path without
+    # random error injection so a red CI result means an actual regression.
+    environment:
+      ALWAYS_SUCCEED: "true"
+  mythical-requester:
+    image: ${COMPOSE_PROJECT_NAME}-requester:smoke
+    build:
+      context: ./source
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE: mythical-beasts-requester
+    ports: !reset []
+    restart: "no"
+  mythical-recorder:
+    image: ${COMPOSE_PROJECT_NAME}-recorder:smoke
+    build:
+      context: ./source
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE: mythical-beasts-recorder
+    ports: !reset []
+    restart: "no"
+  mythical-frontend:
+    image: ${COMPOSE_PROJECT_NAME}-frontend:smoke
+    build:
+      context: ./source/mythical-beasts-frontend
+      dockerfile: Dockerfile
+    ports: !reset []
+    restart: "no"
+  tempo:
+    ports: !reset []
+  loki:
+    ports: !reset []
+  mimir:
+    ports: !reset []
+  pyroscope:
+    ports: !reset []
+  # The requester supplies background traffic. Do not run the hour-long k6 demo.
+  k6:
+    profiles: ["load"]
+  smoke:
+    image: python:3.12-alpine
+    profiles: ["test"]
+    working_dir: /tests
+    volumes:
+      - ./tests/smoke:/tests:ro
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    command: ["python", "check.py"]

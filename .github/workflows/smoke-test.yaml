@@ -1,0 +1,55 @@
+name: Stack smoke test
+
+on:
+  # Run on every PR so this job can be required without path-filtered checks
+  # remaining pending on documentation-only changes.
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - "source/**"
+      - "docker-compose*.yml"
+      - "alloy/**"
+      - "grafana/**"
+      - "loki/**"
+      - "mimir/**"
+      - "tempo/**"
+      - "tests/**"
+      - ".github/workflows/smoke-test.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tests/artifacts/ci
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+
+      - name: Test smoke assertions and runner
+        run: python3 -m unittest discover -s tests/smoke -v
+
+      - name: Build and test the local stack
+        shell: bash
+        run: |
+          mkdir -p "$SMOKE_ARTIFACT_DIR"
+          python3 tests/smoke/run.py 2>&1 | tee "$SMOKE_ARTIFACT_DIR/run.log"
+
+      - name: Upload stack diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: smoke-diagnostics
+          path: ${{ env.SMOKE_ARTIFACT_DIR }}
+          if-no-files-found: warn
+          retention-days: 7
