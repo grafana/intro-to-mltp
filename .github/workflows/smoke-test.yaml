@@ -36,14 +36,18 @@ jobs:
         with:
           persist-credentials: false
 
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+
       - name: Test smoke assertions and runner
-        run: python3 -m unittest discover -s tests/smoke -v
+        run: node --test tests/smoke/*.test.mjs
 
       - name: Build and test the local stack
         shell: bash
         run: |
           mkdir -p "$SMOKE_ARTIFACT_DIR"
-          python3 tests/smoke/run.py 2>&1 | tee "$SMOKE_ARTIFACT_DIR/run.log"
+          node tests/smoke/run.mjs 2>&1 | tee "$SMOKE_ARTIFACT_DIR/run.log"
 
       - name: Upload stack diagnostics
         if: always()

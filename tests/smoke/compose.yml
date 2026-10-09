@@ -69,12 +69,9 @@ services:
   k6:
     profiles: ["load"]
   smoke:
-    image: python:3.12-alpine
+    image: node:22-alpine
     profiles: ["test"]
     working_dir: /tests
     volumes:
       - ./tests/smoke:/tests:ro
-    environment:
-      PYTHONDONTWRITEBYTECODE: "1"
-      PYTHONUNBUFFERED: "1"
-    command: ["python", "check.py"]
+    command: ["node", "check.mjs"]
