@@ -14,6 +14,7 @@ on:
       - "loki/**"
       - "mimir/**"
       - "tempo/**"
+      - "k8s/**"
       - "tests/**"
       - ".github/workflows/smoke-test.yaml"
   workflow_dispatch:
@@ -32,16 +33,16 @@ jobs:
     env:
       SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tests/artifacts/ci
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '22'
+          node-version: '26.11.1'
 
       - name: Test smoke assertions and runner
-        run: node --test tests/smoke/*.test.mjs
+        run: node --test tests/smoke/*.test.mjs tests/kubernetes/*.test.mjs
 
       - name: Build and test the local stack
         shell: bash
@@ -51,9 +52,59 @@ jobs:
 
       - name: Upload stack diagnostics
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: smoke-diagnostics
           path: ${{ env.SMOKE_ARTIFACT_DIR }}
+          if-no-files-found: warn
+          retention-days: 7
+
+  kubernetes:
+    name: Kubernetes smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SMOKE_ARTIFACT_DIR: ${{ github.workspace }}/tests/artifacts/ci-kubernetes
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '26.11.1'
+
+      - name: Install kind and kubectl
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/kubernetes-bin"
+          curl --fail --silent --show-error --location --connect-timeout 10 --max-time 180 --retry 3 \
+            https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 \
+            --output "$RUNNER_TEMP/kubernetes-bin/kind"
+          echo "aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d  $RUNNER_TEMP/kubernetes-bin/kind" | sha256sum --check
+          curl --fail --silent --show-error --location --connect-timeout 10 --max-time 180 --retry 3 \
+            https://dl.k8s.io/release/v1.37.1/bin/linux/amd64/kubectl \
+            --output "$RUNNER_TEMP/kubernetes-bin/kubectl"
+          echo "65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8  $RUNNER_TEMP/kubernetes-bin/kubectl" | sha256sum --check
+          chmod +x "$RUNNER_TEMP/kubernetes-bin/kind" "$RUNNER_TEMP/kubernetes-bin/kubectl"
+          echo "$RUNNER_TEMP/kubernetes-bin" >> "$GITHUB_PATH"
+
+      - name: Test smoke assertions and runners
+        run: node --test tests/smoke/*.test.mjs tests/kubernetes/*.test.mjs
+
+      - name: Build and test the Kubernetes stack
+        shell: bash
+        run: |
+          mkdir -p "$SMOKE_ARTIFACT_DIR"
+          node tests/kubernetes/run.mjs 2>&1 | tee "$SMOKE_ARTIFACT_DIR/run.log"
+
+      - name: Upload Kubernetes diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: kubernetes-smoke-diagnostics
+          path: |
+            ${{ env.SMOKE_ARTIFACT_DIR }}/**
+            !${{ env.SMOKE_ARTIFACT_DIR }}/*.kubeconfig
           if-no-files-found: warn
           retention-days: 7

@@ -69,7 +69,7 @@ services:
   k6:
     profiles: ["load"]
   smoke:
-    image: node:22-alpine
+    image: node:26.11.1-alpine3.24
     profiles: ["test"]
     working_dir: /tests
     volumes:

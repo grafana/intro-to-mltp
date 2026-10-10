@@ -7,7 +7,7 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:v1.17.0
+    image: grafana/alloy:v1.20.1
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -28,7 +28,7 @@ services:
 
   # A RabbitMQ queue used to send message between the requester and the server microservices.
   mythical-queue:
-    image: rabbitmq:management
+    image: rabbitmq:4.3.6-management
     restart: always
     ports:
       - "5672:5672"
@@ -41,8 +41,7 @@ services:
 
   # A postgres DB used to store data by the API server microservice.
   mythical-database:
-  mythical-database:
-    image: postgres:18.4
+    image: postgres:18.6
     restart: always
     environment:
       POSTGRES_PASSWORD: "mythical"
