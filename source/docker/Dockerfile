@@ -1,5 +1,5 @@
 # Multistage build - allows for smaller final images post Python build
-FROM node:23-alpine3.20 AS builder
+FROM node:26.11.1-alpine3.24 AS builder
 ARG SERVICE
 
 WORKDIR /usr/src/app
@@ -12,17 +12,17 @@ RUN apk add --update --no-cache python3 alpine-sdk && ln -sf python3 /usr/bin/py
 #     && \
 #    pip3 install --no-cache --upgrade pip setuptools
 
-COPY ${SERVICE}/package.json /usr/src/app/
+COPY ${SERVICE}/package*.json /usr/src/app/
 
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh
 
-RUN npm install --production \
+RUN npm ci --omit=dev \
     && npm cache clean --force \
     && rm -rf /tmp/*
 
 # Create a slimmer image using the built node_modules
-FROM node:23-alpine3.20
+FROM node:26.11.1-alpine3.24
 ARG SERVICE
 
 WORKDIR /usr/src/app

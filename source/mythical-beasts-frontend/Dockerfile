@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:26.11.1-alpine3.24 AS build
 
 # Accept build arguments (only keep API URL for build-time configuration)
 ARG REACT_APP_API_URL
@@ -22,7 +22,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM nginx:1.31.6-alpine3.24
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf

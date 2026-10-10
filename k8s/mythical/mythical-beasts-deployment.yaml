@@ -203,7 +203,7 @@ spec:
       - env:
         - name: NAMESPACE
           value: production
-        image: rabbitmq:management
+        image: rabbitmq:4.3.6-management
         imagePullPolicy: Always
         name: mythical-queue
         resources: {}
@@ -240,7 +240,8 @@ spec:
           value: mythical
         - name: PGDATA
           value: /var/lib/postgresql/data/pgdata
-        image: postgres:14.5
+        # Existing PostgreSQL 14 PVC data must be migrated before running PostgreSQL 18.
+        image: postgres:18.6
         imagePullPolicy: Always
         name: mythical-requester
         ports:
