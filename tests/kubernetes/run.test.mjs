@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import { BACKENDS, deployment } from './fixtures.mjs';
 import { NODE_IMAGE, run, waitForJob } from './run.mjs';
 
-async function exercise(t, { failure, interruptAt, collision = false, contextMismatch = false, jobFailed = false, partialBuild = false, missingReceipt = false } = {}) {
+async function exercise(t, { failure, interruptAt, collision = false, contextMismatch = false, jobFailed = false, partialBuild = false, missingReceipt = false, lingeringOldPod = false, interruptDuringReplacement = false, missingOriginalPod = false } = {}) {
   const calls = [];
   const artifacts = await mkdtemp(join(tmpdir(), 'mltp-k8s-runner-'));
   t.after(() => rm(artifacts, { recursive: true, force: true }));
@@ -15,6 +15,7 @@ async function exercise(t, { failure, interruptAt, collision = false, contextMis
   t.mock.method(console, 'error', () => {});
   const signals = new EventEmitter();
   let podReads = 0;
+  let pauses = 0;
   const execute = async (args, options) => {
     calls.push({ args, options });
     const [tool] = args;
@@ -46,7 +47,17 @@ async function exercise(t, { failure, interruptAt, collision = false, contextMis
     ] });
     if (stage === 'job') return JSON.stringify({ status: jobFailed ? { failed: 1 } : { succeeded: 1 } });
     if (stage === 'pvc') return JSON.stringify({ metadata: { uid: 'original-pvc' }, spec: { volumeName: 'original-volume' }, status: { phase: 'Bound' } });
-    if (stage === 'pods') return JSON.stringify({ items: [{ metadata: { uid: podReads++ === 0 ? 'old-pod' : 'new-pod', name: 'database' }, spec: { containers: [{ name: 'postgres' }] } }] });
+    if (stage === 'pods') {
+      const first = podReads++ === 0;
+      const pod = {
+        metadata: { uid: first ? 'old-pod' : 'new-pod', name: 'database' },
+        spec: { containers: [{ name: 'postgres' }] },
+        status: { phase: 'Running', conditions: [{ type: 'Ready', status: 'True' }] },
+      };
+      const old = { metadata: { uid: 'old-pod', name: 'old-database', deletionTimestamp: '2026-01-01T00:00:00Z' }, status: { phase: 'Succeeded' } };
+      const items = first && missingOriginalPod ? [] : lingeringOldPod && !first && podReads < 4 ? [old, pod] : [pod];
+      return JSON.stringify({ items });
+    }
     if (stage === 'logs' && args.some(arg => arg.startsWith('job/'))) {
       if (missingReceipt) return '';
       return args.includes('job/smoke') ? 'PASS: Kubernetes smoke checks' :
@@ -58,11 +69,17 @@ async function exercise(t, { failure, interruptAt, collision = false, contextMis
   };
   const result = await run({
     execute, environment: { SMOKE_ARTIFACT_DIR: artifacts, KUBECONFIG: '/existing/production/config', COMPOSE_PROFILES: 'load' },
-    signals, pause: async () => {}, fixtures: async () => [],
+    signals, pause: async (_delay, _value, { signal } = {}) => {
+      pauses++;
+      if (interruptDuringReplacement) {
+        signals.emit('SIGTERM');
+        signal.throwIfAborted();
+      }
+    }, fixtures: async () => [],
   });
   assert.equal(signals.listenerCount('SIGINT'), 0);
   assert.equal(signals.listenerCount('SIGTERM'), 0);
-  return { result, calls, artifacts };
+  return { result, calls, artifacts, pauses };
 }
 const has = (calls, tool, verb) => calls.some(({ args }) => args[0] === tool && args[1] === verb);
 
@@ -97,6 +114,31 @@ test('successful Kubernetes runner never uses the active kubeconfig or existing 
   assert.match(seed.spec.template.spec.containers[0].env[0].value, /^[a-z0-9_]{1,50}$/);
   assert(has(calls, 'kind', 'export'));
   assert(calls.some(({ args }) => args.includes('restart') && args.includes('deployment/mythical-database')));
+});
+
+test('runner waits for the old terminal pod object to disappear before verifying persistence', async t => {
+  const { result, calls, pauses } = await exercise(t, { lingeringOldPod: true });
+  assert.equal(result, 0);
+  assert.equal(pauses, 2);
+  const reads = calls.map((call, index) => ({ ...call, index })).filter(({ args }) => args.includes('pods') && args.includes('-l'));
+  assert.equal(reads.length, 4);
+  const verify = calls.findIndex(({ args }) => args.includes('apply') && args.some(arg => arg.endsWith('/persistence-verify.json')));
+  assert(verify > reads.at(-1).index);
+  assert(has(calls, 'kind', 'delete'));
+});
+test('interruption during pod replacement cleans up without an aborted signal', async t => {
+  const { result, calls } = await exercise(t, { lingeringOldPod: true, interruptDuringReplacement: true });
+  assert.equal(result, 130);
+  assert(has(calls, 'kind', 'delete'));
+  const cleanup = calls.filter(({ args }) => args[0] === 'kind' && ['delete', 'export'].includes(args[1]) || args[1] === 'image');
+  assert(cleanup.every(({ options }) => options.signal === undefined));
+  assert(!calls.some(({ args }) => args.some(arg => arg.endsWith('/persistence-verify.json'))));
+});
+test('missing original database pods fail before restarting or verifying persistence', async t => {
+  const { result, calls } = await exercise(t, { missingOriginalPod: true });
+  assert.equal(result, 1);
+  assert(!calls.some(({ args }) => args.includes('restart')));
+  assert(has(calls, 'kind', 'delete'));
 });
 
 test('an unexpected current context prevents applying any resources', async t => {

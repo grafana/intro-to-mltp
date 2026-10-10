@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -124,6 +125,26 @@ test('support fixtures reuse Compose images, commands, and environment rather th
   assert(result.some(item => item.kind === 'Service' && item.metadata.name === 'mythical-recorder'));
   assert(result.some(item => item.kind === 'ConfigMap' && item.data['check.mjs'] === 'source test'));
 });
+
+for (const mode of ['seed', 'verify']) {
+  test(`persistence Job eval command passes ${mode} through the real Node argv`, () => {
+    const fixture = 'unique_fixture';
+    const container = checkJob('test', 'node:test', mode, fixture).spec.template.spec.containers[0];
+    const args = container.command.slice(1);
+    // Replace only the cluster module with a stub. Execute the actual bootstrap and CLI arguments.
+    const stub = `import assert from 'node:assert/strict';
+      export async function persistence(mode, name) {
+        assert.equal(mode, ${JSON.stringify(mode)});
+        assert.equal(name, ${JSON.stringify(fixture)});
+      }`;
+    const module = 'data:text/javascript;base64,' + Buffer.from(stub).toString('base64');
+    args[2] = args[2].replace('/tests/kubernetes/persistence.mjs', module);
+    const output = execFileSync(process.execPath, args, {
+      env: { ...process.env, PERSISTENCE_NAME: fixture }, encoding: 'utf8', timeout: 5000,
+    });
+    assert.equal(output.trim(), `PASS: PostgreSQL persistence ${mode}`);
+  });
+}
 
 test('check jobs are bounded, do not retry failures, and only use locally loaded images', () => {
   const job = checkJob('test', 'node:test', 'verify', 'unique_fixture');

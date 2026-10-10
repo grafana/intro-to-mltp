@@ -5,6 +5,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { setTimeout as sleep } from 'node:timers/promises';
+import { performance } from 'node:perf_hooks';
 import { command, requireComposeVersion } from '../smoke/run.mjs';
 import { APPLICATIONS, BACKENDS, assertSamePvc, checkJob, configureApplications, list, parseResources, supportResources } from './fixtures.mjs';
 
@@ -21,6 +22,38 @@ export async function waitForJob(name, kubectl, execute, { pause = sleep, attemp
     if (attempt + 1 < attempts) await pause(5000);
   }
   throw new Error(`Kubernetes check job ${name} timed out`);
+}
+
+export async function waitForPodReplacement(pods, oldPods, {
+  pause = sleep, now = () => performance.now(), timeout = 180000, interval = 1000, signal,
+} = {}) {
+  assert(oldPods instanceof Set && oldPods.size && [...oldPods].every(uid => typeof uid === 'string' && uid),
+    'Expected original database pod UIDs');
+  assert(Number.isFinite(timeout) && timeout > 0 && Number.isFinite(interval) && interval > 0,
+    'Pod replacement timeout and interval must be positive');
+  const deadline = now() + timeout;
+  let remaining;
+  let lastPods = [];
+  signal?.throwIfAborted();
+  while ((remaining = deadline - now()) > 0) {
+    signal?.throwIfAborted();
+    const resources = await pods(Math.min(30000, Math.ceil(remaining)));
+    signal?.throwIfAborted();
+    assert(Array.isArray(resources?.items), 'Database pod list has no items array');
+    lastPods = resources.items;
+    assert(lastPods.every(pod => typeof pod?.metadata?.uid === 'string' && pod.metadata.uid),
+      'Database pod has no UID');
+    // Rollout completion can precede deletion of the old, already stopped pod object.
+    if (lastPods.length && lastPods.every(pod => !oldPods.has(pod.metadata.uid) &&
+      !pod.metadata.deletionTimestamp && pod.status?.phase === 'Running' &&
+      pod.status.conditions?.some(condition => condition.type === 'Ready' && condition.status === 'True'))) {
+      return lastPods;
+    }
+    const delay = Math.min(interval, Math.max(0, deadline - now()));
+    if (delay > 0) await pause(delay, undefined, { signal });
+  }
+  const state = lastPods.map(pod => `${pod.metadata.name ?? pod.metadata.uid}:${pod.status?.phase ?? 'unknown'}${pod.metadata.deletionTimestamp ? ':deleting' : ''}`).join(', ') || 'none';
+  throw new Error(`Database pod replacement timed out after ${timeout / 1000}s; remaining pods: ${state}`);
 }
 
 export async function run({
@@ -103,13 +136,14 @@ export async function run({
     await job('persistence-seed', 'seed', fixture);
     const pvc = () => work([...kubectl, 'get', 'pvc', 'mythical-beasts-data', '-o', 'json'], 30000, true).then(JSON.parse);
     const before = await pvc();
-    const pods = () => work([...kubectl, 'get', 'pods', '-l', 'name=mythical-database', '-o', 'json'], 30000, true).then(JSON.parse);
+    const pods = (timeout = 30000) => work([...kubectl, 'get', 'pods', '-l', 'name=mythical-database', '-o', 'json'], timeout, true).then(JSON.parse);
     const oldPods = new Set((await pods()).items.map(pod => pod.metadata.uid));
+    assert(oldPods.size && [...oldPods].every(uid => typeof uid === 'string' && uid), 'Expected original database pod UIDs');
     await work([...kubectl, 'rollout', 'restart', 'deployment/mythical-database'], 30000);
     await work([...kubectl, 'rollout', 'status', 'deployment/mythical-database', '--timeout=180s'], 240000);
+    await waitForPodReplacement(pods, oldPods, { pause, signal: controller.signal });
+    console.log('PASS: Database pod replaced and ready');
     assertSamePvc(before, await pvc());
-    const newPods = (await pods()).items;
-    assert(newPods.length && newPods.every(pod => !oldPods.has(pod.metadata.uid)), 'Database restart did not replace the database pod');
     await job('persistence-verify', 'verify', fixture);
     console.log('PASS: Kubernetes stack and database PVC persistence');
   } catch (error) {
