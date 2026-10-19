@@ -11,6 +11,11 @@ This readme has the following sections:
   - [Running the Demonstration Environment](#running-the-demonstration-environment)
     - [Using Grafana Cloud for Observability (Optional)](#using-grafana-cloud-for-observability-optional)
     - [OpenTelemetry Collector (Optional)](#opentelemetry-collector-optional)
+  - [Upgrading an existing environment](#upgrading-an-existing-environment)
+    - [PostgreSQL data](#postgresql-data)
+    - [Images and source changes](#images-and-source-changes)
+    - [Custom configuration](#custom-configuration)
+    - [Dependency lock files](#dependency-lock-files)
   - [Services](#services)
     - [Grafana](#grafana)
     - [Mimir](#mimir)
@@ -30,6 +35,7 @@ This readme has the following sections:
     - [Running the Demonstration Environment with OpenTelemetry Collector](#running-the-demonstration-environment-with-opentelemetry-collector)
   - [Span and service graph metrics generation](#span-and-service-graph-metrics-generation)
   - [Smoke tests](#smoke-tests)
+  - [Kubernetes smoke test](#kubernetes-smoke-test)
 
 ## History
 
@@ -118,6 +124,73 @@ Read the [Using Grafana Cloud Hosted Observability](#Grafana-Cloud) section belo
 You can swap out the Grafana Alloy for the OpenTelemetry collector using an alternative configuration.
 
 Read the [Using the OpenTelemetry Collector](#Using-the-OpenTelemetry-Collector) section below to use this environment instead.
+
+## Upgrading an existing environment
+
+Run the following commands from the repository root. If your database uses an older PostgreSQL major version, migrate its data before updating the image.
+
+### PostgreSQL data
+
+The Kubernetes manifest moves from PostgreSQL 14.5 to 18.6. A persistent volume claim (PVC) retains database files between pods. PostgreSQL 18 cannot open PostgreSQL 14 database files.
+
+The Compose manifests move from PostgreSQL 18.4 to 18.6. Existing PostgreSQL 18 data does not need a major-version migration for this update.
+
+If you start PostgreSQL 18 against an existing PostgreSQL 14 data directory, it exits with an error like this:
+
+```text
+FATAL:  database files are incompatible with server
+DETAIL:  The data directory was initialized by PostgreSQL version 14, which is not compatible with this version 18.6 (Debian 18.6-1.pgdg13+2).
+```
+
+Kubernetes restarts the failing container and can report `CrashLoopBackOff`. Changing the image, mount path, or `PGDATA` does not upgrade the database files.
+
+To retain the data:
+
+1. Stop the application services to prevent writes. Keep the old PostgreSQL server running.
+2. Export the database with `pg_dumpall` and test a restore into a separate PostgreSQL 18 instance.
+3. Stop the old PostgreSQL server. Keep its PVC intact for rollback.
+4. Start PostgreSQL 18 with a new PVC and restore the export.
+5. Point the application at the restored database and make sure that the stored beast names remain available.
+
+Follow the [PostgreSQL major-version upgrade instructions](https://www.postgresql.org/docs/18/upgrading.html) for dump/restore details or the `pg_upgrade` alternative. For upgrades from older Compose checkouts, also follow the [PostgreSQL Docker image guidance](https://hub.docker.com/_/postgres). PostgreSQL 18 changes the default data layout, and the current Compose manifests mount the volume at `/var/lib/postgresql`.
+
+If you do not need the existing demo data, you can start with an empty database volume or PVC instead. Delete the old database volume or PVC only if you intend to discard its data. Deleting it permanently removes the stored beast names. Do not use `docker compose down -v` for a routine upgrade. It deletes all named volumes for the selected Compose project.
+
+### Images and source changes
+
+After any required database migration, pull the updated images and recreate the containers:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+For the OTel variant, add `-f docker-compose-otel.yml` to both commands. For the Cloud variant, add `-f docker-compose-cloud.yml` to both commands. `docker compose restart` keeps the existing containers and does not apply new images or changed environment variables.
+
+The manifests use pre-built application images from GHCR. The [image publication workflow](.github/workflows/publish-and-deploy-images.yaml) updates them after source changes reach `main`. Changing a local checkout or opening a pull request does not publish replacement images. Pull the application images after publication to use the updated dependencies.
+
+To test unpublished source changes, run the [smoke test](#smoke-tests). It builds all four application images from your checkout without publishing them. Do not use `source/build-source.sh` for local-only testing. That script builds and publishes images with `--push`.
+
+### Custom configuration
+
+If you maintain your own Compose overrides, update the Grafana and k6 environment variables below. The repository manifests already use these replacements.
+
+Replace `GF_INSTALL_PLUGINS` with `GF_PLUGINS_PREINSTALL_SYNC` to keep plugin installation synchronous. Grafana reports a deprecation warning for the old variable.
+
+Replace `K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true` with `K6_FEATURES=native-histograms`. If you already set `K6_FEATURES`, add `native-histograms` to its comma-separated feature list. k6 reports `Legacy env var detected, use --features or K6_FEATURES instead` for the old variable. These deprecated variables currently produce warnings rather than prevent startup.
+
+### Dependency lock files
+
+Both application Dockerfiles use `npm ci`. If you change dependencies, run `npm install` in the affected service directory. Include both `package.json` and `package-lock.json` in the update.
+
+If the manifest and lock file disagree, the Docker build stops with an error like this:
+
+```text
+npm error code EUSAGE
+npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+```
+
+Update the lock file before rebuilding. Do not switch the Dockerfile back to `npm install` to bypass this error. The lock file keeps builds on the dependency versions that the tests use.
 
 ## Services
 ### Grafana
@@ -435,10 +508,43 @@ Startup, seeded beast list checks, and telemetry ingestion each have a 180-secon
 
 The [smoke test workflow](.github/workflows/smoke-test.yaml) runs on every pull request. It also runs on pushes to `main` that change application source, Compose manifests, local telemetry configuration, or tests. It uploads stack diagnostics even when the test fails. You can also run it manually through GitHub Actions. To block merges when the test fails, make the `smoke` job a required check in the repository's branch rules.
 
-To test the smoke assertions and runner without Docker:
+To test the smoke assertions and runners without Docker or a Kubernetes cluster:
 
 ```bash
-node --test tests/smoke/*.test.mjs
+node --test tests/smoke/*.test.mjs tests/kubernetes/*.test.mjs
 ```
 
 This test covers the default local Alloy stack only. It does not cover the Cloud or OpenTelemetry Collector variants, browser interactions or Faro telemetry, Beyla, or the k6 load script. It does not apply latency thresholds or replace unit tests for application behavior.
+
+## Kubernetes smoke test
+
+The Kubernetes test deploys the application manifests from [`k8s/mythical`](k8s/mythical) into a disposable [kind](https://kind.sigs.k8s.io/docs/user/quick-start/) cluster. It builds the four application images from your checkout and loads them into that cluster. It does not publish images or use your active `kubectl` context.
+
+You need Docker, Docker Compose 2.24.0 or newer, Node.js 22 or newer, kind 0.33.0, and kubectl for Kubernetes 1.37. The test pins a Kubernetes 1.37.0 node image by digest. Run this command from the repository root:
+
+```bash
+node tests/kubernetes/run.mjs
+```
+
+The test retains the server deployment's three replicas and the database PVC from the repository manifests. Test-only overrides replace application image references with local build tags and set `imagePullPolicy: Never`. They replace the tracing endpoint placeholder and supply local log and profile endpoints. The test also sets `ALWAYS_SUCCEED=true`, as the Compose test does.
+
+The test adds a frontend and local Alloy, Grafana, Mimir, Loki, Tempo, and Pyroscope deployments. Their images and configuration come from the Compose manifests and repository files, rather than a separate set of version pins. Kubernetes ConfigMaps supply the configuration and the shared smoke assertions. A test-only Alloy adapter discovers application pods in the `default` namespace and scrapes each pod separately. A namespace-scoped role permits Alloy to read those pods. Scraping the server's ClusterIP instead can miss metrics from some of its three replicas.
+
+The test makes sure that:
+
+- The application deployments become available and Kubernetes Services route traffic to them.
+- Alloy scrapes every server replica with a distinct metrics instance label.
+- The [shared smoke assertions](#smoke-tests) pass inside the cluster, including API and proxy CRUD, queue consumption, and all four telemetry signals.
+- Grafana returns telemetry through its data source proxies and executes the provisioned MLT dashboard query.
+- A stored unicorn name survives replacement of the PostgreSQL pod on the same PVC and bound volume.
+- The API can read and delete that name after the database restart.
+
+The database restart currently causes API pods to restart after their database connections close. Kubernetes restarts them, and the persistence check waits for the API to recover. This check does not prove uninterrupted API availability during a database restart.
+
+Each run uses a unique cluster name, application image tags, and a dedicated kubeconfig under `tests/artifacts/<cluster>/`. Every cluster API command specifies that kubeconfig and context. kind publishes its API on a local port. The demo services do not publish host ports.
+
+The runner saves resource state, events, pod logs, check results, and kind diagnostics before cleanup. It deletes its cluster and its four application image tags after success, failure, or interruption. It does not delete other clusters or shared image tags. Set `SMOKE_ARTIFACT_DIR` to change the diagnostics directory.
+
+The [smoke test workflow](.github/workflows/smoke-test.yaml) includes a separate `Kubernetes smoke test` job on every pull request. It also runs for relevant pushes to `main`, including Kubernetes manifest changes. The job uploads diagnostics after success or failure, excluding the generated kubeconfig. To require this test before merging, add `Kubernetes smoke test` to the required checks in the repository's branch rules.
+
+This test uses a fresh PostgreSQL 18 PVC. It does not test migration of PostgreSQL 14 data or deployment to a managed cluster. It does not cover Grafana Cloud, cluster-specific storage drivers, network policies, ingress, browser interactions, Beyla, or k6.
