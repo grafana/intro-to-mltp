@@ -7,7 +7,7 @@ services:
   # auto-logs from those traces.
   # Includes Metrics, Logs, Traces and Profiles.
   alloy:
-    image: grafana/alloy:v1.20.1
+    image: grafana/alloy:v1.21.0
     ports:
       - "12350:12350"
       - "12347:12345"
@@ -28,7 +28,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:13.2.3
+    image: grafana/grafana:13.2.4
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"

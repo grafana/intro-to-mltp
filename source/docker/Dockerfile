@@ -1,5 +1,5 @@
 # Multistage build - allows for smaller final images post Python build
-FROM node:26.11.1-alpine3.24 AS builder
+FROM node:26.12.0-alpine3.24 AS builder
 ARG SERVICE
 
 WORKDIR /usr/src/app
@@ -22,7 +22,7 @@ RUN npm ci --omit=dev \
     && rm -rf /tmp/*
 
 # Create a slimmer image using the built node_modules
-FROM node:26.11.1-alpine3.24
+FROM node:26.12.0-alpine3.24
 ARG SERVICE
 
 WORKDIR /usr/src/app

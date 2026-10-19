@@ -5,7 +5,7 @@ volumes:
 services:
   # The opentelemetry-collector batches and processes traces sent to it.
   opentelemetry-collector:
-    image: otel/opentelemetry-collector-contrib:0.162.0
+    image: otel/opentelemetry-collector-contrib:0.163.1
     ports:
       - "12347:12345"
       - "12348:12348"
@@ -19,7 +19,7 @@ services:
 
   # The Grafana dashboarding server.
   grafana:
-    image: grafana/grafana:13.2.3
+    image: grafana/grafana:13.2.4
     volumes:
       - "./grafana/definitions:/var/lib/grafana/dashboards"
       - "./grafana/provisioning:/etc/grafana/provisioning"
