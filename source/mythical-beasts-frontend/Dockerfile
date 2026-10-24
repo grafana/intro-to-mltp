@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18-alpine AS build
+FROM node:18-alpine@sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e AS build
 
 # Accept build arguments (only keep API URL for build-time configuration)
 ARG REACT_APP_API_URL
@@ -22,7 +22,7 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM nginx:alpine
+FROM nginx:alpine@sha256:a3554c0d0b48177b1413c26e01f695334428020d9df01243fbae3e11cfd17417
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
